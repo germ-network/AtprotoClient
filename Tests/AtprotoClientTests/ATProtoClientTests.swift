@@ -5,14 +5,12 @@ import Testing
 @testable import AtprotoTypes
 
 struct APIOnlineTests {
-	@Test func testMessagingDelegateRecord() async throws {
-		let did = try Atproto.DID(fullId: "did:plc:lbu36k4mysk5g6gcrpw4dbwm")
+	@Test func testProfileFetch() async throws {
+		let did = try Atproto.DID(string: "did:plc:lbu36k4mysk5g6gcrpw4dbwm")
 
-		let result =
-			try await AtprotoClient(responseProvider: URLSession.defaultProvider)
-			.getGermMessagingDelegate(
-				did: did,
-			).tryUnwrap
-		#expect(result.id == "com.germnetwork.declaration")
+		let result = try await AtprotoClient(resourceFetcher: URLSession.shared)
+			.getProfile(did: did)
+		
+		#expect(result?.nsid == "app.bsky.actor.profile" )
 	}
 }
