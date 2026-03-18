@@ -11,7 +11,7 @@ import Foundation
 public struct MockAtprotoClient: AtprotoClientInterface {
 	public init() {}
 
-	public func plcDirectoryQuery(_: Atproto.DID) async throws -> DIDDocument {
+	public func plcDirectoryQuery(_: Atproto.DID) async throws -> Atproto.DIDDocument {
 		try .mock()
 	}
 

@@ -12,7 +12,7 @@ import GermConvenience
 extension AtprotoClient {
 	public func plcDirectoryQuery(
 		_ did: Atproto.DID
-	) async throws -> DIDDocument {
+	) async throws -> Atproto.DIDDocument {
 		let url = try constructPlcQueryUrl(did: did)
 		var request = URLRequest(url: url)
 		request.addValue("application/json", forHTTPHeaderField: "Accept")
