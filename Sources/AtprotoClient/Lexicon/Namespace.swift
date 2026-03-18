@@ -9,13 +9,6 @@ import AtprotoTypes
 import Foundation
 
 extension Lexicon {
-	public enum Com {
-		public enum Atproto {
-			public enum Repo {}
-			public enum Sync {}
-		}
-	}
-
 	public enum App {
 		public enum Bsky {
 			public enum Actor {

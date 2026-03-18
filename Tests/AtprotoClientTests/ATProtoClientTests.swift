@@ -10,7 +10,7 @@ struct APIOnlineTests {
 
 		let result = try await AtprotoClient(resourceFetcher: URLSession.shared)
 			.getProfile(did: did)
-		
-		#expect(result?.nsid == "app.bsky.actor.profile" )
+
+		#expect(result?.nsid == "app.bsky.actor.profile")
 	}
 }
