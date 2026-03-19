@@ -1,5 +1,5 @@
 {
-  "originHash" : "dc68833fd168ef368a807d8e1400f7f5fcb648a81f915c7c493d38b4183bd9f6",
+  "originHash" : "2ac451d44904cb0a1ca999084bbd9ecdeca640a7d9e65237ce8757d79898292a",
   "pins" : [
     {
       "identity" : "atprototypes",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
         "branch" : "main",
-        "revision" : "4fdc02a9b28ae0c2face07f33e62ac262787959a"
+        "revision" : "f9bb149f1d21edeece0bca46e5430f7ffcff9aaa"
       }
     },
     {

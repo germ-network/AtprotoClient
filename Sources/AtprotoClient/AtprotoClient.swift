@@ -115,4 +115,21 @@ extension AtprotoClientInterface {
 			session: session
 		)
 	}
+
+	public func createRecord<R: AtprotoRecord>(
+		did: Atproto.DID,
+		parameters: Lexicon.Com.Atproto.Repo.CreateRecord<R>.Parameters,
+		session: AtprotoSession
+	) async throws {
+		//rely on url caching for this value
+		let pdsUrl = try await plcDirectoryQuery(did)
+			.pdsUrl
+
+		let _ = try await authProcedure(
+			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
+			pdsUrl: pdsUrl,
+			parameters: parameters,
+			session: session
+		)
+	}
 }

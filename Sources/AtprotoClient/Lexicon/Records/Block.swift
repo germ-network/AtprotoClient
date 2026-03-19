@@ -46,3 +46,9 @@ extension Lexicon.App.Bsky.Graph {
 		}
 	}
 }
+
+extension Lexicon.App.Bsky.Graph.Block: AtprotoRecord {
+	public static func mock() -> AtprotoTypes.Lexicon.App.Bsky.Graph.Block {
+		.init(subject: .mock(), createdAt: .now)
+	}
+}
