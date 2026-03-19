@@ -18,7 +18,3 @@ extension Lexicon {
 		}
 	}
 }
-
-extension Lexicon.Com {
-	public enum GermNetwork {}
-}
