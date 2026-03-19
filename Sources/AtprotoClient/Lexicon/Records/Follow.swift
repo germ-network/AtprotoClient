@@ -18,7 +18,7 @@ extension Lexicon.App.Bsky.Graph {
 		//for encoding
 		private(set) var nsid: Atproto.NSID = Self.nsid
 
-		public let subject: String  // DID
+		public let subject: Atproto.DID  // DID
 		// Ignoring the createdAt field until we can easily decode
 		// public let createdAt: Date
 
@@ -33,6 +33,6 @@ extension Lexicon.App.Bsky.Graph {
 
 extension Lexicon.App.Bsky.Graph.Follow: AtprotoRecord {
 	public static func mock() -> Lexicon.App.Bsky.Graph.Follow {
-		.init(subject: Atproto.DID.mock().stringRepresentation)
+		.init(subject: .mock())
 	}
 }

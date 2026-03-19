@@ -38,10 +38,7 @@ extension AtprotoClientInterface {
 									reverse: nil
 								)
 							)
-					let followingDids = result.records.compactMap {
-						// TODO: Log if any of these fail?
-						try? Atproto.DID(string: $0.subject)
-					}
+					let followingDids = result.records.map(\.subject)
 					continuation.yield(followingDids)
 					cursor = result.cursor
 					fetchCount += 1
