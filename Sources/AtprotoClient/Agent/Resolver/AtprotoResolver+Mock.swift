@@ -13,7 +13,7 @@ public struct AtprotoMockResolver: AtprotoResolver {
 	public func resolve(handle: AtIdentifier.Handle) async throws -> Atproto.DID {
 		.mock()
 	}
-	public func resolve(did: Atproto.DID) async throws -> DIDDocument {
+	public func resolve(did: Atproto.DID) async throws -> Atproto.DIDDocument {
 		try .mock()
 	}
 }

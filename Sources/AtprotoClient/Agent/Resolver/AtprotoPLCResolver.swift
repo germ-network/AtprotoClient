@@ -29,8 +29,7 @@ public struct AtprotoLegacyResolver: AtprotoResolver {
 		return try .init(string: did)
 	}
 
-	public func resolve(did: AtprotoTypes.Atproto.DID) async throws -> AtprotoTypes.DIDDocument
-	{
+	public func resolve(did: AtprotoTypes.Atproto.DID) async throws -> Atproto.DIDDocument {
 		let url = try constructPlcQueryUrl(did: did)
 		var request = URLRequest(url: url)
 		request.addValue("application/json", forHTTPHeaderField: "Accept")

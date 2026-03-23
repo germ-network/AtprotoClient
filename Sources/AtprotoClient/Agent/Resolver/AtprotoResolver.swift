@@ -10,7 +10,7 @@ import Foundation
 
 public protocol AtprotoResolver: Sendable {
 	func resolve(handle: AtIdentifier.Handle) async throws -> Atproto.DID
-	func resolve(did: Atproto.DID) async throws -> DIDDocument
+	func resolve(did: Atproto.DID) async throws -> Atproto.DIDDocument
 }
 
 public enum AtprotoResolverError: Error {

@@ -14,7 +14,7 @@ extension AtprotoClient {
 		_ xrpc: X.Type,
 		parameters: X.Parameters,
 	) async throws -> X.Result {
-		let result = try await agent.response(
+		let resultX = try await agent.response(
 			.init(
 				relativePath: "/xrpc/" + X.nsid,
 				queryItems: parameters.asQueryItems(),
@@ -22,10 +22,13 @@ extension AtprotoClient {
 				acceptValue: X.acceptValue
 			)
 		)
-		.success(
-			decodeResult: X.Result.self,
-			orError: Lexicon.XRPCError.self
-		)
+
+		let result =
+			try resultX
+			.success(
+				decodeResult: X.Result.self,
+				orError: Lexicon.XRPCError.self
+			)
 
 		switch result {
 		case .error(let errorStruct, let statusCode):

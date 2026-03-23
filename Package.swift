@@ -17,7 +17,7 @@ let package = Package(
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
 			//			from: "0.0.2"
-			branch: "main"
+			branch: "anna/refactor"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",

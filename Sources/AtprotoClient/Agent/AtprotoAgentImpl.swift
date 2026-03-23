@@ -5,7 +5,6 @@
 //  Created by Anna Mistele on 3/23/26.
 //
 
-
 import AtprotoTypes
 import Foundation
 import GermConvenience
