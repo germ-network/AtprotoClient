@@ -8,14 +8,11 @@
 import AtprotoTypes
 import Foundation
 
-extension AtprotoClientInterface {
+extension AtprotoClient {
 	public func getFollowsStream(
 		did: Atproto.DID,
 	) async throws -> AsyncThrowingStream<[Atproto.DID], Error> {
 		//rely on url caching for this value
-		let pdsUrl = try await plcDirectoryQuery(did)
-			.pdsUrl
-
 		let (stream, continuation) = AsyncThrowingStream<[Atproto.DID], Error>
 			.makeStream(bufferingPolicy: .unbounded)
 
@@ -30,7 +27,6 @@ extension AtprotoClientInterface {
 							cursor: String?
 						) =
 							try await listRecords(
-								pdsUrl: pdsUrl,
 								parameters: .init(
 									repo: .did(did),
 									limit: 100,  // max
@@ -38,7 +34,10 @@ extension AtprotoClientInterface {
 									reverse: nil
 								)
 							)
-					let followingDids = result.records.map(\.subject)
+					let followingDids = result.records.compactMap {
+						// TODO: Log if any of these fail?
+						$0.subject
+					}
 					continuation.yield(followingDids)
 					cursor = result.cursor
 					fetchCount += 1
@@ -49,29 +48,5 @@ extension AtprotoClientInterface {
 			}
 		}
 		return stream
-	}
-}
-
-extension AtprotoClientInterface {
-	//the client must be auth'd
-	public func createBlockRecord(
-		myDid: Atproto.DID,
-		subject: Atproto.DID,
-		session: AtprotoSession
-	) async throws {
-		let blockRecord = Lexicon.App.Bsky.Graph.Block(
-			subject: subject,
-			createdAt: .now
-		)
-
-		try await createRecord(
-			did: myDid,
-			parameters: .init(
-				repo: .did(myDid),
-				rkey: nil,
-				record: blockRecord
-			),
-			session: session
-		)
 	}
 }

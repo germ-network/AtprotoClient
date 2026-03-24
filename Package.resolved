@@ -1,13 +1,13 @@
 {
-  "originHash" : "2ac451d44904cb0a1ca999084bbd9ecdeca640a7d9e65237ce8757d79898292a",
+  "originHash" : "498b51b22838fd4f33303ba8f74a54fdd3c2aad27508d0da5a14868cef63b260",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "f9bb149f1d21edeece0bca46e5430f7ffcff9aaa"
+        "branch" : "anna/refactor",
+        "revision" : "7c51e2f57bedd845260b7f5aa565bd5b5ea4aa47"
       }
     },
     {

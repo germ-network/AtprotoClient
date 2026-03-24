@@ -1,6 +1,6 @@
 //
 //  ProfileAuthedMetadata.swift
-//  AtprotoTypes
+//  AtprotoClient
 //
 //  Created by Anna Mistele on 9/24/25.
 //

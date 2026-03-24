@@ -11,24 +11,22 @@ import Foundation
 extension AtprotoClient {
 	public func authProcedure<X: XRPCProcedure>(
 		_ xrpc: X.Type,
-		pdsUrl: URL,
 		parameters: X.Parameters,
-		session: AtprotoSession
 	) async throws -> X.Result {
-		let requestURL = pdsUrl.appending(path: "/xrpc/" + X.nsid)
-
-		let request = URLRequest.createRequest(
-			url: requestURL,
-			httpMethod: .post,
-			httpBody: try parameters.httpBody(),
-			contentTypeValue: "application/json"
-		)
-
-		let result = try await session.authResponse(for: request)
-			.success(
-				decodeResult: X.Result.self,
-				orError: Lexicon.XRPCError.self
+		let result = try await agent.authResponse(
+			.init(
+				relativePath: "/xrpc/" + X.nsid,
+				queryItems: [],
+				httpMethod: .post,
+				httpBody: parameters.httpBody(),
+				contentTypeValue: X.contentTypeValue,
+				acceptValue: X.acceptValue
 			)
+		)
+		.success(
+			decodeResult: X.Result.self,
+			orError: Lexicon.XRPCError.self
+		)
 		switch result {
 		case .error(let errorStruct, let statusCode):
 			throw AtprotoClientError.requestFailed(
