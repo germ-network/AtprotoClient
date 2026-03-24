@@ -1,5 +1,5 @@
 {
-  "originHash" : "7d3386924c72d746d53cd256f44306de9a75a2fa457ed5637889f5c5c73e71cc",
+  "originHash" : "498b51b22838fd4f33303ba8f74a54fdd3c2aad27508d0da5a14868cef63b260",
   "pins" : [
     {
       "identity" : "atprototypes",
@@ -8,15 +8,6 @@
       "state" : {
         "branch" : "anna/refactor",
         "revision" : "7c51e2f57bedd845260b7f5aa565bd5b5ea4aa47"
-      }
-    },
-    {
-      "identity" : "atresolve",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/germ-network/ATResolve",
-      "state" : {
-        "revision" : "26459d9d6e7deb27066b9d7d2931279acc107138",
-        "version" : "1.0.0-germ.2"
       }
     },
     {
@@ -44,15 +35,6 @@
       "state" : {
         "revision" : "9f542610331815e29cc3821d3b6f488db8715517",
         "version" : "1.6.0"
-      }
-    },
-    {
-      "identity" : "swift-async-dns-resolver",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-async-dns-resolver.git",
-      "state" : {
-        "revision" : "2836c57c4c7c784569331cc35a4fe18941f6c796",
-        "version" : "0.5.0"
       }
     },
     {

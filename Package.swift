@@ -27,10 +27,6 @@ let package = Package(
 			url: "https://github.com/apple/swift-crypto.git",
 			.upToNextMajor(from: "4.2.0")),
 		.package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
-		.package(
-			url: "https://github.com/germ-network/ATResolve",
-			exact: "1.0.0-germ.2"
-		),
 	],
 	targets: [
 		// Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -42,8 +38,6 @@ let package = Package(
 				.product(name: "Crypto", package: "swift-crypto"),
 				"GermConvenience",
 				.product(name: "Logging", package: "swift-log"),
-				//for temp shim only
-				"ATResolve",
 			]
 		),
 		.testTarget(
