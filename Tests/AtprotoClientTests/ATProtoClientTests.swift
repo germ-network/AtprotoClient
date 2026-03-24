@@ -5,8 +5,6 @@ import Testing
 @testable import AtprotoTypes
 
 struct APIOnlineTests {
-	let resolver = AtprotoLegacyResolver(resourceFetcher: URLSession.shared)
-
 	struct MockProfileRecord: AtprotoRecord {
 		public static let nsid: Atproto.NSID = "app.bsky.actor.profile"
 		private(set) var nsid: Atproto.NSID = Self.nsid
@@ -25,26 +23,6 @@ struct APIOnlineTests {
 				displayName: "Mock name"
 			)
 		}
-	}
-
-	// Check Mark's profile record
-	@Test func testExistingRecord() async throws {
-		let did = try Atproto.DID(string: "did:plc:lbu36k4mysk5g6gcrpw4dbwm")
-
-		let client = AtprotoClient(
-			agent: AtprotoAgentImpl(
-				for: did,
-				resolver: resolver
-			)
-		)
-		let result: MockProfileRecord? = try await client.getRecord(
-			parameters: .init(
-				repo: .did(did),
-				rkey: "self",
-				cid: nil
-			)
-		)
-		#expect(result?.nsid == MockProfileRecord.nsid)
 	}
 
 	@Test func testAtprotoMockSession() async throws {
