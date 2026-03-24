@@ -16,11 +16,16 @@ public actor AtprotoMockAgentImpl {
 	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
 	private var pds: [Atproto.DID: [Atproto.NSID: [Atproto.RecordKey: AtprotoRecord]]]
 	private var pdsURL = URL(string: "https://mock-pds.germnetwork.com")!
+	let recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
 
-	public init(for did: Atproto.DID) {
+	public init(
+		for did: Atproto.DID,
+		recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
+	) {
 		self.pds = [:]
 		self.repo = did
 		self.resolver = AtprotoMockResolver()
+		self.recordRegistry = recordRegistry
 	}
 
 	public func putRecord<R: AtprotoRecord>(
@@ -63,9 +68,15 @@ extension AtprotoMockAgentImpl: AtprotoAgent {
 			let collection = try queryParameters["collection"].tryUnwrap
 			let rkey = try queryParameters["rkey"].tryUnwrap
 			let cid = queryParameters["cid"]
+
+			guard let recordType: AtprotoRecord.Type = self.recordRegistry[collection]
+			else {
+				throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			}
+
 			return try getRecordResponse(
+				recordType,
 				repo: repo,
-				collection: collection,
 				rkey: rkey,
 				cid: cid,
 			)
@@ -75,9 +86,15 @@ extension AtprotoMockAgentImpl: AtprotoAgent {
 			let limit = queryParameters["limit"]
 			let cursor = queryParameters["cursor"]
 			let reverse = queryParameters["reverse"]
+
+			guard let recordType: AtprotoRecord.Type = self.recordRegistry[collection]
+			else {
+				throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			}
+
 			return try listRecordsResponse(
+				recordType,
 				repo: repo,
-				collection: collection,
 				limit: limit,
 				cursor: cursor,
 				reverse: reverse,
@@ -106,29 +123,17 @@ enum AtprotoMockAgentError: Error {
 
 // Get record
 extension AtprotoMockAgentImpl {
-	public struct MockGetRecordResult: Sendable, Codable {
-		public let uri: String
-		public let cid: String
-		public let value: Data
-
-		init(uri: String, cid: String, value: AtprotoRecord) throws {
-			self.uri = uri
-			self.cid = cid
-			self.value = try JSONEncoder().encode(value)
-		}
-	}
-
-	func getRecord(
+	func getRecord<R: AtprotoRecord>(
+		_ type: R.Type,
 		repo: String,
-		collection: String,
 		rkey: String,
 		cid: String?
-	) throws -> MockGetRecordResult {
+	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Result {
 		let did = try Atproto.DID(string: repo)
 		guard let repoContents = pds[did] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
-		guard let collectionContents = repoContents[collection] else {
+		guard let collectionContents = repoContents[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 		guard let record = collectionContents[rkey] else {
@@ -136,20 +141,25 @@ extension AtprotoMockAgentImpl {
 		}
 
 		// TODO: Mock CID
-		return try MockGetRecordResult(
+		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Result(
 			uri: UUID().uuidString,
 			cid: cid ?? CID.mock().string,
-			value: record
+			value: record as! R
 		)
 	}
 
-	func getRecordResponse(
+	func getRecordResponse<R: AtprotoRecord>(
+		_ type: R.Type,
 		repo: String,
-		collection: String,
 		rkey: String,
 		cid: String?
 	) throws -> GermConvenience.HTTPDataResponse {
-		let result = try getRecord(repo: repo, collection: collection, rkey: rkey, cid: cid)
+		let result = try getRecord(
+			type,
+			repo: repo,
+			rkey: rkey,
+			cid: cid
+		)
 		let data = try JSONEncoder().encode(result)
 		return .init(
 			data: data,
@@ -165,18 +175,13 @@ extension AtprotoMockAgentImpl {
 
 // List records
 extension AtprotoMockAgentImpl {
-	public struct MockListRecordsResult: Sendable, Codable {
-		public let cursor: String?
-		public let records: [MockGetRecordResult]
-	}
-
-	func listRecords(
+	func listRecords<R: AtprotoRecord>(
+		_ type: R.Type,
 		repo: String,
-		collection: String,
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?
-	) throws -> MockListRecordsResult {
+	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Result {
 		if let limit {
 			guard limit >= 1, limit <= 100 else {
 				throw AtprotoMockAgentError.badParameters
@@ -187,33 +192,33 @@ extension AtprotoMockAgentImpl {
 		guard let repoContents = pds[did] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
-		guard let collectionContents = repoContents[collection] else {
+		guard let collectionContents = repoContents[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
-		var records: [MockGetRecordResult] = []
+		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Result] = []
 
 		// TODO: Implement cursor and CID
 		for (rkey, _) in collectionContents {
 			records.append(
 				try getRecord(
+					type,
 					repo: repo,
-					collection: collection,
 					rkey: rkey,
 					cid: nil
 				)
 			)
 		}
 
-		return MockListRecordsResult(
+		return Lexicon.Com.Atproto.Repo.ListRecords<R>.Result(
 			cursor: nil,
-			records: records
+			records: records as! [Lexicon.Com.Atproto.Repo.ListRecords<R>.Record]
 		)
 	}
 
-	func listRecordsResponse(
+	func listRecordsResponse<R: AtprotoRecord>(
+		_ type: R.Type,
 		repo: String,
-		collection: String,
 		limit: String?,
 		cursor: String?,
 		reverse: String?
@@ -231,8 +236,8 @@ extension AtprotoMockAgentImpl {
 				nil
 			}
 		let result = try listRecords(
+			type,
 			repo: repo,
-			collection: collection,
 			limit: limitInt,
 			cursor: cursor,
 			reverse: reverseBool
