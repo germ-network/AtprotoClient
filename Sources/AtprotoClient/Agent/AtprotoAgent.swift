@@ -16,7 +16,7 @@ import GermConvenience
 /// AtprotoOAuthAgent conforms to AtprotoAgent and uses OAuth functionality for authed calls
 /// AtprotoMockAgent conforms to AtprotoAgent and returns mocks for authed and unauthed calls
 ///  - Should also properly mock a server instance
-/// AtprotoAgentImpl conforms to AtprotoAgent and throws on authed calls
+/// UnauthenticatedAtprotoAgent conforms to AtprotoAgent and throws on authed calls
 ///
 /// Have a method on it that declares whether or not it can do auth
 ///

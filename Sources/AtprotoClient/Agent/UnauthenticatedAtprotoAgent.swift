@@ -1,5 +1,5 @@
 //
-//  AtprotoAgentImpl.swift
+//  UnauthenticatedAtprotoAgent.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/23/26.
@@ -9,32 +9,36 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public actor AtprotoAgentImpl {
+public actor UnauthenticatedAtprotoAgent {
 	public nonisolated let repo: Atproto.DID
 	public nonisolated let resolver: AtprotoResolver
-	private var baseURL: URL?
+	private var serviceURL: URL?
 	private let resourceFetcher: HTTPFetcher
 
 	public init(
 		for did: Atproto.DID,
 		resourceFetcher: HTTPFetcher = URLSession.shared,
 		resolver: AtprotoResolver,
-		serviceURL: URL? = URL(string: "https://public.api.bsky.app")!
+		serviceURL: URL?
 	) {
 		self.repo = did
 		self.resourceFetcher = resourceFetcher
 		self.resolver = resolver
-		self.baseURL = serviceURL
+		self.serviceURL = serviceURL
 	}
 }
 
-extension AtprotoAgentImpl: AtprotoAgent {
+extension UnauthenticatedAtprotoAgent: AtprotoAgent {
 	public nonisolated var allowsAuthedCalls: Bool { false }
 
 	public func response(_ request: AtprotoAgentRequest) async throws
 		-> GermConvenience.HTTPDataResponse
 	{
-		var requestURL = try baseURL.tryUnwrap.appending(path: request.relativePath)
+		if serviceURL == nil {
+			// Resolve the service URL to the user PDS if not otherwise written
+			serviceURL = try await resolver.resolve(did: repo).pdsUrl
+		}
+		var requestURL = try serviceURL.tryUnwrap.appending(path: request.relativePath)
 		requestURL = requestURL.appending(queryItems: request.queryItems)
 		let request = URLRequest.createRequest(
 			url: requestURL,
