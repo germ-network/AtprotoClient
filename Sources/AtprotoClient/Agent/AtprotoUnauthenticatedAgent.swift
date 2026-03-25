@@ -15,16 +15,26 @@ public actor AtprotoUnauthenticatedAgent {
 	private var serviceURL: URL?
 	private let resourceFetcher: HTTPFetcher
 
+	public enum AgentServiceURL {
+		case pds
+		case publicAPI(url: URL)
+	}
+
 	public init(
 		for did: Atproto.DID,
 		resourceFetcher: HTTPFetcher = URLSession.shared,
 		resolver: AtprotoResolver,
-		serviceURL: URL?
+		serviceURL: AgentServiceURL
 	) {
 		self.repo = did
 		self.resourceFetcher = resourceFetcher
 		self.resolver = resolver
-		self.serviceURL = serviceURL
+		switch serviceURL {
+		case .pds:
+			self.serviceURL = nil
+		case .publicAPI(let url):
+			self.serviceURL = url
+		}
 	}
 }
 
