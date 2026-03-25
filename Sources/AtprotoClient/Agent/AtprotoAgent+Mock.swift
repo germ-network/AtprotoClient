@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public actor AtprotoMockAgentImpl {
+public actor AtprotoMockAgent {
 	public nonisolated let repo: Atproto.DID
 	public nonisolated let resolver: AtprotoResolver
 
@@ -42,7 +42,7 @@ public actor AtprotoMockAgentImpl {
 	}
 }
 
-extension AtprotoMockAgentImpl: AtprotoAgent {
+extension AtprotoMockAgent: AtprotoAgent {
 	public nonisolated var allowsAuthedCalls: Bool { true }
 
 	public func authResponse(_ request: AtprotoAgentRequest) async throws
@@ -122,7 +122,7 @@ enum AtprotoMockAgentError: Error {
 }
 
 // Get record
-extension AtprotoMockAgentImpl {
+extension AtprotoMockAgent {
 	func getRecord<R: AtprotoRecord>(
 		_ type: R.Type,
 		repo: String,
@@ -174,7 +174,7 @@ extension AtprotoMockAgentImpl {
 }
 
 // List records
-extension AtprotoMockAgentImpl {
+extension AtprotoMockAgent {
 	func listRecords<R: AtprotoRecord>(
 		_ type: R.Type,
 		repo: String,

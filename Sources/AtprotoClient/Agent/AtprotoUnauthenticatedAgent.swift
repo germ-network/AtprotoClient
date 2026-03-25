@@ -1,5 +1,5 @@
 //
-//  UnauthenticatedAtprotoAgent.swift
+//  AtprotoUnauthenticatedAgent.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/23/26.
@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public actor UnauthenticatedAtprotoAgent {
+public actor AtprotoUnauthenticatedAgent {
 	public nonisolated let repo: Atproto.DID
 	public nonisolated let resolver: AtprotoResolver
 	private var serviceURL: URL?
@@ -28,7 +28,7 @@ public actor UnauthenticatedAtprotoAgent {
 	}
 }
 
-extension UnauthenticatedAtprotoAgent: AtprotoAgent {
+extension AtprotoUnauthenticatedAgent: AtprotoAgent {
 	public nonisolated var allowsAuthedCalls: Bool { false }
 
 	public func response(_ request: AtprotoAgentRequest) async throws
