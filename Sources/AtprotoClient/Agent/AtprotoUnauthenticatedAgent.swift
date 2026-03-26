@@ -9,32 +9,22 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public actor AtprotoUnauthenticatedAgent {
-	public nonisolated let repo: Atproto.DID
-	public nonisolated let resolver: AtprotoResolver
-	private var serviceURL: URL?
+public struct AtprotoUnauthenticatedAgent {
+	public let repo: Atproto.DID
+	public let resolver: AtprotoResolver
+	private var serviceURL: URL
 	private let resourceFetcher: HTTPFetcher
-
-	public enum AgentServiceURL {
-		case pds
-		case publicAPI(url: URL)
-	}
 
 	public init(
 		for did: Atproto.DID,
 		resourceFetcher: HTTPFetcher = URLSession.shared,
 		resolver: AtprotoResolver,
-		serviceURL: AgentServiceURL
+		serviceURL: URL
 	) {
 		self.repo = did
 		self.resourceFetcher = resourceFetcher
 		self.resolver = resolver
-		switch serviceURL {
-		case .pds:
-			self.serviceURL = nil
-		case .publicAPI(let url):
-			self.serviceURL = url
-		}
+		self.serviceURL = serviceURL
 	}
 }
 
@@ -44,11 +34,7 @@ extension AtprotoUnauthenticatedAgent: AtprotoAgent {
 	public func response(_ request: AtprotoAgentRequest) async throws
 		-> GermConvenience.HTTPDataResponse
 	{
-		if serviceURL == nil {
-			// Resolve the service URL to the user PDS if not otherwise written
-			serviceURL = try await resolver.resolve(did: repo).pdsUrl
-		}
-		var requestURL = try serviceURL.tryUnwrap.appending(path: request.relativePath)
+		var requestURL = serviceURL.appending(path: request.relativePath)
 		requestURL = requestURL.appending(queryItems: request.queryItems)
 		let request = URLRequest.createRequest(
 			url: requestURL,
