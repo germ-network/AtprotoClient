@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import HTTPTypes
 
 /// Agent
 ///
@@ -33,7 +34,7 @@ public protocol AtprotoAgent: Sendable {
 public struct AtprotoAgentRequest: Sendable {
 	public let relativePath: String
 	public let queryItems: [URLQueryItem]
-	public let httpMethod: HTTPMethod
+	public let httpMethod: HTTPRequest.Method
 	public let httpBody: Data?
 	public let contentTypeValue: String?
 	public let acceptValue: String?
@@ -41,7 +42,7 @@ public struct AtprotoAgentRequest: Sendable {
 	public init(
 		relativePath: String,
 		queryItems: [URLQueryItem],
-		httpMethod: HTTPMethod,
+		httpMethod: HTTPRequest.Method,
 		httpBody: Data?,
 		contentTypeValue: String?,
 		acceptValue: String?
@@ -57,7 +58,7 @@ public struct AtprotoAgentRequest: Sendable {
 	public init(
 		relativePath: String,
 		queryItems: [URLQueryItem],
-		httpMethod: HTTPMethod,
+		httpMethod: HTTPRequest.Method,
 		acceptValue: String?
 	) {
 		self.relativePath = relativePath

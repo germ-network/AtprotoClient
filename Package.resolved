@@ -1,5 +1,5 @@
 {
-  "originHash" : "a3dbaf27c95bb75832da7890f83dfb44a0923bfa13fb6acb70b0071558fc87ae",
+  "originHash" : "7d37be3826a425c2cdd15f8322ba0185456061630248ab4d7f8a8f559470d1bd",
   "pins" : [
     {
       "identity" : "atprototypes",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/GermConvenience.git",
       "state" : {
-        "revision" : "4c2b5d229f074a9b31c2f8cec8ab2fcea4a2e082",
-        "version" : "0.0.2"
+        "branch" : "mark/http-types",
+        "revision" : "e481c34f894accd6a619bfc92890aa949b14ab35"
       }
     },
     {
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "fa308c07a6fa04a727212d793e761460e41049c3",
         "version" : "4.3.0"
+      }
+    },
+    {
+      "identity" : "swift-http-types",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-http-types.git",
+      "state" : {
+        "revision" : "45eb0224913ea070ec4fba17291b9e7ecf4749ca",
+        "version" : "1.5.1"
       }
     },
     {

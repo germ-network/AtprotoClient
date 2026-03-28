@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import HTTPTypes
 
 public actor AtprotoMockAgent {
 	public nonisolated let repo: Atproto.DID
@@ -163,12 +164,12 @@ extension AtprotoMockAgent {
 		let data = try JSONEncoder().encode(result)
 		return .init(
 			data: data,
-			response: try HTTPURLResponse(
-				url: pdsURL,
-				statusCode: 200,
-				httpVersion: nil,
-				headerFields: ["Content-Type": "application/json"]
-			).tryUnwrap
+			response: .init(
+				status: .ok,
+				headerFields: .init(
+					[.init(name: .contentType, value: "application/json")]
+				)
+			)
 		)
 	}
 }
@@ -245,12 +246,17 @@ extension AtprotoMockAgent {
 		let data = try JSONEncoder().encode(result)
 		return .init(
 			data: data,
-			response: try HTTPURLResponse(
-				url: pdsURL,
-				statusCode: 200,
-				httpVersion: nil,
-				headerFields: ["Content-Type": "application/json"]
-			).tryUnwrap
+			response: .init(
+				status: .ok,
+				headerFields: .init(
+					[
+						.init(
+							name: .contentType,
+							value: "application/json"
+						)
+					]
+				)
+			)
 		)
 	}
 }
