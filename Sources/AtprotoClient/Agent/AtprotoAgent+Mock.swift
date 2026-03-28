@@ -167,7 +167,7 @@ extension AtprotoMockAgent {
 			response: .init(
 				status: .ok,
 				headerFields: .init(
-					[.init(name: .contentType, value: "application/json")]
+					[.init(name: .contentType, value: HTTPContentType.json.rawValue)]
 				)
 			)
 		)
@@ -252,7 +252,7 @@ extension AtprotoMockAgent {
 					[
 						.init(
 							name: .contentType,
-							value: "application/json"
+							value: HTTPContentType.json.rawValue
 						)
 					]
 				)

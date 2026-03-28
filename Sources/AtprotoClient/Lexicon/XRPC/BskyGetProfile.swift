@@ -7,6 +7,7 @@
 
 import AtprotoTypes
 import Foundation
+import GermConvenience
 
 ///https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
 ///https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.actor.getProfile/docs
@@ -15,7 +16,7 @@ extension Lexicon.App.Bsky.Actor {
 		public typealias Result = Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed
 
 		public static let nsid = "app.bsky.actor.getProfile"
-		public static let acceptValue = "application/json"
+		public static let acceptValue = HTTPContentType.json.rawValue
 
 		public struct Parameters: QueryParameters {
 			public let actor: AtIdentifier
