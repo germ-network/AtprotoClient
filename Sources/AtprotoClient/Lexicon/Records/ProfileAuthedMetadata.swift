@@ -16,7 +16,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 	///
 	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/actor/defs.json
 	///TODO: match the lexicon def
-	public struct ProfileViewDetailed: Sendable, Decodable {
+	public struct ProfileViewDetailed: Sendable, Codable {
 
 		/// The decentralized identifier (DID) of the user.
 		public let did: String
