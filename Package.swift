@@ -16,7 +16,8 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			from: "0.0.4"
+			//			from: "0.0.4"
+			branch: "mark/http-types"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
@@ -27,6 +28,7 @@ let package = Package(
 			url: "https://github.com/apple/swift-crypto.git",
 			.upToNextMajor(from: "4.2.0")),
 		.package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
+		.package(url: "https://github.com/apple/swift-http-types.git", from: "1.5.1"),
 	],
 	targets: [
 		// Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -37,6 +39,7 @@ let package = Package(
 				"AtprotoTypes",
 				.product(name: "Crypto", package: "swift-crypto"),
 				"GermConvenience",
+				.product(name: "HTTPTypes", package: "swift-http-types"),
 				.product(name: "Logging", package: "swift-log"),
 			]
 		),

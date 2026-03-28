@@ -39,9 +39,11 @@ extension AtprotoUnauthenticatedAgent: AtprotoAgent {
 			.appending(path: request.relativePath)
 			.appending(queryItems: request.queryItems)
 
-		let request = HTTPRequestBody(
-			url: requestURL,
-			method: request.httpMethod
+		let request = BundledHTTPRequest(
+			request: .init(
+				method: request.httpMethod,
+				url: requestURL,
+			)
 		)
 
 		return try await resourceFetcher.data(for: request)
