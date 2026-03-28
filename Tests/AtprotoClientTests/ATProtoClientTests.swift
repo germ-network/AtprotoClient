@@ -30,7 +30,7 @@ struct APIOnlineTests {
 		let rkey = "self"
 		let record = MockProfileRecord.mock()
 
-		let mockAgent = AtprotoMockAgentImpl(
+		let mockAgent = AtprotoMockAgent(
 			for: did,
 			recordRegistry: ["app.bsky.actor.profile": MockProfileRecord.self]
 		)
