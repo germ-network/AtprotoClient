@@ -19,7 +19,7 @@ public struct BlueskyPublicAgent {
 	}
 }
 
-extension BlueskyUnauthAgent: AtprotoAgent {
+extension BlueskyPublicAgent: AtprotoAgent {
 	public func response(
 		_ request: BundledHTTPRequest
 	) async throws -> HTTPDataResponse {

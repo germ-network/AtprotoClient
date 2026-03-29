@@ -8,7 +8,7 @@
 import AtprotoTypes
 import Foundation
 
-extension UnauthPDSAgent {
+extension PublicPDSAgent {
 	public func getProfile() async throws -> Lexicon.App.Bsky.Actor.Profile? {
 		return try await getRecord(
 			parameters: .init(

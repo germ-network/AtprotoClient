@@ -25,7 +25,7 @@ public struct PublicPDSAgent {
 	}
 }
 
-extension UnauthPDSAgent: AtprotoAgent {
+extension PublicPDSAgent: AtprotoAgent {
 	public func response(
 		_ request: BundledHTTPRequest
 	) async throws -> HTTPDataResponse {
