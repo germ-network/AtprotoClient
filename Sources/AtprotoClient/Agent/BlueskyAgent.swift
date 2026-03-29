@@ -9,7 +9,7 @@ import Foundation
 import GermConvenience
 
 //An unauthenticated agent for the Bluesky public api
-public struct BlueskyUnauthAgent {
+public struct BlueskyPublicAgent {
 	public let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 
