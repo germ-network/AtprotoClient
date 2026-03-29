@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public struct UnauthPDSAgent {
+public struct PublicPDSAgent {
 	public let repo: Atproto.DID
 	public let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
