@@ -21,21 +21,8 @@ extension AtprotoProxyAgent {
 
 		request.headers[try .atprotoProxy.tryUnwrap] = proxy
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
-
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
+		return try await response(request)
+			.parse(X.self)
 	}
 
 	public func call<X: XRPCProcedure>(
@@ -52,20 +39,7 @@ extension AtprotoProxyAgent {
 
 		request.headers[try .atprotoProxy.tryUnwrap] = proxy
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
-
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
+		return try await response(request)
+			.parse(X.self)
 	}
 }
