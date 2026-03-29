@@ -17,7 +17,7 @@ let package = Package(
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
 			//			from: "0.0.4"
-			branch: "mark/GER-1575-xrpc-query-parameters"
+			branch: "mark/typed-error-response"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",

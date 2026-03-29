@@ -78,11 +78,11 @@ extension AtprotoAgent {
 	}
 
 	public func putRecord<R: AtprotoRecord>(
-		parameters: Lexicon.Com.Atproto.Repo.PutRecord<R>.BodyParameters,
+		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws {
 		let _ = try await call(
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
-			bodyParams: parameters,
+			input: input,
 		)
 	}
 }

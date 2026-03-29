@@ -44,7 +44,9 @@ extension AtprotoAgent {
 		.init(
 			relativePath: "/xrpc/" + X.nsid,
 			queryItems: parameters.asQueryItems(),
-			headers: .init(dictionaryLiteral: (.accept, X.acceptValue) ),
+			headers: .init(
+				dictionaryLiteral: (.accept, X.acceptValue.rawValue)
+			),
 			method: .get,
 		)
 	}

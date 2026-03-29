@@ -1,13 +1,13 @@
 {
-  "originHash" : "9b249779def0bc611460866dcea22be04a18af7625446df5a3dd3ea444f5eff2",
+  "originHash" : "0012cc417084afffd3066723699143b70ae42d1332935f4c37a915c069b3881b",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "branch" : "mark/GER-1575-xrpc-query-parameters",
-        "revision" : "e419399a48efeaf4f3e0379030e013a8ec8b183d"
+        "branch" : "mark/typed-error-response",
+        "revision" : "fa478c28752f0981d3fc49b13302796cab81068d"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/GermConvenience.git",
       "state" : {
-        "revision" : "6d86bd4258c98a2f9b5707bda33b500e032ca942",
-        "version" : "0.1.0"
+        "branch" : "mark/add-any-content-type",
+        "revision" : "7b55ac1370d69eda2d312cfb1aed0ca674242f35"
       }
     },
     {

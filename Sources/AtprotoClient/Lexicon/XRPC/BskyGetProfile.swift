@@ -15,10 +15,10 @@ extension Lexicon.App.Bsky.Actor {
 	public enum GetProfile: XRPCRequest {
 		public typealias Output = Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed
 
-		public static let nsid = "app.bsky.actor.getProfile"
-		public static let acceptValue = HTTPContentType.json.rawValue
+		public static var nsid: String { "app.bsky.actor.getProfile" }
+		public static var acceptValue: HTTPContentType { .json }
 
-		public struct Parameters: QueryParameters {
+		public struct Parameters: QueryParametrizable {
 			public let actor: AtIdentifier
 
 			public init(actor: AtIdentifier) {
@@ -30,6 +30,10 @@ extension Lexicon.App.Bsky.Actor {
 			}
 		}
 	}
+}
+
+extension Lexicon.App.Bsky.Actor.GetProfile: XRPCResponseParsing {
+	public static var badRequestErrors: Set<String> { defaultErrors }
 }
 
 extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {

@@ -41,13 +41,13 @@ extension AtprotoProxyAgent {
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
-		bodyParams: X.BodyParameters,
+		input: X.Input,
 		proxy: String
 	) async throws -> X.Output {
 		var request = try constructRequest(
 			procedure,
 			queryParams: queryParams,
-			bodyParams: bodyParams
+			input: input
 		)
 
 		request.headers[try .atprotoProxy.tryUnwrap] = proxy
