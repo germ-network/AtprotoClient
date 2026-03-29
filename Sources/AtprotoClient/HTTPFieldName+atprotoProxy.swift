@@ -13,4 +13,8 @@ extension HTTPField.Name {
 	public static var atprotoProxy: Self? {
 		.init("atproto-proxy")
 	}
+
+	public static var atprotoAcceptLabelers: Self? {
+		.init("atproto-accept-labelers")
+	}
 }

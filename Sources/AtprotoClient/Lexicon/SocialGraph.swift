@@ -8,7 +8,7 @@
 import AtprotoTypes
 import Foundation
 
-extension AtprotoClient {
+extension AtprotoAgent {
 	public func getFollowsStream(
 		did: Atproto.DID,
 	) async throws -> AsyncThrowingStream<[Atproto.DID], Error> {

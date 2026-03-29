@@ -8,21 +8,24 @@
 import AtprotoTypes
 import Foundation
 
-extension AtprotoClient {
+extension UnauthPDSAgent {
 	public func getProfile() async throws -> Lexicon.App.Bsky.Actor.Profile? {
 		return try await getRecord(
 			parameters: .init(
-				repo: .did(agent.repo),
+				repo: .did(repo),
 				rkey: "self",
 				cid: nil
 			)
 		)
 	}
+}
 
-	public func getProfileViewerState(for did: Atproto.DID) async throws
-		-> Lexicon.App.Bsky.Actor.Defs.ViewerState
-	{
-		return try await authRequest(
+//this needs to be proxied to https://public.api.bsky.app
+extension AtprotoAgent {
+	public func authBskyProfileViewerState(
+		for did: Atproto.DID
+	) async throws -> Lexicon.App.Bsky.Actor.Defs.ViewerState {
+		try await call(
 			Lexicon.App.Bsky.Actor.GetProfile.self,
 			parameters: .init(actor: .did(did))
 		).viewer.tryUnwrap

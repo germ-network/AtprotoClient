@@ -11,21 +11,21 @@ import GermConvenience
 import HTTPTypes
 
 public actor AtprotoMockAgent {
-	public nonisolated let repo: Atproto.DID
-	public nonisolated let resolver: AtprotoResolver
+	public nonisolated let serviceUrl = URL(string: "https://mock-pds.germnetwork.com")!
+
+	nonisolated let repo: Atproto.DID
 
 	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
-	private var pds: [Atproto.DID: [Atproto.NSID: [Atproto.RecordKey: AtprotoRecord]]]
-	private var pdsURL = URL(string: "https://mock-pds.germnetwork.com")!
+	private var pds: [Atproto.NSID: [Atproto.RecordKey: AtprotoRecord]]
+
 	let recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
 
 	public init(
-		for did: Atproto.DID,
+		repo: Atproto.DID,
 		recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
 	) {
+		self.repo = repo
 		self.pds = [:]
-		self.repo = did
-		self.resolver = AtprotoMockResolver()
 		self.recordRegistry = recordRegistry
 	}
 
@@ -34,8 +34,11 @@ public actor AtprotoMockAgent {
 		repo: String,
 		rkey: String,
 	) throws {
-		let did = try Atproto.DID(string: repo)
-		pds[did, default: [:]][R.nsid, default: [:]][rkey] = record
+		guard repo == self.repo.stringRepresentation else {
+			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
+		}
+
+		pds[R.nsid, default: [:]][rkey] = record
 	}
 
 	public func printPds() {
@@ -44,24 +47,24 @@ public actor AtprotoMockAgent {
 }
 
 extension AtprotoMockAgent: AtprotoAgent {
-	public nonisolated var allowsAuthedCalls: Bool { true }
+	public func response(
+		_ request: BundledHTTPRequest
+	) async throws -> GermConvenience.HTTPDataResponse {
+		let requestUrl = try request.request.url.tryUnwrap
+		let pathComponents = requestUrl.pathComponents
 
-	public func authResponse(_ request: AtprotoAgentRequest) async throws
-		-> GermConvenience.HTTPDataResponse
-	{
-		throw AtprotoMockAgentError.notImplemented
-	}
-
-	public func response(_ request: AtprotoAgentRequest) async throws
-		-> GermConvenience.HTTPDataResponse
-	{
-		let pathComponents = request.relativePath.components(separatedBy: "/")
 		// pathComponents[0] is "/"
 		guard pathComponents[1] == "xrpc" else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 
-		let queryParameters = getQueryDictionary(for: request.queryItems)
+		let components = try URLComponents(
+			url: requestUrl,
+			resolvingAgainstBaseURL: false
+		).tryUnwrap
+		let queryParameters = getQueryDictionary(
+			for: try components.queryItems.tryUnwrap
+		)
 
 		switch pathComponents[pathComponents.endIndex - 1] {
 		case Lexicon.Com.Atproto.Repo.getRecordNSID:
@@ -118,8 +121,6 @@ extension AtprotoMockAgent: AtprotoAgent {
 
 enum AtprotoMockAgentError: Error {
 	case badParameters
-	case notImplemented
-	case unexpectedRecordType
 }
 
 // Get record
@@ -129,12 +130,12 @@ extension AtprotoMockAgent {
 		repo: String,
 		rkey: String,
 		cid: String?
-	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Result {
-		let did = try Atproto.DID(string: repo)
-		guard let repoContents = pds[did] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
+		guard repo == self.repo.stringRepresentation else {
+			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
 		}
-		guard let collectionContents = repoContents[R.nsid] else {
+
+		guard let collectionContents = pds[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 		guard let record = collectionContents[rkey] else {
@@ -142,7 +143,7 @@ extension AtprotoMockAgent {
 		}
 
 		// TODO: Mock CID
-		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Result(
+		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Output(
 			uri: UUID().uuidString,
 			cid: cid ?? CID.mock().string,
 			value: record as! R
@@ -167,7 +168,11 @@ extension AtprotoMockAgent {
 			response: .init(
 				status: .ok,
 				headerFields: .init(
-					[.init(name: .contentType, value: HTTPContentType.json.rawValue)]
+					[
+						.init(
+							name: .contentType,
+							value: HTTPContentType.json.rawValue)
+					]
 				)
 			)
 		)
@@ -182,22 +187,22 @@ extension AtprotoMockAgent {
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?
-	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Result {
+	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Output {
+		guard repo == self.repo.stringRepresentation else {
+			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
+		}
+
 		if let limit {
 			guard limit >= 1, limit <= 100 else {
 				throw AtprotoMockAgentError.badParameters
 			}
 		}
 
-		let did = try Atproto.DID(string: repo)
-		guard let repoContents = pds[did] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
-		}
-		guard let collectionContents = repoContents[R.nsid] else {
+		guard let collectionContents = pds[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
-		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Result] = []
+		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Output] = []
 
 		// TODO: Implement cursor and CID
 		for (rkey, _) in collectionContents {
@@ -211,7 +216,7 @@ extension AtprotoMockAgent {
 			)
 		}
 
-		return Lexicon.Com.Atproto.Repo.ListRecords<R>.Result(
+		return Lexicon.Com.Atproto.Repo.ListRecords<R>.Output(
 			cursor: nil,
 			records: records as! [Lexicon.Com.Atproto.Repo.ListRecords<R>.Record]
 		)

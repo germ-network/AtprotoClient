@@ -1,0 +1,28 @@
+//
+//  BlueskyAgent.swift
+//  AtprotoClient
+//
+//  Created by Mark @ Germ on 3/28/26.
+//
+
+import Foundation
+import GermConvenience
+
+//An unauthenticated agent for the Bluesky public api
+public struct BlueskyUnauthAgent {
+	public let serviceUrl: URL
+	private let resourceFetcher: HTTPFetcher
+
+	public init(resourceFetcher: HTTPFetcher = URLSession.shared) throws {
+		self.serviceUrl = try URL(string: "https://public.api.bsky.app").tryUnwrap
+		self.resourceFetcher = resourceFetcher
+	}
+}
+
+extension BlueskyUnauthAgent: AtprotoAgent {
+	public func response(
+		_ request: BundledHTTPRequest
+	) async throws -> HTTPDataResponse {
+		try await resourceFetcher.data(for: request)
+	}
+}

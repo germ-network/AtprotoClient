@@ -1,13 +1,13 @@
 {
-  "originHash" : "17c75360d79bed3f915059b8d4f71008caaab2ede5f19fcf576203897f3f64c4",
+  "originHash" : "9b249779def0bc611460866dcea22be04a18af7625446df5a3dd3ea444f5eff2",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "revision" : "dd6254f52468658d6d37ac8730be4ea6fbf870ca",
-        "version" : "0.0.4"
+        "branch" : "mark/GER-1575-xrpc-query-parameters",
+        "revision" : "e419399a48efeaf4f3e0379030e013a8ec8b183d"
       }
     },
     {
