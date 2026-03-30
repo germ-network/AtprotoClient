@@ -65,7 +65,8 @@ extension AtprotoAgent {
 		}
 	}
 
-	public func putRecord<R: AtprotoRecord>(
+	public func put<R: AtprotoRecord>(
+		_ recordType: R.Type,
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws {
 		let _ = try await call(
