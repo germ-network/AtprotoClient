@@ -22,7 +22,7 @@ extension AtprotoAgent {
 			input: input
 		)
 	}
-	
+
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
@@ -37,7 +37,7 @@ extension AtprotoAgent {
 		return try await response(request)
 			.parse(X.self)
 	}
-	
+
 	//breaking this apart lets us inject proxying
 	func constructRequest<X: XRPCProcedure>(
 		_ procedure: X.Type,
@@ -49,7 +49,7 @@ extension AtprotoAgent {
 		if X.Input.encoding != .none {
 			headerFields[.contentType] = X.Input.encoding.rawValue
 		}
-		
+
 		return .init(
 			relativePath: "/xrpc/" + X.nsid,
 			queryItems: queryParams.asQueryItems(),

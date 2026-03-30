@@ -15,7 +15,7 @@ public struct XRPCRequestComponents: Sendable {
 	public var headers: HTTPFields
 	public var method: HTTPRequest.Method
 	public var body: Data?
-	
+
 	public init(
 		relativePath: String,
 		queryItems: [URLQueryItem],
@@ -29,12 +29,13 @@ public struct XRPCRequestComponents: Sendable {
 		self.method = method
 		self.body = body
 	}
-	
+
 	public func constructUrl(serviceUrl: URL) throws -> BundledHTTPRequest {
-		let constructedUrl = serviceUrl
+		let constructedUrl =
+			serviceUrl
 			.appending(path: relativePath)
 			.appending(queryItems: queryItems)
-		
+
 		return try .init(
 			request: .init(
 				method: method,

@@ -24,7 +24,7 @@ extension BlueskyPublicAgent: AtprotoAgent {
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
-		
+
 		return try await resourceFetcher.data(for: request)
 	}
 }

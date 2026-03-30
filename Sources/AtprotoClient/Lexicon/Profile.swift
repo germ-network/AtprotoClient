@@ -8,18 +8,6 @@
 import AtprotoTypes
 import Foundation
 
-extension PublicPDSAgent {
-	public func getProfile() async throws -> Lexicon.App.Bsky.Actor.Profile? {
-		return try await getRecord(
-			parameters: .init(
-				repo: .did(repo),
-				rkey: "self",
-				cid: nil
-			)
-		)
-	}
-}
-
 //this needs to be proxied to https://public.api.bsky.app
 extension AtprotoAgent {
 	public func authBskyProfileViewerState(
