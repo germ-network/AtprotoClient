@@ -18,7 +18,7 @@ extension AtprotoProxyAgent {
 			parameters: .init(actor: .did(did)),
 			proxy: .init(
 				did: .init(string: "did:web:api.bsky.app"),
-				endpoint:  "/xrpc/" + Lexicon.App.Bsky.Actor.GetProfile.nsid
+				endpoint: "bsky_appview"
 			)
 		).viewer.tryUnwrap
 	}
