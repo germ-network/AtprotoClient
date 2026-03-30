@@ -20,8 +20,7 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			//			from: "0.0.2"
-			branch: "mark/http-types"
+			from: "0.1.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
