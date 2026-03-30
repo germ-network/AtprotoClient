@@ -10,8 +10,8 @@ import Foundation
 import GermConvenience
 
 public struct PublicPDSAgent {
-	public let repo: Atproto.DID
-	public let serviceUrl: URL
+	let repo: Atproto.DID
+	let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 
 	public init(
@@ -27,8 +27,9 @@ public struct PublicPDSAgent {
 
 extension PublicPDSAgent: AtprotoAgent {
 	public func response(
-		_ request: BundledHTTPRequest
+		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
-		try await resourceFetcher.data(for: request)
+		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
+		return try await resourceFetcher.data(for: request)
 	}
 }

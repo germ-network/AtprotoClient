@@ -48,8 +48,10 @@ public actor AtprotoMockAgent {
 
 extension AtprotoMockAgent: AtprotoAgent {
 	public func response(
-		_ request: BundledHTTPRequest
+		_ requestComponents: XRPCRequestComponents
 	) async throws -> GermConvenience.HTTPDataResponse {
+		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
+		
 		let requestUrl = try request.request.url.tryUnwrap
 		let pathComponents = requestUrl.pathComponents
 

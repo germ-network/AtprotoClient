@@ -21,8 +21,10 @@ public struct BlueskyPublicAgent {
 
 extension BlueskyPublicAgent: AtprotoAgent {
 	public func response(
-		_ request: BundledHTTPRequest
+		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
-		try await resourceFetcher.data(for: request)
+		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
+		
+		return try await resourceFetcher.data(for: request)
 	}
 }

@@ -40,22 +40,12 @@ extension AtprotoAgent {
 	func constructRequest<X: XRPCRequest>(
 		_ request: X.Type,
 		parameters: X.Parameters,
-	) throws -> BundledHTTPRequest {
-		let requestUrl =
-			serviceUrl
-			.appending(path: "/xrpc/" + X.nsid)
-			.appending(queryItems: parameters.asQueryItems())
-
-		let headerFields = HTTPFields(
-			dictionaryLiteral: (.accept, X.acceptValue)
-		)
-
-		return BundledHTTPRequest(
-			request: .init(
-				method: .get,
-				url: requestUrl,
-				headerFields: headerFields
-			),
+	) throws -> XRPCRequestComponents {
+		.init(
+			relativePath: "/xrpc/" + X.nsid,
+			queryItems: parameters.asQueryItems(),
+			headers: .init(dictionaryLiteral: (.accept, X.acceptValue) ),
+			method: .get,
 		)
 	}
 }

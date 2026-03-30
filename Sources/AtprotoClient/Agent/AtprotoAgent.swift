@@ -22,9 +22,7 @@ import HTTPTypes
 /// Have a method on it that declares whether or not it can do auth
 ///
 public protocol AtprotoAgent: Sendable {
-	//if a PDS, resolve it outside and then create an agent
-	var serviceUrl: URL { get }
-	func response(_ request: BundledHTTPRequest) async throws
+	func response(_ requestComponents: XRPCRequestComponents) async throws
 		-> HTTPDataResponse
 }
 

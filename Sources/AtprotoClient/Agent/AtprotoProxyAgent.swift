@@ -19,7 +19,7 @@ extension AtprotoProxyAgent {
 	) async throws -> X.Output {
 		var request = try constructRequest(request, parameters: parameters)
 
-		request.request.headerFields[try .atprotoProxy.tryUnwrap] = proxy
+		request.headers[try .atprotoProxy.tryUnwrap] = proxy
 
 		let result = try await response(request)
 			.success(
@@ -50,7 +50,7 @@ extension AtprotoProxyAgent {
 			bodyParams: bodyParams
 		)
 
-		request.request.headerFields[try .atprotoProxy.tryUnwrap] = proxy
+		request.headers[try .atprotoProxy.tryUnwrap] = proxy
 
 		let result = try await response(request)
 			.success(

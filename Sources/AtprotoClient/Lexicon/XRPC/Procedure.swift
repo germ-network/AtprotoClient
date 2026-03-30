@@ -56,24 +56,16 @@ extension AtprotoAgent {
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
 		bodyParams: X.BodyParameters,
-	) throws -> BundledHTTPRequest {
-		let requestUrl =
-			serviceUrl
-			.appending(path: "/xrpc/" + X.nsid)
-			.appending(queryItems: queryParams.asQueryItems())
-
-		let headerFields = HTTPFields(
-			dictionaryLiteral: (.accept, X.acceptValue),
-			(.contentType, X.contentTypeValue)
-		)
-
-		return try BundledHTTPRequest(
-			request: .init(
-				method: .post,
-				url: requestUrl,
-				headerFields: headerFields
+	) throws -> XRPCRequestComponents {
+		.init(
+			relativePath: "/xrpc/" + X.nsid,
+			queryItems: queryParams.asQueryItems(),
+			headers: .init(
+				dictionaryLiteral: (.accept, X.acceptValue),
+				(.contentType, X.contentTypeValue)
 			),
-			body: bodyParams.httpBody()
+			method: .post,
+			body: try bodyParams.httpBody()
 		)
 	}
 }
