@@ -62,14 +62,8 @@ extension PDSAgent {
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: .init(did: .did(did), cid: cid),
 			)
-		} catch AtprotoClientError.requestFailed(400, let error) {
-			if error == "BlobNotFound" {
-				return nil
-			} else {
-				throw
-					AtprotoClientError
-					.requestFailed(responseStatus: .badRequest, error: error)
-			}
+		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject) where errorObject.error == "BlobNotFound" {
+			return nil
 		}
 	}
 }

@@ -36,14 +36,8 @@ extension AtprotoAgent {
 				parameters: parameters,
 			).value
 			//this is per the api docs, not the lexicon
-		} catch AtprotoClientError.requestFailed(400, let error) {
-			if error == "RecordNotFound" {
-				return nil
-			} else {
-				throw
-					AtprotoClientError
-					.requestFailed(responseStatus: .badRequest, error: error)
-			}
+		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject) where errorObject.error == "RecordNotFound" {
+			return nil
 		}
 	}
 
@@ -66,14 +60,8 @@ extension AtprotoAgent {
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: parameters,
 			)
-		} catch AtprotoClientError.requestFailed(400, let error) {
-			if error == "BlobNotFound" {
-				return nil
-			} else {
-				throw
-					AtprotoClientError
-					.requestFailed(responseStatus: .badRequest, error: error)
-			}
+		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject) where errorObject.error == "BlobNotFound" {
+			return nil
 		}
 	}
 
