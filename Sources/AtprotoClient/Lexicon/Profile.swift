@@ -9,13 +9,17 @@ import AtprotoTypes
 import Foundation
 
 //this needs to be proxied to https://public.api.bsky.app
-extension AtprotoAgent {
+extension AtprotoProxyAgent {
 	public func authBskyProfileViewerState(
 		for did: Atproto.DID
 	) async throws -> Lexicon.App.Bsky.Actor.Defs.ViewerState {
 		try await call(
 			Lexicon.App.Bsky.Actor.GetProfile.self,
-			parameters: .init(actor: .did(did))
+			parameters: .init(actor: .did(did)),
+			proxy: .init(
+				did: .init(string: "did:web:api.bsky.app"),
+				endpoint:  "/xrpc/" + Lexicon.App.Bsky.Actor.GetProfile.nsid
+			)
 		).viewer.tryUnwrap
 	}
 }
