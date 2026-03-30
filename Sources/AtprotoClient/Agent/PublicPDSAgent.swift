@@ -10,7 +10,7 @@ import Foundation
 import GermConvenience
 
 public struct PublicPDSAgent: PDSAgent {
-	let did: Atproto.DID
+	public let did: Atproto.DID
 	let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 

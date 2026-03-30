@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 
 //has a default repo
-protocol PDSAgent: AtprotoAgent {
+public protocol PDSAgent: AtprotoAgent {
 	var did: Atproto.DID { get }
 }
 extension PDSAgent {
