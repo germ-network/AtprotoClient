@@ -26,7 +26,7 @@ extension AtprotoClient {
 			} else {
 				throw
 					AtprotoClientError
-					.requestFailed(responseCode: 400, error: error)
+					.requestFailed(responseStatus: .badRequest, error: error)
 			}
 		}
 	}
@@ -56,7 +56,7 @@ extension AtprotoClient {
 			} else {
 				throw
 					AtprotoClientError
-					.requestFailed(responseCode: 400, error: error)
+					.requestFailed(responseStatus: .badRequest, error: error)
 			}
 		}
 	}

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import HTTPTypes
 
 enum AtprotoClientError: Error {
 	case unexpectedRecordType
@@ -14,7 +15,7 @@ enum AtprotoClientError: Error {
 	case improperServiceUrl
 	case couldntConstructUrl
 	case nonHTTPResponse
-	case requestFailed(responseCode: Int, error: String)
+	case requestFailed(responseStatus: HTTPResponse.Status, error: String)
 }
 
 extension AtprotoClientError: LocalizedError {
@@ -26,8 +27,8 @@ extension AtprotoClientError: LocalizedError {
 		case .improperServiceUrl: "Improper service URL"
 		case .couldntConstructUrl: "Couldn't construct URL"
 		case .nonHTTPResponse: "Request failed with non-HTTP response"
-		case .requestFailed(let responseCode, let errorString):
-			"Request failed with response code: \(responseCode), error \(errorString)"
+		case .requestFailed(let response, let errorString):
+			"Request failed with response: \(response), error \(errorString)"
 		}
 	}
 }

@@ -28,9 +28,9 @@ extension AtprotoClient {
 			orError: Lexicon.XRPCError.self
 		)
 		switch result {
-		case .error(let errorStruct, let statusCode):
+		case .error(let errorStruct, let responseStatus):
 			throw AtprotoClientError.requestFailed(
-				responseCode: statusCode,
+				responseStatus: responseStatus,
 				error: errorStruct.error
 			)
 		case .result(let result):

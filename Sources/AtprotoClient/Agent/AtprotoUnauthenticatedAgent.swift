@@ -34,12 +34,18 @@ extension AtprotoUnauthenticatedAgent: AtprotoAgent {
 	public func response(_ request: AtprotoAgentRequest) async throws
 		-> GermConvenience.HTTPDataResponse
 	{
-		var requestURL = serviceURL.appending(path: request.relativePath)
-		requestURL = requestURL.appending(queryItems: request.queryItems)
-		let request = URLRequest.createRequest(
-			url: requestURL,
-			httpMethod: request.httpMethod
+		let requestURL =
+			serviceURL
+			.appending(path: request.relativePath)
+			.appending(queryItems: request.queryItems)
+
+		let request = BundledHTTPRequest(
+			request: .init(
+				method: request.httpMethod,
+				url: requestURL,
+			)
 		)
+
 		return try await resourceFetcher.data(for: request)
 	}
 
