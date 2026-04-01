@@ -8,7 +8,7 @@ A type conforming to `AtprotoAgent`
 
 - is sendable
 - declares a base serviceURL
-- provides a method with the signature of HTTPFetcher (`BundledHTTPRequest) async throws -> HTTPDataResponse`)
+- provides a method with the signature of [HTTPFetcher](https://github.com/germ-network/GermConvenience/blob/main/Sources/GermConvenience/HTTPFetcher.swift#L19)
 
 We first define primitive xrpc request and procedure methods on AtprotoAgent
 
