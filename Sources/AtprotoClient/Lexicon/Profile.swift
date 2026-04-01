@@ -9,6 +9,7 @@ import AtprotoTypes
 import Foundation
 
 //this needs to be proxied to https://public.api.bsky.app
+//reference for the endpoint: https://docs.bsky.app/docs/advanced-guides/api-directory#bluesky-services
 extension AtprotoProxyAgent {
 	public func authBskyProfileViewerState(
 		for did: Atproto.DID
