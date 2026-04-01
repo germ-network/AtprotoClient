@@ -45,7 +45,7 @@ extension AtprotoAgent {
 		input: X.Input,
 	) throws -> XRPCRequestComponents {
 		var headerFields = HTTPFields()
-		headerFields[.accept] = X.acceptValue.rawValue
+		headerFields[.accept] = X.outputEncoding.rawValue
 		if X.Input.encoding != .none {
 			headerFields[.contentType] = X.Input.encoding.rawValue
 		}

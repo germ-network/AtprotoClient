@@ -33,7 +33,7 @@ extension AtprotoAgent {
 			relativePath: "/xrpc/" + X.nsid,
 			queryItems: parameters.asQueryItems(),
 			headers: .init(
-				dictionaryLiteral: (.accept, X.acceptValue.rawValue)
+				dictionaryLiteral: (.accept, X.outputEncoding.rawValue)
 			),
 			method: .get,
 		)

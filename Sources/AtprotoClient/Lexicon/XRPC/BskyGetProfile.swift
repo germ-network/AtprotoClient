@@ -16,7 +16,9 @@ extension Lexicon.App.Bsky.Actor {
 		public typealias Output = Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed
 
 		public static var nsid: String { "app.bsky.actor.getProfile" }
-		public static var acceptValue: HTTPContentType { .json }
+		public static var outputEncoding: HTTPContentType {
+			.json
+		}
 
 		public struct Parameters: QueryParametrizable {
 			public let actor: AtIdentifier
