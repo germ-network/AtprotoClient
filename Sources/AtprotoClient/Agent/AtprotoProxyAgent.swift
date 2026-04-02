@@ -15,57 +15,31 @@ extension AtprotoProxyAgent {
 	public func call<X: XRPCRequest>(
 		_ request: X.Type,
 		parameters: X.Parameters,
-		proxy: String
+		proxy: ProxyService
 	) async throws -> X.Output {
 		var request = try constructRequest(request, parameters: parameters)
 
-		request.headers[try .atprotoProxy.tryUnwrap] = proxy
+		request.headers[try .atprotoProxy.tryUnwrap] = proxy.headerValue
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
-
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
+		return try await response(request)
+			.parse(X.self)
 	}
 
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
-		bodyParams: X.BodyParameters,
-		proxy: String
+		input: X.Input,
+		proxy: ProxyService
 	) async throws -> X.Output {
 		var request = try constructRequest(
 			procedure,
 			queryParams: queryParams,
-			bodyParams: bodyParams
+			input: input
 		)
 
-		request.headers[try .atprotoProxy.tryUnwrap] = proxy
+		request.headers[try .atprotoProxy.tryUnwrap] = proxy.headerValue
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
-
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
+		return try await response(request)
+			.parse(X.self)
 	}
 }

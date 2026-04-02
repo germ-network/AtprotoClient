@@ -20,21 +20,9 @@ extension AtprotoAgent {
 			parameters: parameters
 		)
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
+		return try await response(request)
+			.parse(X.self)
 
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
 	}
 
 	func constructRequest<X: XRPCRequest>(
@@ -44,7 +32,9 @@ extension AtprotoAgent {
 		.init(
 			relativePath: "/xrpc/" + X.nsid,
 			queryItems: parameters.asQueryItems(),
-			headers: .init(dictionaryLiteral: (.accept, X.acceptValue) ),
+			headers: .init(
+				dictionaryLiteral: (.accept, X.outputEncoding.rawValue)
+			),
 			method: .get,
 		)
 	}

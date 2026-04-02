@@ -14,58 +14,48 @@ extension AtprotoAgent {
 	//most procedures don't have a queryParams
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
-		bodyParams: X.BodyParameters,
-	) async throws -> X.Output where X.Parameters == EmptyParameters {
+		input: X.Input,
+	) async throws -> X.Output where X.Parameters == EmptyXRPCParameters {
 		try await call(
 			procedure,
 			queryParams: .init(),
-			bodyParams: bodyParams
+			input: input
 		)
 	}
 
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
-		bodyParams: X.BodyParameters,
+		input: X.Input,
 	) async throws -> X.Output {
 		let request = try constructRequest(
 			procedure,
 			queryParams: queryParams,
-			bodyParams: bodyParams
+			input: input
 		)
 
-		let result = try await response(request)
-			.success(
-				decodeResult: X.Output.self,
-				orError: Lexicon.XRPCError.self
-			)
-
-		switch result {
-		case .error(let errorStruct, let responseStatus):
-			throw AtprotoClientError.requestFailed(
-				responseStatus: responseStatus,
-				error: errorStruct.error
-			)
-		case .result(let result):
-			return result
-		}
+		return try await response(request)
+			.parse(X.self)
 	}
 
 	//breaking this apart lets us inject proxying
 	func constructRequest<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
-		bodyParams: X.BodyParameters,
+		input: X.Input,
 	) throws -> XRPCRequestComponents {
-		.init(
+		var headerFields = HTTPFields()
+		headerFields[.accept] = X.outputEncoding.rawValue
+		if X.Input.encoding != .none {
+			headerFields[.contentType] = X.Input.encoding.rawValue
+		}
+
+		return .init(
 			relativePath: "/xrpc/" + X.nsid,
 			queryItems: queryParams.asQueryItems(),
-			headers: .init(
-				dictionaryLiteral: (.accept, X.acceptValue),
-				(.contentType, X.contentTypeValue)
-			),
+			headers: headerFields,
 			method: .post,
-			body: try bodyParams.httpBody()
+			body: try X.Input.encode(input.schema)
 		)
 	}
 }

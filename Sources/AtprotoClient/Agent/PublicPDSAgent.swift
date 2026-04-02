@@ -1,5 +1,5 @@
 //
-//  AtprotoUnauthenticatedAgent.swift
+//  PublicPDSAgent.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/23/26.
@@ -9,8 +9,8 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public struct PublicPDSAgent {
-	let repo: Atproto.DID
+public struct PublicPDSAgent: PDSAgent {
+	public let did: Atproto.DID
 	let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 
@@ -19,7 +19,7 @@ public struct PublicPDSAgent {
 		resourceFetcher: HTTPFetcher = URLSession.shared,
 		serviceUrl: URL
 	) {
-		self.repo = did
+		self.did = did
 		self.resourceFetcher = resourceFetcher
 		self.serviceUrl = serviceUrl
 	}

@@ -36,14 +36,10 @@ extension AtprotoAgent {
 				parameters: parameters,
 			).value
 			//this is per the api docs, not the lexicon
-		} catch AtprotoClientError.requestFailed(400, let error) {
-			if error == "RecordNotFound" {
-				return nil
-			} else {
-				throw
-					AtprotoClientError
-					.requestFailed(responseStatus: .badRequest, error: error)
-			}
+		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+			where errorObject.error == "RecordNotFound"
+		{
+			return nil
 		}
 	}
 
@@ -58,6 +54,40 @@ extension AtprotoAgent {
 		return (records, result.cursor)
 	}
 
+	public func stream<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		recordType: R.Type = R.self,
+		did: Atproto.DID,
+	) async throws -> AsyncThrowingStream<[R], Error> {
+		let (stream, continuation) = AsyncThrowingStream<[R], Error>
+			.makeStream(bufferingPolicy: .unbounded)
+
+		Task {
+			var cursor: String? = nil
+			var fetchCount = 0
+			do {
+				repeat {
+					let result: (records: [R], cursor: String?) =
+						try await listRecords(
+							parameters: .init(
+								repo: .did(did),
+								limit: 100,  // max
+								cursor: cursor,
+								reverse: nil
+							)
+						)
+					continuation.yield(result.records)
+					cursor = result.cursor
+					fetchCount += 1
+				} while cursor != nil && fetchCount < ATProtoConstants.maxFetches
+				continuation.finish()
+			} catch {
+				continuation.finish(throwing: error)
+			}
+		}
+		return stream
+	}
+
 	public func getBlob(
 		parameters: Lexicon.Com.Atproto.Sync.GetBlob.Parameters,
 	) async throws -> Data? {
@@ -66,23 +96,20 @@ extension AtprotoAgent {
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: parameters,
 			)
-		} catch AtprotoClientError.requestFailed(400, let error) {
-			if error == "BlobNotFound" {
-				return nil
-			} else {
-				throw
-					AtprotoClientError
-					.requestFailed(responseStatus: .badRequest, error: error)
-			}
+		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+			where errorObject.error == "BlobNotFound"
+		{
+			return nil
 		}
 	}
 
-	public func putRecord<R: AtprotoRecord>(
-		parameters: Lexicon.Com.Atproto.Repo.PutRecord<R>.BodyParameters,
+	public func put<R: AtprotoRecord>(
+		_ recordType: R.Type,
+		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws {
 		let _ = try await call(
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
-			bodyParams: parameters,
+			input: input,
 		)
 	}
 }

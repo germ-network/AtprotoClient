@@ -51,7 +51,6 @@ extension AtprotoMockAgent: AtprotoAgent {
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> GermConvenience.HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
-		
 		let requestUrl = try request.request.url.tryUnwrap
 		let pathComponents = requestUrl.pathComponents
 
