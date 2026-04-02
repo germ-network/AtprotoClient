@@ -11,7 +11,9 @@ import Foundation
 extension PDSAgent {
 	public func getFollowsStream(
 		did: Atproto.DID,
-	) async throws -> any AsyncSequence<[Atproto.DID], Error> {
+	) async throws -> AsyncMapSequence<
+		AsyncThrowingStream<[Lexicon.App.Bsky.Graph.Follow], any Error>, [Atproto.DID]
+	> {
 		try await stream(
 			recordType: Lexicon.App.Bsky.Graph.Follow.self,
 			did: did
