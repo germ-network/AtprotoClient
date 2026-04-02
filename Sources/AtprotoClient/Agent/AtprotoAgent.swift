@@ -54,6 +54,40 @@ extension AtprotoAgent {
 		return (records, result.cursor)
 	}
 
+	public func stream<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		recordType: R.Type = R.self,
+		did: Atproto.DID,
+	) async throws -> AsyncThrowingStream<[R], Error> {
+		let (stream, continuation) = AsyncThrowingStream<[R], Error>
+			.makeStream(bufferingPolicy: .unbounded)
+
+		Task {
+			var cursor: String? = nil
+			var fetchCount = 0
+			do {
+				repeat {
+					let result: (records: [R], cursor: String?) =
+						try await listRecords(
+							parameters: .init(
+								repo: .did(did),
+								limit: 100,  // max
+								cursor: cursor,
+								reverse: nil
+							)
+						)
+					continuation.yield(result.records)
+					cursor = result.cursor
+					fetchCount += 1
+				} while cursor != nil && fetchCount < ATProtoConstants.maxFetches
+				continuation.finish()
+			} catch {
+				continuation.finish(throwing: error)
+			}
+		}
+		return stream
+	}
+
 	public func getBlob(
 		parameters: Lexicon.Com.Atproto.Sync.GetBlob.Parameters,
 	) async throws -> Data? {
