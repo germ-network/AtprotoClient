@@ -5,30 +5,22 @@
 //  Created by Mark @ Germ on 2/17/26.
 //
 
+import AtprotoTypes
 import Foundation
 import HTTPTypes
 
 enum AtprotoClientError: Error {
-	case unexpectedRecordType
-	case missingRecordValue
-	case failedToDecodeRecord
-	case improperServiceUrl
-	case couldntConstructUrl
-	case nonHTTPResponse
-	case requestFailed(responseStatus: HTTPResponse.Status, error: String)
+	case requestFailed(
+		responseStatus: HTTPResponse.Status,
+		error: ParseXRPCError
+	)
 }
 
 extension AtprotoClientError: LocalizedError {
-	var localizedDescription: String {
+	var errorDescription: String? {
 		switch self {
-		case .unexpectedRecordType: "Unexpected record type"
-		case .missingRecordValue: "Missing record value"
-		case .failedToDecodeRecord: "Failed to decode record"
-		case .improperServiceUrl: "Improper service URL"
-		case .couldntConstructUrl: "Couldn't construct URL"
-		case .nonHTTPResponse: "Request failed with non-HTTP response"
-		case .requestFailed(let response, let errorString):
-			"Request failed with response: \(response), error \(errorString)"
+		case .requestFailed(let status, let errorString):
+			"Request failed with response status: \(status), error \(errorString)"
 		}
 	}
 }

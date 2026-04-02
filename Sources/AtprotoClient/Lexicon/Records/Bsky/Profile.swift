@@ -1,5 +1,5 @@
 //
-//  ProfileRecord.swift
+//  Profile.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/3/26.
@@ -11,7 +11,7 @@ import Foundation
 extension Lexicon.App.Bsky.Actor {
 	/// For reading profile only. In order to write must implemented commented-out fields.
 	/// https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.actor.profile/docs
-	public struct Profile: Sendable, Decodable {
+	public struct Profile: Sendable, Codable, Equatable {
 		/// The identifier of the lexicon.
 		///
 		/// - Warning: The value must not change.
