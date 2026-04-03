@@ -38,8 +38,8 @@ struct APIOnlineTests {
 		// Prep by storing the record manually (we don't have put record yet)
 		try await mockAgent.putRecord(
 			record: record,
-			repo: did.stringRepresentation,
-			rkey: rkey
+			repo: .did(did),
+			rkey: .init(rawValue: rkey)
 		)
 
 		// Make a request via this mock agent and decode the result
@@ -47,7 +47,7 @@ struct APIOnlineTests {
 			Lexicon.Com.Atproto.Repo.GetRecord<MockProfileRecord>.self,
 			parameters: .init(
 				repo: .did(did),
-				rkey: rkey,
+				rkey: .init(rawValue: rkey),
 				cid: nil
 			)
 		)

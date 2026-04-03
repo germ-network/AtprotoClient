@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 
 //has a default repo
-public protocol PDSAgent: AtprotoAgent {
+public protocol PDSAgent: XRPCCallable {
 	var did: Atproto.DID { get }
 }
 extension PDSAgent {
@@ -30,7 +30,7 @@ extension PDSAgent {
 		try await getRecord(
 			parameters: .init(
 				repo: .did(did),
-				rkey: "self",
+				rkey: .init(rawValue: "self"),
 				cid: nil
 			)
 		)

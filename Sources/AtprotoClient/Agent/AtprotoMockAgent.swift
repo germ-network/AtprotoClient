@@ -1,5 +1,5 @@
 //
-//  AtprotoAgent+Mock.swift
+//  AtprotoMockAgent.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/13/26.
@@ -15,8 +15,10 @@ public actor AtprotoMockAgent {
 
 	nonisolated let repo: Atproto.DID
 
+	typealias EncodedRecordKey = String
+
 	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
-	private var pds: [Atproto.NSID: [Atproto.RecordKey: AtprotoRecord]]
+	private var pds: [Atproto.NSID: [EncodedRecordKey: AtprotoRecord]]
 
 	let recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
 
@@ -31,14 +33,14 @@ public actor AtprotoMockAgent {
 
 	public func putRecord<R: AtprotoRecord>(
 		record: R,
-		repo: String,
-		rkey: String,
+		repo: AtIdentifier,
+		rkey: Atproto.RecordKey,
 	) throws {
-		guard repo == self.repo.stringRepresentation else {
+		guard repo.wireFormat == self.repo.stringRepresentation else {
 			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
 		}
 
-		pds[R.nsid, default: [:]][rkey] = record
+		pds[R.nsid, default: [:]][rkey.rawValue] = record
 	}
 
 	public func printPds() {
@@ -46,7 +48,7 @@ public actor AtprotoMockAgent {
 	}
 }
 
-extension AtprotoMockAgent: AtprotoAgent {
+extension AtprotoMockAgent: XRPCCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> GermConvenience.HTTPDataResponse {
@@ -71,8 +73,14 @@ extension AtprotoMockAgent: AtprotoAgent {
 		case Lexicon.Com.Atproto.Repo.getRecordNSID:
 			let repo = try queryParameters["repo"].tryUnwrap
 			let collection = try queryParameters["collection"].tryUnwrap
-			let rkey = try queryParameters["rkey"].tryUnwrap
+			let encodedRkey = try queryParameters["rkey"].tryUnwrap
 			let cid = queryParameters["cid"]
+			let typedCid: CID? = try {
+				guard let cid else {
+					return nil
+				}
+				return try .init(string: cid)
+			}()
 
 			guard let recordType: AtprotoRecord.Type = self.recordRegistry[collection]
 			else {
@@ -81,9 +89,9 @@ extension AtprotoMockAgent: AtprotoAgent {
 
 			return try getRecordResponse(
 				recordType,
-				repo: repo,
-				rkey: rkey,
-				cid: cid,
+				repo: .did(.init(string: repo)),
+				rkey: .init(rawValue: encodedRkey),
+				cid: typedCid,
 			)
 		case Lexicon.Com.Atproto.Repo.listRecordsNSID:
 			let repo = try queryParameters["repo"].tryUnwrap
@@ -128,34 +136,34 @@ enum AtprotoMockAgentError: Error {
 extension AtprotoMockAgent {
 	func getRecord<R: AtprotoRecord>(
 		_ type: R.Type,
-		repo: String,
-		rkey: String,
-		cid: String?
+		repo: AtIdentifier,
+		rkey: Atproto.RecordKey,
+		cid: CID?
 	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
-		guard repo == self.repo.stringRepresentation else {
+		guard repo.wireFormat == self.repo.stringRepresentation else {
 			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
 		}
 
 		guard let collectionContents = pds[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
-		guard let record = collectionContents[rkey] else {
+		guard let record = collectionContents[rkey.rawValue] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
 		// TODO: Mock CID
 		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Output(
 			uri: UUID().uuidString,
-			cid: cid ?? CID.mock().string,
+			cid: cid?.string ?? CID.mock().string,
 			value: record as! R
 		)
 	}
 
 	func getRecordResponse<R: AtprotoRecord>(
 		_ type: R.Type,
-		repo: String,
-		rkey: String,
-		cid: String?
+		repo: AtIdentifier,
+		rkey: Atproto.RecordKey,
+		cid: CID?
 	) throws -> GermConvenience.HTTPDataResponse {
 		let result = try getRecord(
 			type,
@@ -206,12 +214,12 @@ extension AtprotoMockAgent {
 		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Output] = []
 
 		// TODO: Implement cursor and CID
-		for (rkey, _) in collectionContents {
+		for (encodedRkey, _) in collectionContents {
 			records.append(
 				try getRecord(
 					type,
-					repo: repo,
-					rkey: rkey,
+					repo: .did(.init(string: repo)),
+					rkey: .init(rawValue: encodedRkey),
 					cid: nil
 				)
 			)

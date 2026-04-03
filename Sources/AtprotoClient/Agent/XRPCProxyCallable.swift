@@ -9,9 +9,9 @@ import AtprotoTypes
 import Foundation
 
 //an implementation (e.g. auth'd PDS) can declare itself caxpable of proxying requests
-public protocol AtprotoProxyAgent: AtprotoAgent {}
+public protocol XRPCProxyCallable: XRPCCallable {}
 
-extension AtprotoProxyAgent {
+extension XRPCProxyCallable {
 	public func call<X: XRPCRequest>(
 		_ request: X.Type,
 		parameters: X.Parameters,

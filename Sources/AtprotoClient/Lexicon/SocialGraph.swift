@@ -14,8 +14,8 @@ extension PDSAgent {
 	) async throws -> AsyncMapSequence<
 		AsyncThrowingStream<[Lexicon.App.Bsky.Graph.Follow], any Error>, [Atproto.DID]
 	> {
-		try await stream(
-			recordType: Lexicon.App.Bsky.Graph.Follow.self,
+		try await streamRecords(
+			type: Lexicon.App.Bsky.Graph.Follow.self,
 			did: did
 		)
 		.map { records in

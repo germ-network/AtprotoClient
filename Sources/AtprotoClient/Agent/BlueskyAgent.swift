@@ -19,7 +19,7 @@ public struct BlueskyPublicAgent {
 	}
 }
 
-extension BlueskyPublicAgent: AtprotoAgent {
+extension BlueskyPublicAgent: XRPCCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {

@@ -21,13 +21,15 @@ import HTTPTypes
 ///
 /// Have a method on it that declares whether or not it can do auth
 ///
-public protocol AtprotoAgent: Sendable {
+public protocol XRPCCallable: Sendable {
 	func response(_ requestComponents: XRPCRequestComponents) async throws
 		-> HTTPDataResponse
 }
 
-extension AtprotoAgent {
+extension XRPCCallable {
 	public func getRecord<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
 	) async throws -> R? {
 		do {
@@ -44,6 +46,8 @@ extension AtprotoAgent {
 	}
 
 	func listRecords<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
 	) async throws -> ([R], String?) {
 		let result = try await call(
@@ -54,9 +58,9 @@ extension AtprotoAgent {
 		return (records, result.cursor)
 	}
 
-	public func stream<R: AtprotoRecord>(
+	public func streamRecords<R: AtprotoRecord>(
 		//allows for type inference when clear and explicit defn when not
-		recordType: R.Type = R.self,
+		type: R.Type = R.self,
 		did: Atproto.DID,
 	) async throws -> AsyncThrowingStream<[R], Error> {
 		let (stream, continuation) = AsyncThrowingStream<[R], Error>
@@ -103,12 +107,31 @@ extension AtprotoAgent {
 		}
 	}
 
-	public func put<R: AtprotoRecord>(
-		_ recordType: R.Type,
+	public func createRecord<R: AtprotoRecord>(
+		input: Lexicon.Com.Atproto.Repo.CreateRecord<R>.Input,
+	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output {
+		try await call(
+			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
+			input: input,
+		)
+	}
+
+	public func putRecord<R: AtprotoRecord>(
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
-	) async throws {
-		let _ = try await call(
+	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output {
+		try await call(
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
+			input: input,
+		)
+	}
+
+	public func deleteRecord<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		type: R.Type = R.self,
+		input: Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Input,
+	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output {
+		try await call(
+			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,
 			input: input,
 		)
 	}

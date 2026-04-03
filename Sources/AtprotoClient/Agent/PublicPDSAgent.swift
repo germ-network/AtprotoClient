@@ -25,7 +25,7 @@ public struct PublicPDSAgent: PDSAgent {
 	}
 }
 
-extension PublicPDSAgent: AtprotoAgent {
+extension PublicPDSAgent: XRPCCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {

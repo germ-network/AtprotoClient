@@ -10,7 +10,7 @@ import Foundation
 import GermConvenience
 import HTTPTypes
 
-extension AtprotoAgent {
+extension XRPCCallable {
 	public func call<X: XRPCRequest>(
 		_ request: X.Type,
 		parameters: X.Parameters,
@@ -22,7 +22,6 @@ extension AtprotoAgent {
 
 		return try await response(request)
 			.parse(X.self)
-
 	}
 
 	func constructRequest<X: XRPCRequest>(
