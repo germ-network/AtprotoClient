@@ -110,17 +110,3 @@ extension Lexicon.App.Bsky.Graph.GetRelationships.Errors: LocalizedError {
 extension Atproto {
 	typealias ATURI = String
 }
-
-
-extension AtIdentifier: @retroactive Decodable {
-	public init(from decoder: any Decoder) throws {
-		let container = try decoder.singleValueContainer()
-		let string = try container.decode(String.self)
-		
-		if let did = try? Atproto.DID(string: string) {
-			self = .did(did)
-		} else {
-			self = .handle(string)
-		}
-	}
-}
