@@ -7,8 +7,11 @@
 
 import AtprotoTypes
 
-public protocol AuthPDSAgent: PDSAgent, XRPCProxyCallable, XRPCAuthCallable {
+public protocol AuthPDSAgent: PDSAgent, XRPCProxyCallable, XRPCAuthCallable {}
+
+extension AuthPDSAgent {
 	// The PDSAgent `repo` must be the same as XRPCAuthCallable `authenticatedDID`
-	// So we're enforcing an init with a single, authenticated repo DID
-	init(authenticatedRepo: Atproto.DID)
+	var isValid: Bool {
+		authenticatedDID == repo
+	}
 }
