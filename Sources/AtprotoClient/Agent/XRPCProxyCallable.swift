@@ -24,7 +24,9 @@ extension XRPCProxyCallable {
 		return try await response(request)
 			.parse(X.self)
 	}
+}
 
+extension XRPCProxyCallable where Self: XRPCAuthCallable {
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
