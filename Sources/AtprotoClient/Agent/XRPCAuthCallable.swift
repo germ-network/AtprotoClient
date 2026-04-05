@@ -11,7 +11,9 @@ import GermConvenience
 import HTTPTypes
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of authed requests
-public protocol XRPCAuthCallable: XRPCCallable {}
+public protocol XRPCAuthCallable: XRPCCallable {
+	var authenticatedDID: Atproto.DID { get }
+}
 
 extension XRPCAuthCallable {
 	public func createRecord<R: AtprotoRecord>(

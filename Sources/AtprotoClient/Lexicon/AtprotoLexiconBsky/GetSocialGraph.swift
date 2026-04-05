@@ -1,5 +1,5 @@
 //
-//  SocialGraph.swift
+//  GetSocialGraph.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/2/26.

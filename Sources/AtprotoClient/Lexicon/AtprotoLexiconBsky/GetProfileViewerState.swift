@@ -1,5 +1,5 @@
 //
-//  ProfileViewerState.swift
+//  GetProfileViewerState.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/3/26.

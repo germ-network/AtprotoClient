@@ -10,16 +10,16 @@ import Foundation
 import GermConvenience
 
 public struct PublicPDSAgent: PDSAgent {
-	public let did: Atproto.DID
+	public let repo: Atproto.DID
 	let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 
 	public init(
-		did: Atproto.DID,
+		repo: Atproto.DID,
 		resourceFetcher: HTTPFetcher = URLSession.shared,
 		serviceUrl: URL
 	) {
-		self.did = did
+		self.repo = repo
 		self.resourceFetcher = resourceFetcher
 		self.serviceUrl = serviceUrl
 	}

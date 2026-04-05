@@ -10,7 +10,7 @@ import Foundation
 
 //has a default repo
 public protocol PDSAgent: XRPCCallable {
-	var did: Atproto.DID { get }
+	var repo: Atproto.DID { get }
 }
 extension PDSAgent {
 	public func getRecord<R: AtprotoRecord>(
@@ -19,7 +19,7 @@ extension PDSAgent {
 	) async throws -> R? {
 		try await getRecord(
 			parameters: .init(
-				repo: .did(did),
+				repo: .did(repo),
 				rkey: rkey,
 				cid: cid
 			)
@@ -29,7 +29,7 @@ extension PDSAgent {
 	public func getProfile() async throws -> Lexicon.App.Bsky.Actor.Profile? {
 		try await getRecord(
 			parameters: .init(
-				repo: .did(did),
+				repo: .did(repo),
 				rkey: .init(rawValue: "self"),
 				cid: nil
 			)
@@ -44,7 +44,7 @@ extension PDSAgent {
 		let result = try await call(
 			Lexicon.Com.Atproto.Repo.ListRecords<R>.self,
 			parameters: .init(
-				repo: .did(did),
+				repo: .did(repo),
 				limit: limit,
 				cursor: cursor,
 				reverse: reverse
@@ -60,7 +60,7 @@ extension PDSAgent {
 		do {
 			return try await call(
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
-				parameters: .init(did: .did(did), cid: cid),
+				parameters: .init(did: .did(repo), cid: cid),
 			)
 		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
 			where errorObject.error == "BlobNotFound"
