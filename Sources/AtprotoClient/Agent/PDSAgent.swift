@@ -14,7 +14,8 @@ public protocol PDSAgent: XRPCCallable {
 }
 extension PDSAgent {
 	public func getRecord<R: AtprotoRecord>(
-		rkey: Atproto.RecordKey,
+		type: R.Type = R.self,
+		rkey: R.Key,
 		cid: CID?
 	) async throws -> R? {
 		try await getRecord(
@@ -27,13 +28,7 @@ extension PDSAgent {
 	}
 
 	public func getProfile() async throws -> Lexicon.App.Bsky.Actor.Profile? {
-		try await getRecord(
-			parameters: .init(
-				repo: .did(repo),
-				rkey: .init(rawValue: "self"),
-				cid: nil
-			)
-		)
+		try await getRecord()
 	}
 
 	func listRecords<R: AtprotoRecord>(

@@ -5,7 +5,7 @@
 //  Created by Anna Mistele on 3/13/26.
 //
 
-import AtprotoTypes
+@testable import AtprotoTypes
 import Foundation
 import GermConvenience
 import HTTPTypes
@@ -13,34 +13,22 @@ import HTTPTypes
 public actor AtprotoMockAgent {
 	public nonisolated let serviceUrl = URL(string: "https://mock-pds.germnetwork.com")!
 
-	nonisolated let repo: Atproto.DID
+	nonisolated public let repo: Atproto.DID
 
 	typealias EncodedRecordKey = String
 
 	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
-	private var pds: [Atproto.NSID: [EncodedRecordKey: AtprotoRecord]]
+	private var pds: [Atproto.NSID: [EncodedRecordKey: any AtprotoRecord]]
 
-	let recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
+	let recordRegistry: [Atproto.NSID: any AtprotoRecord.Type]
 
 	public init(
 		repo: Atproto.DID,
-		recordRegistry: [Atproto.NSID: AtprotoRecord.Type]
+		recordRegistry: [Atproto.NSID: any AtprotoRecord.Type]
 	) {
 		self.repo = repo
 		self.pds = [:]
 		self.recordRegistry = recordRegistry
-	}
-
-	public func putRecord<R: AtprotoRecord>(
-		record: R,
-		repo: AtIdentifier,
-		rkey: Atproto.RecordKey,
-	) throws {
-		guard repo.wireFormat == self.repo.stringRepresentation else {
-			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
-		}
-
-		pds[R.nsid, default: [:]][rkey.rawValue] = record
 	}
 
 	public func printPds() {
@@ -51,7 +39,7 @@ public actor AtprotoMockAgent {
 extension AtprotoMockAgent: XRPCCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
-	) async throws -> GermConvenience.HTTPDataResponse {
+	) async throws -> HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
 		let requestUrl = try request.request.url.tryUnwrap
 		let pathComponents = requestUrl.pathComponents
@@ -71,50 +59,118 @@ extension AtprotoMockAgent: XRPCCallable {
 
 		switch pathComponents[pathComponents.endIndex - 1] {
 		case Lexicon.Com.Atproto.Repo.getRecordNSID:
-			let repo = try queryParameters["repo"].tryUnwrap
-			let collection = try queryParameters["collection"].tryUnwrap
-			let encodedRkey = try queryParameters["rkey"].tryUnwrap
-			let cid = queryParameters["cid"]
-			let typedCid: CID? = try {
-				guard let cid else {
-					return nil
-				}
-				return try .init(string: cid)
-			}()
-
-			guard let recordType: AtprotoRecord.Type = self.recordRegistry[collection]
-			else {
-				throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			}
-
-			return try getRecordResponse(
-				recordType,
-				repo: .did(.init(string: repo)),
-				rkey: .init(rawValue: encodedRkey),
-				cid: typedCid,
-			)
+			return try getRecords(queryParameters: queryParameters)
 		case Lexicon.Com.Atproto.Repo.listRecordsNSID:
-			let repo = try queryParameters["repo"].tryUnwrap
-			let collection = try queryParameters["collection"].tryUnwrap
-			let limit = queryParameters["limit"]
-			let cursor = queryParameters["cursor"]
-			let reverse = queryParameters["reverse"]
-
-			guard let recordType: AtprotoRecord.Type = self.recordRegistry[collection]
-			else {
-				throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			}
-
-			return try listRecordsResponse(
-				recordType,
-				repo: repo,
-				limit: limit,
-				cursor: cursor,
-				reverse: reverse,
-			)
+			return try listRecords(queryParameters: queryParameters)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
+		case Lexicon.Com.Atproto.Repo.putRecordNSID:
+			return try putRecord(bodyData: requestComponents.body.tryUnwrap)
 		default:
+			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+		}
+	}
+	
+	private func getRecords(
+		queryParameters: [String : String]
+	) throws -> HTTPDataResponse {
+		let repo = try queryParameters["repo"].tryUnwrap
+		let collection = try queryParameters["collection"].tryUnwrap
+		let encodedRkey = try queryParameters["rkey"].tryUnwrap
+		let cid = queryParameters["cid"]
+		let typedCid: CID? = try {
+			guard let cid else {
+				return nil
+			}
+			return try .init(string: cid)
+		}()
+		
+		
+		guard let recordType: any AtprotoRecord.Type = self.recordRegistry[collection]
+		else {
+			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+		}
+		
+		return try getRecordResponse(
+			recordType,
+			repo: .did(.init(string: repo)),
+			encodedRkey: encodedRkey,
+			cid: typedCid
+		)
+	}
+	
+	private func listRecords(
+		queryParameters: [String : String]
+	) throws -> HTTPDataResponse {
+		let repo = try queryParameters["repo"].tryUnwrap
+		let collection = try queryParameters["collection"].tryUnwrap
+		let limit = queryParameters["limit"]
+		let cursor = queryParameters["cursor"]
+		let reverse = queryParameters["reverse"]
+
+		guard let recordType: any AtprotoRecord.Type = self.recordRegistry[collection]
+		else {
+			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+		}
+
+		return try listRecordsResponse(
+			recordType,
+			repo: repo,
+			limit: limit,
+			cursor: cursor,
+			reverse: reverse,
+		)
+	}
+	
+	struct ProtoSchema: Decodable {
+		let collection: Atproto.NSID
+	}
+	
+	private func putRecord(
+		bodyData: Data
+	) throws -> HTTPDataResponse {
+		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
+		
+		guard let recordType = recordRegistry[protoSchema.collection] else {
+			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+		}
+		
+		//need the type to be known at compile type
+		if recordType is Lexicon.App.Bsky.Actor.Profile.Type {
+			let input = try JSONDecoder()
+				.decode(
+					Lexicon.Com.Atproto.Repo.PutRecord<Lexicon.App.Bsky.Actor.Profile>.Input.Schema.self,
+					from: bodyData
+				)
+			
+			guard input.repo.wireFormat == repo.stringRepresentation else {
+				throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
+			}
+
+			pds[input.collection, default: [:]][input.rkey.stringRepresentation] = input.record
+			
+			let returnVal = Lexicon.Com.Atproto.Repo
+				.PutRecordOutput(
+					uri: "example.com",
+					cid: "mock",
+					validationStatus: .valid
+				)
+			return .init(
+				data: try JSONEncoder().encode(returnVal),
+				response: .init(
+					status: .ok,
+					headerFields: .init(
+						[
+							.init(
+								name: .contentType,
+								value: HTTPContentType.json.rawValue
+							)
+						]
+					)
+				)
+			)
+		} else {
+			
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 	}
@@ -128,6 +184,14 @@ extension AtprotoMockAgent: XRPCCallable {
 	}
 }
 
+extension AtprotoMockAgent: PDSAgent {}
+
+extension AtprotoMockAgent: XRPCAuthCallable {
+	public nonisolated var authenticatedDID: AtprotoTypes.Atproto.DID {
+		repo
+	}
+}
+
 enum AtprotoMockAgentError: Error {
 	case badParameters
 }
@@ -137,7 +201,7 @@ extension AtprotoMockAgent {
 	func getRecord<R: AtprotoRecord>(
 		_ type: R.Type,
 		repo: AtIdentifier,
-		rkey: Atproto.RecordKey,
+		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
 		guard repo.wireFormat == self.repo.stringRepresentation else {
@@ -147,7 +211,7 @@ extension AtprotoMockAgent {
 		guard let collectionContents = pds[R.nsid] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
-		guard let record = collectionContents[rkey.rawValue] else {
+		guard let record = collectionContents[encodedRkey] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
@@ -162,13 +226,13 @@ extension AtprotoMockAgent {
 	func getRecordResponse<R: AtprotoRecord>(
 		_ type: R.Type,
 		repo: AtIdentifier,
-		rkey: Atproto.RecordKey,
+		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> GermConvenience.HTTPDataResponse {
 		let result = try getRecord(
 			type,
 			repo: repo,
-			rkey: rkey,
+			encodedRkey: encodedRkey,
 			cid: cid
 		)
 		let data = try JSONEncoder().encode(result)
@@ -219,7 +283,7 @@ extension AtprotoMockAgent {
 				try getRecord(
 					type,
 					repo: .did(.init(string: repo)),
-					rkey: .init(rawValue: encodedRkey),
+					encodedRkey: .init(string: encodedRkey),
 					cid: nil
 				)
 			)
@@ -237,7 +301,7 @@ extension AtprotoMockAgent {
 		limit: String?,
 		cursor: String?,
 		reverse: String?
-	) throws -> GermConvenience.HTTPDataResponse {
+	) throws -> HTTPDataResponse {
 		let limitInt: Int? =
 			if let limit {
 				Int(limit)

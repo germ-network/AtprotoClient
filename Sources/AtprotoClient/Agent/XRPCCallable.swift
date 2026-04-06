@@ -49,21 +49,25 @@ extension XRPCCallable {
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
-	) async throws -> ([R], String?) {
+	) async throws -> (
+		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record],
+		String?
+	) {
 		let result = try await call(
 			Lexicon.Com.Atproto.Repo.ListRecords<R>.self,
 			parameters: parameters,
 		)
 		let records = result.records.map { $0.value }
-		return (records, result.cursor)
+		return (result.records, result.cursor)
 	}
 
 	public func streamRecords<R: AtprotoRecord>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		did: Atproto.DID,
-	) async throws -> AsyncThrowingStream<[R], Error> {
-		let (stream, continuation) = AsyncThrowingStream<[R], Error>
+	) async throws -> AsyncThrowingStream<[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error> {
+		typealias Record = Lexicon.Com.Atproto.Repo.ListRecords<R>.Record
+		let (stream, continuation) = AsyncThrowingStream<[Record], Error>
 			.makeStream(bufferingPolicy: .unbounded)
 
 		Task {
@@ -71,8 +75,9 @@ extension XRPCCallable {
 			var fetchCount = 0
 			do {
 				repeat {
-					let result: (records: [R], cursor: String?) =
+					let result: (records: [Record], cursor: String?) =
 						try await listRecords(
+							type: R.self,
 							parameters: .init(
 								repo: .did(did),
 								limit: 100,  // max
