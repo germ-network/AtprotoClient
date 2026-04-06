@@ -2,4 +2,4 @@
 "@germ-network/atprotoclient": patch
 ---
 
-Move GetRelationships bluesky lexicon to AtprotoLexiconBsky
+Move Bluesky lexicons to AtprotoLexiconBsky
