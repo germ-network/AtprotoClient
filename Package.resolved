@@ -1,13 +1,13 @@
 {
-  "originHash" : "745eb0a43027ad73a435b9a13f2a1fcb6b3b00adf7f5de1af87d646651878fe8",
+  "originHash" : "80ca0897c8b65ca46e4e0f8a982a7c0c83e427a8d16b9800dcb28e6c5bd01e0e",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "branch" : "mark/recordkey-full-typing",
-        "revision" : "2d7775d4801034bd7007f497b39bdc1fa8eb4cd7"
+        "revision" : "81a719846b82af8dde49860bae0fc39ba58ea047",
+        "version" : "0.2.1"
       }
     },
     {

@@ -16,7 +16,7 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			branch: "mark/recordkey-full-typing",
+			from: "0.2.1",
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
