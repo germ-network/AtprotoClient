@@ -12,7 +12,7 @@ import HTTPTypes
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of authed requests
 public protocol XRPCAuthCallable: XRPCCallable {
-	var authenticatedDID: Atproto.DID { get }
+	var did: Atproto.DID { get }
 }
 
 extension XRPCAuthCallable {
@@ -26,7 +26,7 @@ extension XRPCAuthCallable {
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
 			input: .init(
 				schema: .init(
-					repo: .did(authenticatedDID),
+					repo: .did(did),
 					rkey: rkey,
 					record: record,
 					validate: validate,

@@ -15,7 +15,7 @@ extension PDSAgent {
 	) async throws -> R? where R.Key: Lexicon.DefaultableRecordKey {
 		try await getRecord(
 			parameters: .init(
-				repo: .did(repo),
+				repo: .did(did),
 				rkey: .defaultValue(),
 				cid: cid
 			)
@@ -33,7 +33,7 @@ extension XRPCAuthCallable {
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
 			input: .init(
 				schema: .init(
-					repo: .did(authenticatedDID),
+					repo: .did(did),
 					rkey: .defaultValue(),
 					record: record,
 					validate: validate,
@@ -54,7 +54,7 @@ extension XRPCAuthCallable {
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
 			input: .init(
 				schema: .init(
-					repo: .did(authenticatedDID),
+					repo: .did(did),
 					rkey: .defaultValue(),
 					record: record,
 					swapCommit: swapCommit,
@@ -74,7 +74,7 @@ extension XRPCAuthCallable {
 			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,
 			input: .init(
 				schema: .init(
-					repo: .did(authenticatedDID),
+					repo: .did(did),
 					rkey: .defaultValue(),
 					swapRecord: swapRecord,
 					swapCommit: swapCommit,

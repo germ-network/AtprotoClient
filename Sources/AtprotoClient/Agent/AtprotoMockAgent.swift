@@ -13,7 +13,7 @@ import HTTPTypes
 public actor AtprotoMockAgent {
 	public nonisolated let serviceUrl = URL(string: "https://mock-pds.germnetwork.com")!
 
-	nonisolated public let repo: Atproto.DID
+	nonisolated public let did: Atproto.DID
 
 	typealias EncodedRecordKey = String
 
@@ -23,10 +23,10 @@ public actor AtprotoMockAgent {
 	let recordRegistry: [Atproto.NSID: any AtprotoRecord.Type]
 
 	public init(
-		repo: Atproto.DID,
+		did: Atproto.DID,
 		recordRegistry: [Atproto.NSID: any AtprotoRecord.Type]
 	) {
-		self.repo = repo
+		self.did = did
 		self.pds = [:]
 		self.recordRegistry = recordRegistry
 	}
@@ -143,8 +143,8 @@ extension AtprotoMockAgent: XRPCCallable {
 					from: bodyData
 				)
 			
-			guard input.repo.wireFormat == repo.stringRepresentation else {
-				throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
+			guard input.repo.wireFormat == did.stringRepresentation else {
+				throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
 			}
 
 			pds[input.collection, default: [:]][input.rkey.stringRepresentation] = input.record
@@ -186,11 +186,7 @@ extension AtprotoMockAgent: XRPCCallable {
 
 extension AtprotoMockAgent: PDSAgent {}
 
-extension AtprotoMockAgent: XRPCAuthCallable {
-	public nonisolated var authenticatedDID: AtprotoTypes.Atproto.DID {
-		repo
-	}
-}
+extension AtprotoMockAgent: XRPCAuthCallable {}
 
 enum AtprotoMockAgentError: Error {
 	case badParameters
@@ -204,7 +200,7 @@ extension AtprotoMockAgent {
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
-		guard repo.wireFormat == self.repo.stringRepresentation else {
+		guard repo.wireFormat == self.did.stringRepresentation else {
 			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
 		}
 
@@ -261,7 +257,7 @@ extension AtprotoMockAgent {
 		cursor: String?,
 		reverse: Bool?
 	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Output {
-		guard repo == self.repo.stringRepresentation else {
+		guard repo == self.did.stringRepresentation else {
 			throw HTTPResponseError.unsuccessfulString(400, "Incorrct repo")
 		}
 

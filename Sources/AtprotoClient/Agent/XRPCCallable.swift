@@ -57,7 +57,6 @@ extension XRPCCallable {
 			Lexicon.Com.Atproto.Repo.ListRecords<R>.self,
 			parameters: parameters,
 		)
-		let records = result.records.map { $0.value }
 		return (result.records, result.cursor)
 	}
 

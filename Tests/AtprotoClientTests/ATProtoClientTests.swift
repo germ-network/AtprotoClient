@@ -12,7 +12,7 @@ struct APIOnlineTests {
 		let record = Lexicon.App.Bsky.Actor.Profile.mock()
 
 		let mockAgent = AtprotoMockAgent(
-			repo: did,
+			did: did,
 			recordRegistry: ["app.bsky.actor.profile": Lexicon.App.Bsky.Actor.Profile.self]
 		)
 
