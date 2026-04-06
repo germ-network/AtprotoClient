@@ -31,7 +31,7 @@ extension PDSAgent {
 		try await getRecord()
 	}
 
-	public func listRecords<R: AtprotoRecord>(
+	func listRecords<R: AtprotoRecord>(
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?
