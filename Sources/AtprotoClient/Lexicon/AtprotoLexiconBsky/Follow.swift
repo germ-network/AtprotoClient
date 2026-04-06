@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 
+//https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.graph.follow/docs
 extension Lexicon.App.Bsky.Graph {
 	public struct Follow: Sendable, Codable {
 		/// The identifier of the lexicon.
@@ -15,6 +16,7 @@ extension Lexicon.App.Bsky.Graph {
 		/// - Warning: The value must not change.
 		//is "id" in the lexicon but avoid conflict with Swift id
 		public static let nsid: Atproto.NSID = "app.bsky.graph.follow"
+		public typealias Key = Atproto.TID
 		//for encoding
 		private(set) var nsid: Atproto.NSID = Self.nsid
 

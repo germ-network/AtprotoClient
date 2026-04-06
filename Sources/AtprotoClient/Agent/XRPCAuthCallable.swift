@@ -17,15 +17,28 @@ public protocol XRPCAuthCallable: XRPCCallable {
 
 extension XRPCAuthCallable {
 	public func createRecord<R: AtprotoRecord>(
-		input: Lexicon.Com.Atproto.Repo.CreateRecord<R>.Input,
+		_ record: R,
+		collection: Atproto.NSID,
+		rkey: R.Key? = nil,
+		validate: Bool? = nil,
+		swapCommit: CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output {
 		try await call(
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
-			input: input,
+			input: .init(
+				schema: .init(
+					repo: .did(authenticatedDID),
+					rkey: rkey,
+					record: record,
+					validate: validate,
+					swapCommit: swapCommit
+				)
+			),
 		)
 	}
 
 	public func putRecord<R: AtprotoRecord>(
+		type: R.Type = R.self,
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output {
 		try await call(

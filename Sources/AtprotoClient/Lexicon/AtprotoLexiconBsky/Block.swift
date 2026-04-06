@@ -20,11 +20,12 @@ extension Lexicon.App.Bsky.Graph {
 	///
 	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/graph/block.json
 	public struct Block: Sendable, Codable {
-
 		/// The identifier of the lexicon.
 		///
 		/// - Warning: The value must not change.
 		public static let nsid: String = "app.bsky.graph.block"
+		public typealias Key = Atproto.TID
+		
 		private(set) var nsid: Atproto.NSID = Self.nsid
 		/// The decentralized identifier(DID) of the subject that has been blocked.
 		///
