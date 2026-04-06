@@ -64,7 +64,9 @@ extension XRPCCallable {
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		did: Atproto.DID,
-	) async throws -> AsyncThrowingStream<[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error> {
+	) async throws -> AsyncThrowingStream<
+		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error
+	> {
 		typealias Record = Lexicon.Com.Atproto.Repo.ListRecords<R>.Record
 		let (stream, continuation) = AsyncThrowingStream<[Record], Error>
 			.makeStream(bufferingPolicy: .unbounded)

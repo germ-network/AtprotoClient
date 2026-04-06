@@ -25,7 +25,7 @@ extension Lexicon.App.Bsky.Graph {
 		/// - Warning: The value must not change.
 		public static let nsid: String = "app.bsky.graph.block"
 		public typealias Key = Atproto.TID
-		
+
 		private(set) var nsid: Atproto.NSID = Self.nsid
 		/// The decentralized identifier(DID) of the subject that has been blocked.
 		///

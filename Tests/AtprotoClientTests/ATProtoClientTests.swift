@@ -5,7 +5,6 @@ import Testing
 @testable import AtprotoTypes
 
 struct APIOnlineTests {
-	
 
 	@Test func testAtprotoMockSession() async throws {
 		let did: Atproto.DID = try .init(string: "did:plc:mynameisanna")
@@ -13,17 +12,19 @@ struct APIOnlineTests {
 
 		let mockAgent = AtprotoMockAgent(
 			did: did,
-			recordRegistry: ["app.bsky.actor.profile": Lexicon.App.Bsky.Actor.Profile.self]
+			recordRegistry: [
+				"app.bsky.actor.profile": Lexicon.App.Bsky.Actor.Profile.self
+			]
 		)
 
 		// Prep by storing the record
 		let _ = try await mockAgent.putRecord(record)
-		
+
 		// Make a request via this mock agent and decode the result
 		let profile = try await mockAgent.getRecord(
 			type: Lexicon.App.Bsky.Actor.Profile.self
 		)
-		
+
 		assert(profile?.displayName == record.displayName)
 	}
 }

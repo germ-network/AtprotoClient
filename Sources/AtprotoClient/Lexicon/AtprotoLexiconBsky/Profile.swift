@@ -69,7 +69,6 @@ extension Lexicon.App.Bsky.Actor {
 	}
 }
 
-
 extension Lexicon.App.Bsky.Actor.Profile: AtprotoRecord {
 	public static func mock() -> Lexicon.App.Bsky.Actor.Profile {
 		.init(

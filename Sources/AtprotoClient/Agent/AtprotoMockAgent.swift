@@ -5,10 +5,11 @@
 //  Created by Anna Mistele on 3/13/26.
 //
 
-@testable import AtprotoTypes
 import Foundation
 import GermConvenience
 import HTTPTypes
+
+@testable import AtprotoTypes
 
 public actor AtprotoMockAgent {
 	public nonisolated let serviceUrl = URL(string: "https://mock-pds.germnetwork.com")!
@@ -70,9 +71,9 @@ extension AtprotoMockAgent: XRPCCallable {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 	}
-	
+
 	private func getRecords(
-		queryParameters: [String : String]
+		queryParameters: [String: String]
 	) throws -> HTTPDataResponse {
 		let repo = try queryParameters["repo"].tryUnwrap
 		let collection = try queryParameters["collection"].tryUnwrap
@@ -84,13 +85,12 @@ extension AtprotoMockAgent: XRPCCallable {
 			}
 			return try .init(string: cid)
 		}()
-		
-		
+
 		guard let recordType: any AtprotoRecord.Type = self.recordRegistry[collection]
 		else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
-		
+
 		return try getRecordResponse(
 			recordType,
 			repo: .did(.init(string: repo)),
@@ -98,9 +98,9 @@ extension AtprotoMockAgent: XRPCCallable {
 			cid: typedCid
 		)
 	}
-	
+
 	private func listRecords(
-		queryParameters: [String : String]
+		queryParameters: [String: String]
 	) throws -> HTTPDataResponse {
 		let repo = try queryParameters["repo"].tryUnwrap
 		let collection = try queryParameters["collection"].tryUnwrap
@@ -121,34 +121,37 @@ extension AtprotoMockAgent: XRPCCallable {
 			reverse: reverse,
 		)
 	}
-	
+
 	struct ProtoSchema: Decodable {
 		let collection: Atproto.NSID
 	}
-	
+
 	private func putRecord(
 		bodyData: Data
 	) throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
-		
+
 		guard let recordType = recordRegistry[protoSchema.collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
-		
+
 		//need the type to be known at compile type
 		if recordType is Lexicon.App.Bsky.Actor.Profile.Type {
 			let input = try JSONDecoder()
 				.decode(
-					Lexicon.Com.Atproto.Repo.PutRecord<Lexicon.App.Bsky.Actor.Profile>.Input.Schema.self,
+					Lexicon.Com.Atproto.Repo.PutRecord<
+						Lexicon.App.Bsky.Actor.Profile
+					>.Input.Schema.self,
 					from: bodyData
 				)
-			
+
 			guard input.repo.wireFormat == did.stringRepresentation else {
 				throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
 			}
 
-			pds[input.collection, default: [:]][input.rkey.stringRepresentation] = input.record
-			
+			pds[input.collection, default: [:]][input.rkey.stringRepresentation] =
+				input.record
+
 			let returnVal = Lexicon.Com.Atproto.Repo
 				.PutRecordOutput(
 					uri: "example.com",
@@ -170,7 +173,7 @@ extension AtprotoMockAgent: XRPCCallable {
 				)
 			)
 		} else {
-			
+
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 	}

@@ -28,7 +28,8 @@ extension XRPCAuthCallable {
 		_ record: R,
 		validate: Bool? = nil,
 		swapCommit: CID? = nil,
-	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output where R.Key: Lexicon.DefaultableRecordKey {
+	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output
+	where R.Key: Lexicon.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
 			input: .init(
@@ -37,19 +38,20 @@ extension XRPCAuthCallable {
 					rkey: .defaultValue(),
 					record: record,
 					validate: validate,
-					swapCommit:  swapCommit
-				
+					swapCommit: swapCommit
+
 				)
 			),
 		)
 	}
-	
+
 	public func putRecord<R: AtprotoRecord>(
 		_ record: R,
 		validate: Bool? = nil,
 		swapCommit: CID? = nil,
 		swapRecord: CID? = nil,
-	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output where R.Key: Lexicon.DefaultableRecordKey {
+	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output
+	where R.Key: Lexicon.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
 			input: .init(
@@ -63,13 +65,14 @@ extension XRPCAuthCallable {
 			),
 		)
 	}
-	
+
 	public func deleteRecord<R: AtprotoRecord>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		swapCommit: CID?,
 		swapRecord: CID?,
-	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output where R.Key: Lexicon.DefaultableRecordKey {
+	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output
+	where R.Key: Lexicon.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,
 			input: .init(
