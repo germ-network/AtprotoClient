@@ -18,7 +18,6 @@ public protocol XRPCAuthCallable: XRPCCallable {
 extension XRPCAuthCallable {
 	public func createRecord<R: AtprotoRecord>(
 		_ record: R,
-		collection: Atproto.NSID,
 		rkey: R.Key? = nil,
 		validate: Bool? = nil,
 		swapCommit: CID? = nil,
