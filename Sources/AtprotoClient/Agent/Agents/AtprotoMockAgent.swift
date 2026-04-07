@@ -5,11 +5,10 @@
 //  Created by Anna Mistele on 3/13/26.
 //
 
+import AtprotoTypes
 import Foundation
 import GermConvenience
 import HTTPTypes
-
-@testable import AtprotoTypes
 
 public actor AtprotoMockAgent {
 	public nonisolated let serviceUrl = URL(string: "https://mock-pds.germnetwork.com")!
@@ -153,10 +152,10 @@ extension AtprotoMockAgent: XRPCCallable {
 				input.record
 
 			let returnVal = Lexicon.Com.Atproto.Repo
-				.PutRecordOutput(
+				.PutRecordResult(
 					uri: "example.com",
 					cid: "mock",
-					validationStatus: .valid
+					validationStatus: "valid"
 				)
 			return .init(
 				data: try JSONEncoder().encode(returnVal),
