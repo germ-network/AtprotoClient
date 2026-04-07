@@ -50,6 +50,15 @@ extension Lexicon.App.Bsky.Graph {
 			case relationship(Relationships)
 			case notFoundActor(NotFoundActor)
 
+			public var asRelationships: Relationships? {
+				switch self {
+				case .relationship(let value):
+					value
+				case .notFoundActor:
+					nil
+				}
+			}
+
 			public init(from decoder: Decoder) throws {
 				let container = try decoder.singleValueContainer()
 
