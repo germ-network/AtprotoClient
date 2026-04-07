@@ -69,8 +69,8 @@ extension XRPCAuthCallable {
 	public func deleteRecord<R: AtprotoRecord>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
-		swapCommit: CID?,
-		swapRecord: CID?,
+		swapCommit: CID? = nil,
+		swapRecord: CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output
 	where R.Key: Lexicon.DefaultableRecordKey {
 		try await call(
