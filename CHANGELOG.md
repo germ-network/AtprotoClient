@@ -1,5 +1,21 @@
 # @germ-network/atprotoclient
 
+## 0.2.0
+
+### Minor Changes
+
+- [#8](https://github.com/germ-network/AtprotoClient/pull/8) [`cf060e2`](https://github.com/germ-network/AtprotoClient/commit/cf060e286436445d58c0d1ad9308ba3db055d36e) Thanks [@anna-germ](https://github.com/anna-germ)! - Move authed calls from XRPCCallable to XRPCAuthCallable
+
+- [#8](https://github.com/germ-network/AtprotoClient/pull/8) [`6f18fe7`](https://github.com/germ-network/AtprotoClient/commit/6f18fe7e9a5ec5522fd26bd0ef5e68b1bf03c147) Thanks [@anna-germ](https://github.com/anna-germ)! - Refactor protocol names to be in line with Swift API guidance
+
+### Patch Changes
+
+- [#10](https://github.com/germ-network/AtprotoClient/pull/10) [`d7ff2b0`](https://github.com/germ-network/AtprotoClient/commit/d7ff2b07bf603fe0f23c2f1a713eded85dc04ef6) Thanks [@germ-mark](https://github.com/germ-mark)! - Add convenience API's to automatically fill in repo and literal:self rkeys
+
+- [#8](https://github.com/germ-network/AtprotoClient/pull/8) [`a144218`](https://github.com/germ-network/AtprotoClient/commit/a144218f330609b8c5ca231d49ecc0f68b5c72ae) Thanks [@anna-germ](https://github.com/anna-germ)! - Move Bluesky lexicons to AtprotoLexiconBsky
+
+- [#8](https://github.com/germ-network/AtprotoClient/pull/8) [`9868f44`](https://github.com/germ-network/AtprotoClient/commit/9868f44b34e736f004bc0c780bfacf166627724d) Thanks [@anna-germ](https://github.com/anna-germ)! - Create AuthPDSAgent to combine multiple relevant protocols
+
 ## 0.1.0
 
 ### Minor Changes
