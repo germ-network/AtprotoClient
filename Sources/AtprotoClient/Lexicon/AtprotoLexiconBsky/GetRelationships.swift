@@ -42,15 +42,24 @@ extension Lexicon.App.Bsky.Graph {
 		}
 
 		public struct Output: Sendable, Decodable {
-			let actor: Atproto.DID
-			let relationships: [Result]
+			public let actor: Atproto.DID
+			public let relationships: [Result]
 		}
 
-		enum Result: Decodable {
+		public enum Result: Decodable, Sendable {
 			case relationship(Relationships)
 			case notFoundActor(NotFoundActor)
 
-			init(from decoder: Decoder) throws {
+			public var asRelationships: Relationships? {
+				switch self {
+				case .relationship(let value):
+					value
+				case .notFoundActor:
+					nil
+				}
+			}
+
+			public init(from decoder: Decoder) throws {
 				let container = try decoder.singleValueContainer()
 
 				if let value = try? container.decode(Relationships.self) {
@@ -67,18 +76,18 @@ extension Lexicon.App.Bsky.Graph {
 		}
 	}
 
-	struct Relationships: Decodable {
-		let did: Atproto.DID
-		let blocking: Atproto.ATURI?
-		let blockedBy: Atproto.ATURI?
-		let following: Atproto.ATURI?
-		let followedBy: Atproto.ATURI?
-		let blockedByList: Atproto.ATURI?
-		let blockingbyList: Atproto.ATURI?
+	public struct Relationships: Decodable, Sendable {
+		public let did: Atproto.DID
+		public let blocking: Atproto.ATURI?
+		public let blockedBy: Atproto.ATURI?
+		public let following: Atproto.ATURI?
+		public let followedBy: Atproto.ATURI?
+		public let blockedByList: Atproto.ATURI?
+		public let blockingbyList: Atproto.ATURI?
 	}
 
-	struct NotFoundActor: Decodable {
-		let actor: AtIdentifier
+	public struct NotFoundActor: Decodable, Sendable {
+		public let actor: AtIdentifier
 		var notFound: Bool = true
 	}
 }

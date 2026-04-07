@@ -9,9 +9,7 @@ import AtprotoTypes
 import Foundation
 
 extension PDSAgent {
-	public func getFollowsStream(
-		did: Atproto.DID,
-	) async throws -> AsyncMapSequence<
+	public func getFollowsStream() async throws -> AsyncMapSequence<
 		AsyncThrowingStream<
 			[Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Follow>
 				.Record], any Error

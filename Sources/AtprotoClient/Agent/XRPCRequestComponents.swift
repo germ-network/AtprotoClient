@@ -31,15 +31,21 @@ public struct XRPCRequestComponents: Sendable {
 	}
 
 	public func constructUrl(serviceUrl: URL) throws -> BundledHTTPRequest {
-		let constructedUrl =
-			serviceUrl
-			.appending(path: relativePath)
-			.appending(queryItems: queryItems)
+		var components = try URLComponents(
+			url: serviceUrl,
+			resolvingAgainstBaseURL: false
+		).tryUnwrap
+
+		//xrpc path must be top-level, not below a prefix
+		//https://atproto.com/specs/xrpc
+		//so we swap out the path wholesale
+		components.path = relativePath
+		components.queryItems = queryItems
 
 		return try .init(
 			request: .init(
 				method: method,
-				url: constructedUrl,
+				url: components.url.tryUnwrap,
 				headerFields: headers
 			),
 			body: body
