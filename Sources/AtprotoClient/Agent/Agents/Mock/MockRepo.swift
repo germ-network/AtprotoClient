@@ -1,5 +1,5 @@
 //
-//  AtprotoMockAgent.swift
+//  MockRepo.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/13/26.
