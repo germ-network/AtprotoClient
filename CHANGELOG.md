@@ -1,5 +1,13 @@
 # @germ-network/atprotoclient
 
+## 0.3.0
+
+### Minor Changes
+
+- [#12](https://github.com/germ-network/AtprotoClient/pull/12) [`b214d36`](https://github.com/germ-network/AtprotoClient/commit/b214d36420be584a53812fa79cf5a91d502fcc68) Thanks [@germ-mark](https://github.com/germ-mark)! - Build a MockPDS around the AtprotoMockAgent, renamed to MockRepo
+  Also constrain the default Agent url construction to enforce that /xrpc/ is the top-level
+  path, per the spec
+
 ## 0.2.0
 
 ### Minor Changes
