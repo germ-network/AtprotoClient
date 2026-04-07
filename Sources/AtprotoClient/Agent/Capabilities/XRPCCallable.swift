@@ -1,5 +1,5 @@
 //
-//  AtprotoAgent.swift
+//  XRPCCallable.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/23/26.
@@ -21,13 +21,15 @@ import HTTPTypes
 ///
 /// Have a method on it that declares whether or not it can do auth
 ///
-public protocol AtprotoAgent: Sendable {
+public protocol XRPCCallable: Sendable {
 	func response(_ requestComponents: XRPCRequestComponents) async throws
 		-> HTTPDataResponse
 }
 
-extension AtprotoAgent {
+extension XRPCCallable {
 	public func getRecord<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
 	) async throws -> R? {
 		do {
@@ -44,22 +46,29 @@ extension AtprotoAgent {
 	}
 
 	func listRecords<R: AtprotoRecord>(
+		//allows for type inference when clear and explicit defn when not
+		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
-	) async throws -> ([R], String?) {
+	) async throws -> (
+		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record],
+		String?
+	) {
 		let result = try await call(
 			Lexicon.Com.Atproto.Repo.ListRecords<R>.self,
 			parameters: parameters,
 		)
-		let records = result.records.map { $0.value }
-		return (records, result.cursor)
+		return (result.records, result.cursor)
 	}
 
-	public func stream<R: AtprotoRecord>(
+	public func streamRecords<R: AtprotoRecord>(
 		//allows for type inference when clear and explicit defn when not
-		recordType: R.Type = R.self,
+		type: R.Type = R.self,
 		did: Atproto.DID,
-	) async throws -> AsyncThrowingStream<[R], Error> {
-		let (stream, continuation) = AsyncThrowingStream<[R], Error>
+	) async throws -> AsyncThrowingStream<
+		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error
+	> {
+		typealias Record = Lexicon.Com.Atproto.Repo.ListRecords<R>.Record
+		let (stream, continuation) = AsyncThrowingStream<[Record], Error>
 			.makeStream(bufferingPolicy: .unbounded)
 
 		Task {
@@ -67,8 +76,9 @@ extension AtprotoAgent {
 			var fetchCount = 0
 			do {
 				repeat {
-					let result: (records: [R], cursor: String?) =
+					let result: (records: [Record], cursor: String?) =
 						try await listRecords(
+							type: R.self,
 							parameters: .init(
 								repo: .did(did),
 								limit: 100,  // max
@@ -101,15 +111,5 @@ extension AtprotoAgent {
 		{
 			return nil
 		}
-	}
-
-	public func put<R: AtprotoRecord>(
-		_ recordType: R.Type,
-		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
-	) async throws {
-		let _ = try await call(
-			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
-			input: input,
-		)
 	}
 }

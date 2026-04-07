@@ -10,7 +10,7 @@ import Foundation
 import GermConvenience
 import HTTPTypes
 
-extension AtprotoAgent {
+extension XRPCCallable {
 	//most procedures don't have a queryParams
 	public func call<X: XRPCProcedure>(
 		_ procedure: X.Type,

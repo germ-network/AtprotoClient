@@ -1,5 +1,5 @@
 //
-//  AtprotoProxyAgent.swift
+//  XRPCProxyCallable.swift
 //  AtprotoClient
 //
 //  Created by Mark @ Germ on 3/28/26.
@@ -8,10 +8,10 @@
 import AtprotoTypes
 import Foundation
 
-//an implementation (e.g. auth'd PDS) can declare itself caxpable of proxying requests
-public protocol AtprotoProxyAgent: AtprotoAgent {}
+//an implementation (e.g. auth'd PDS) can declare itself capable of proxying requests
+public protocol XRPCProxyCallable: XRPCCallable {}
 
-extension AtprotoProxyAgent {
+extension XRPCProxyCallable {
 	public func call<X: XRPCRequest>(
 		_ request: X.Type,
 		parameters: X.Parameters,

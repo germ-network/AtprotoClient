@@ -19,6 +19,7 @@ extension Lexicon.App.Bsky.Actor {
 		public static let nsid: Atproto.NSID = "app.bsky.actor.profile"
 		//for encoding
 		private(set) var nsid: Atproto.NSID = Self.nsid
+		public typealias Key = Lexicon.LiteralSelfRecordKey
 
 		/// Optional
 		/// Small image to be displayed next to posts from account. AKA, 'profile picture'

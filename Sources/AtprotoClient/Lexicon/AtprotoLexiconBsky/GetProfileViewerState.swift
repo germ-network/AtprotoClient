@@ -1,5 +1,5 @@
 //
-//  ProfileViewerState.swift
+//  GetProfileViewerState.swift
 //  AtprotoClient
 //
 //  Created by Anna Mistele on 3/3/26.
@@ -10,7 +10,7 @@ import Foundation
 
 //this needs to be proxied to https://public.api.bsky.app
 //reference for the endpoint: https://docs.bsky.app/docs/advanced-guides/api-directory#bluesky-services
-extension AtprotoProxyAgent {
+extension XRPCProxyCallable {
 	public func authBskyProfileViewerState(
 		for did: Atproto.DID
 	) async throws -> Lexicon.App.Bsky.Actor.Defs.ViewerState {
