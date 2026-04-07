@@ -60,7 +60,7 @@ extension AtprotoMockAgent: XRPCCallable {
 
 		switch pathComponents[pathComponents.endIndex - 1] {
 		case Lexicon.Com.Atproto.Repo.getRecordNSID:
-			return try getRecords(queryParameters: queryParameters)
+			return try getRecord(queryParameters: queryParameters)
 		case Lexicon.Com.Atproto.Repo.listRecordsNSID:
 			return try listRecords(queryParameters: queryParameters)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
@@ -72,7 +72,7 @@ extension AtprotoMockAgent: XRPCCallable {
 		}
 	}
 
-	private func getRecords(
+	private func getRecord(
 		queryParameters: [String: String]
 	) throws -> HTTPDataResponse {
 		let repo = try queryParameters["repo"].tryUnwrap
