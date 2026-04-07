@@ -1,13 +1,13 @@
 {
-  "originHash" : "2805f3a44a8e67f89a3b96e0c2ae17b63bbc5b418c0ac757077b3dd2e57669ba",
+  "originHash" : "2242b7e395d55c78cc3d6e699278493c96d41c32ef70ca1f15a32a270438e8f7",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "branch" : "mark/put-record-public-properties",
-        "revision" : "2676c831876836d61c504b40c0c6e4079ed7b195"
+        "revision" : "9974f5d5a4813e0d7e57e650de57e10213cc5f38",
+        "version" : "0.2.2"
       }
     },
     {
