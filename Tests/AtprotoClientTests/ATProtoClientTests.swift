@@ -5,23 +5,24 @@ import Testing
 @testable import AtprotoTypes
 
 struct APIOnlineTests {
+	let mockPDS: MockPDS
+
+	init() throws {
+		self.mockPDS = try .init()
+	}
 
 	@Test func testAtprotoMockSession() async throws {
 		let did: Atproto.DID = try .init(string: "did:plc:mynameisanna")
-		let record = Lexicon.App.Bsky.Actor.Profile.mock()
+		let authAgent = try await mockPDS.host(did: did)
 
-		let mockAgent = AtprotoMockAgent(
-			did: did,
-			recordRegistry: [
-				"app.bsky.actor.profile": Lexicon.App.Bsky.Actor.Profile.self
-			]
-		)
+		let record = Lexicon.App.Bsky.Actor.Profile.mock()
+		await mockPDS.register(type: Lexicon.App.Bsky.Actor.Profile.self)
 
 		// Prep by storing the record
-		let _ = try await mockAgent.putRecord(record)
+		let _ = try await authAgent.putRecord(record)
 
 		// Make a request via this mock agent and decode the result
-		let profile = try await mockAgent.getRecord(
+		let profile = try await authAgent.getRecord(
 			type: Lexicon.App.Bsky.Actor.Profile.self
 		)
 
