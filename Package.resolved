@@ -1,5 +1,5 @@
 {
-  "originHash" : "fe5ff60046995eab0ec67f0077ca6ee010783effc34801a70046c1284f210211",
+  "originHash" : "14f9ee5896be5d6abc1c5834c04cc0c11e8cc87609a96e22c496741cdeb7b261",
   "pins" : [
     {
       "identity" : "atprototypes",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
         "branch" : "fix/public-lexicon-bytes-coding",
-        "revision" : "1899bb9b231a2e89a38fb7185728f49a25319fce"
+        "revision" : "79737f50d63c0af5c467d2106a216fd39b350b67"
       }
     },
     {

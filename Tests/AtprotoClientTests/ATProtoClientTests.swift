@@ -16,7 +16,6 @@ struct APIOnlineTests {
 		let authAgent = try await mockPDS.host(did: did)
 
 		let record = Lexicon.App.Bsky.Actor.Profile.mock()
-		await mockPDS.register(type: Lexicon.App.Bsky.Actor.Profile.self)
 
 		// Prep by storing the record
 		let _ = try await authAgent.putRecord(record)

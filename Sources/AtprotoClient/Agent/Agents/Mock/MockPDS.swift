@@ -13,22 +13,11 @@ public actor MockPDS {
 	public nonisolated let serviceUrl: URL
 
 	private var repos: [Atproto.DID: MockRepo] = [:]
-	var recordRegistry: [Atproto.NSID: any AtprotoRecord.Type] = [:]
 
-	public init(recordRegistry: [any AtprotoRecord.Type] = []) throws {
+	public init() throws {
 		self.serviceUrl = try URL(
 			string: "https://\(UUID().uuidString).example.com"
 		).tryUnwrap
-
-		self.recordRegistry =
-			recordRegistry
-			.reduce(into: [:]) { result, entry in
-				result[entry.nsid] = entry
-			}
-	}
-
-	public func register<R: AtprotoRecord>(type: R.Type) {
-		recordRegistry[R.nsid] = R.self
 	}
 
 	public func host(did: Atproto.DID) throws -> AuthAgent {
@@ -73,16 +62,15 @@ public actor MockPDS {
 	) async throws -> HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
 		let requestUrl = try request.request.url.tryUnwrap
-		
-		
+
 		let components = try URLComponents(
 			url: requestUrl,
 			resolvingAgainstBaseURL: false
 		).tryUnwrap
 		let queryParameters = try components.queryItems.tryUnwrap.asDictionary
-		
+
 		let pathComponents = requestUrl.pathComponents
-		
+
 		switch pathComponents[1] {
 		case "xrpc":
 			return try await handleXrpc(
@@ -99,7 +87,7 @@ public actor MockPDS {
 
 		//here is where a directory of types would be handy
 	}
-	
+
 	private func handleXrpc(
 		xrpcNsid: Atproto.NSID,
 		queryParameters: [String: String],
@@ -125,7 +113,7 @@ public actor MockPDS {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 	}
-	
+
 	private func handleWellKnown(path: [String]) async throws -> HTTPDataResponse {
 		guard let component = path.first, path.count == 1 else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
@@ -145,23 +133,23 @@ public actor MockPDS {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 	}
-	
+
 	private var mockProtectedResourceMetadata: Data {
 		get throws {
 			try JSONSerialization.data(withJSONObject: [
 				"resource": serviceUrl.absoluteString,
 				"authorization_servers": [serviceUrl.absoluteString],
-				"scopes_supported":[],
-				"bearer_methods_supported":["header"],
-				"resource_documentation":"https://atproto.com"
+				"scopes_supported": [],
+				"bearer_methods_supported": ["header"],
+				"resource_documentation": "https://atproto.com",
 			])
 		}
 	}
-	
+
 	private static let mockAuthMetadata =
-	"""
-	{"issuer":"https://bsky.social","request_parameter_supported":true,"request_uri_parameter_supported":true,"require_request_uri_registration":true,"scopes_supported":["atproto","transition:email","transition:generic","transition:chat.bsky"],"subject_types_supported":["public"],"response_types_supported":["code"],"response_modes_supported":["query","fragment","form_post"],"grant_types_supported":["authorization_code","refresh_token"],"code_challenge_methods_supported":["S256"],"ui_locales_supported":["en-US"],"display_values_supported":["page","popup","touch"],"request_object_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512","none"],"authorization_response_iss_parameter_supported":true,"request_object_encryption_alg_values_supported":[],"request_object_encryption_enc_values_supported":[],"jwks_uri":"https://bsky.social/oauth/jwks","authorization_endpoint":"https://bsky.social/oauth/authorize","token_endpoint":"https://bsky.social/oauth/token","token_endpoint_auth_methods_supported":["none","private_key_jwt"],"token_endpoint_auth_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"revocation_endpoint":"https://bsky.social/oauth/revoke","pushed_authorization_request_endpoint":"https://bsky.social/oauth/par","require_pushed_authorization_requests":true,"dpop_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"client_id_metadata_document_supported":true,"prompt_values_supported":["none","login","consent","select_account","create"]}
-	"""
+		"""
+		{"issuer":"https://bsky.social","request_parameter_supported":true,"request_uri_parameter_supported":true,"require_request_uri_registration":true,"scopes_supported":["atproto","transition:email","transition:generic","transition:chat.bsky"],"subject_types_supported":["public"],"response_types_supported":["code"],"response_modes_supported":["query","fragment","form_post"],"grant_types_supported":["authorization_code","refresh_token"],"code_challenge_methods_supported":["S256"],"ui_locales_supported":["en-US"],"display_values_supported":["page","popup","touch"],"request_object_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512","none"],"authorization_response_iss_parameter_supported":true,"request_object_encryption_alg_values_supported":[],"request_object_encryption_enc_values_supported":[],"jwks_uri":"https://bsky.social/oauth/jwks","authorization_endpoint":"https://bsky.social/oauth/authorize","token_endpoint":"https://bsky.social/oauth/token","token_endpoint_auth_methods_supported":["none","private_key_jwt"],"token_endpoint_auth_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"revocation_endpoint":"https://bsky.social/oauth/revoke","pushed_authorization_request_endpoint":"https://bsky.social/oauth/par","require_pushed_authorization_requests":true,"dpop_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"client_id_metadata_document_supported":true,"prompt_values_supported":["none","login","consent","select_account","create"]}
+		"""
 
 	private func getRecord(
 		queryParameters: [String: String]
@@ -182,14 +170,9 @@ public actor MockPDS {
 				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 			)
 
-		guard let recordType: any AtprotoRecord.Type = self.recordRegistry[collection]
-		else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		}
-
 		do {
 			return try await repo.getRecordResponse(
-				recordType,
+				collection: collection,
 				encodedRkey: encodedRkey,
 				cid: typedCid
 			)
@@ -211,18 +194,13 @@ public actor MockPDS {
 		let cursor = queryParameters["cursor"]
 		let reverse = queryParameters["reverse"]
 
-		guard let recordType: any AtprotoRecord.Type = self.recordRegistry[collection]
-		else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		}
-
 		let repo = try repos[.init(string: repoParam)]
 			.tryUnwrap(
 				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 			)
 
 		return try await repo.listRecordsResponse(
-			recordType,
+			collection: collection,
 			limit: limit,
 			cursor: cursor,
 			reverse: reverse,
@@ -239,10 +217,6 @@ public actor MockPDS {
 	) async throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
-		guard let recordType = recordRegistry[protoSchema.collection] else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		}
-
 		guard case .did(let did) = protoSchema.repo else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
@@ -251,46 +225,47 @@ public actor MockPDS {
 			HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		)
 
-		//need the type to be known at compile type
-		if recordType is Lexicon.App.Bsky.Actor.Profile.Type {
-			let input = try JSONDecoder()
-				.decode(
-					Lexicon.Com.Atproto.Repo.PutRecord<
-						Lexicon.App.Bsky.Actor.Profile
-					>.Input.Schema.self,
-					from: bodyData
-				)
+		//hacky, but type-erases the record type
+		let input = try JSONSerialization.jsonObject(with: bodyData)
+		let inputDict = try (input as? [String: Any]).tryUnwrap
+		let inputRepo = try (inputDict["repo"] as? String).tryUnwrap
+		let inputRkey = try (inputDict["rkey"] as? String).tryUnwrap
+		let inputCollection = try (inputDict["collection"] as? String).tryUnwrap
 
-			guard input.repo.wireFormat == did.stringRepresentation else {
-				throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
-			}
+		let encodedRecord =
+			try JSONSerialization
+			.data(withJSONObject: inputDict["record"].tryUnwrap)
 
-			await repo.putRecord(input: input)
+		guard inputRepo == did.stringRepresentation else {
+			throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
+		}
 
-			let returnVal = Lexicon.Com.Atproto.Repo
-				.PutRecordResult(
-					uri: "example.com",
-					cid: "mock",
-					validationStatus: "valid"
-				)
-			return .init(
-				data: try JSONEncoder().encode(returnVal),
-				response: .init(
-					status: .ok,
-					headerFields: .init(
-						[
-							.init(
-								name: .contentType,
-								value: HTTPContentType.json.rawValue
-							)
-						]
-					)
+		try await repo.putRecord(
+			collection: inputCollection,
+			rkey: inputRkey,
+			encodedRecord: encodedRecord
+		)
+
+		let returnVal = Lexicon.Com.Atproto.Repo
+			.PutRecordResult(
+				uri: "example.com",
+				cid: "mock",
+				validationStatus: "valid"
+			)
+		return .init(
+			data: try JSONEncoder().encode(returnVal),
+			response: .init(
+				status: .ok,
+				headerFields: .init(
+					[
+						.init(
+							name: .contentType,
+							value: HTTPContentType.json.rawValue
+						)
+					]
 				)
 			)
-		} else {
-
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		}
+		)
 	}
 
 	enum Errors: Error {

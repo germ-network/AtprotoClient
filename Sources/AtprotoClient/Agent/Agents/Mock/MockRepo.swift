@@ -14,7 +14,8 @@ public actor MockRepo {
 	typealias EncodedRecordKey = String
 
 	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
-	private var repo: [Atproto.NSID: [EncodedRecordKey: any AtprotoRecord]] = [:]
+	//to allow for storing records we don't know, we just store the encoded data
+	private var repo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
 
 	public init() {}
 
@@ -29,12 +30,12 @@ enum AtprotoMockAgentError: Error {
 
 // Get record
 extension MockRepo {
-	func getRecord<R: AtprotoRecord>(
-		_ type: R.Type,
+	func getRecord(
+		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
-	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
-		guard let collectionContents = repo[R.nsid] else {
+	) throws -> [String: Any] {
+		guard let collectionContents = repo[collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 		guard let record = collectionContents[encodedRkey] else {
@@ -42,26 +43,25 @@ extension MockRepo {
 		}
 
 		// TODO: Mock CID
-		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Output(
-			uri: UUID().uuidString,
-			cid: cid?.string ?? CID.mock().string,
-			value: record as! R
-		)
+		return [
+			"uri": UUID().uuidString,
+			"cid": cid?.string ?? CID.mock().string,
+			"value": try JSONSerialization.jsonObject(with: record),
+		]
 	}
 
-	func getRecordResponse<R: AtprotoRecord>(
-		_ type: R.Type,
+	func getRecordResponse(
+		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> GermConvenience.HTTPDataResponse {
-		let result = try getRecord(
-			type,
+		let resultObject = try getRecord(
+			collection: collection,
 			encodedRkey: encodedRkey,
 			cid: cid
 		)
-		let data = try JSONEncoder().encode(result)
 		return .init(
-			data: data,
+			data: try JSONSerialization.data(withJSONObject: resultObject),
 			response: .init(
 				status: .ok,
 				headerFields: .init(
@@ -74,47 +74,54 @@ extension MockRepo {
 			)
 		)
 	}
+
+	//type-erased GetRecord
+	struct MockGetRecordOutput: Encodable {
+		let uri: String
+		let cid: String
+		let value: String
+	}
 }
 
 // List records
 extension MockRepo {
-	func listRecords<R: AtprotoRecord>(
-		_ type: R.Type,
+	func listRecords(
+		collection: Atproto.NSID,
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?
-	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Output {
+	) throws -> Data {
 		if let limit {
 			guard limit >= 1, limit <= 100 else {
 				throw AtprotoMockAgentError.badParameters
 			}
 		}
 
-		guard let collectionContents = repo[R.nsid] else {
+		guard let collectionContents = repo[collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
-		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Output] = []
+		var records: [Any] = []
 
 		// TODO: Implement cursor and CID
 		for (encodedRkey, _) in collectionContents {
 			records.append(
 				try getRecord(
-					type,
+					collection: collection,
 					encodedRkey: .init(string: encodedRkey),
 					cid: nil
 				)
 			)
 		}
 
-		return Lexicon.Com.Atproto.Repo.ListRecords<R>.Output(
-			cursor: nil,
-			records: records as! [Lexicon.Com.Atproto.Repo.ListRecords<R>.Record]
-		)
+		return try JSONSerialization.data(withJSONObject: [
+			"cursor": nil,
+			"records": records,
+		])
 	}
 
-	func listRecordsResponse<R: AtprotoRecord>(
-		_ type: R.Type,
+	func listRecordsResponse(
+		collection: Atproto.NSID,
 		limit: String?,
 		cursor: String?,
 		reverse: String?
@@ -132,7 +139,7 @@ extension MockRepo {
 				nil
 			}
 		let result = try listRecords(
-			type,
+			collection: collection,
 			limit: limitInt,
 			cursor: cursor,
 			reverse: reverseBool
@@ -156,10 +163,11 @@ extension MockRepo {
 }
 
 extension MockRepo {
-	func putRecord<R: AtprotoRecord>(
-		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input.Schema
-	) {
-		repo[input.collection, default: [:]][input.rkey.stringRepresentation] =
-			input.record
+	func putRecord(
+		collection: String,
+		rkey: String,
+		encodedRecord: Data
+	) throws {
+		repo[collection, default: [:]][rkey] = encodedRecord
 	}
 }
