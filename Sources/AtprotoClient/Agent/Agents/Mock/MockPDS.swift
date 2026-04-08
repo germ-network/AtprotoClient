@@ -15,10 +15,15 @@ public actor MockPDS {
 	private var repos: [Atproto.DID: MockRepo] = [:]
 	var recordRegistry: [Atproto.NSID: any AtprotoRecord.Type] = [:]
 
-	public init() throws {
+	public init(recordRegistry: [any AtprotoRecord.Type] = []) throws {
 		self.serviceUrl = try URL(
 			string: "https://\(UUID().uuidString).example.com"
 		).tryUnwrap
+		
+		self.recordRegistry = recordRegistry
+			.reduce(into: [:]) { result, entry in
+				result[entry.nsid] = entry
+		}
 	}
 
 	public func register<R: AtprotoRecord>(type: R.Type) {
