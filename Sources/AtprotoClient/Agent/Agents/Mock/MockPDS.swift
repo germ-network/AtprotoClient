@@ -19,11 +19,12 @@ public actor MockPDS {
 		self.serviceUrl = try URL(
 			string: "https://\(UUID().uuidString).example.com"
 		).tryUnwrap
-		
-		self.recordRegistry = recordRegistry
+
+		self.recordRegistry =
+			recordRegistry
 			.reduce(into: [:]) { result, entry in
 				result[entry.nsid] = entry
-		}
+			}
 	}
 
 	public func register<R: AtprotoRecord>(type: R.Type) {
@@ -132,11 +133,19 @@ public actor MockPDS {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
 
-		return try await repo.getRecordResponse(
-			recordType,
-			encodedRkey: encodedRkey,
-			cid: typedCid
-		)
+		do {
+			return try await repo.getRecordResponse(
+				recordType,
+				encodedRkey: encodedRkey,
+				cid: typedCid
+			)
+		} catch HTTPResponseError.unsuccessfulString(let code, let error) {
+			return .init(
+				data: try JSONEncoder().encode(
+					Lexicon.XRPCError(error: error, message: error)),
+				response: .init(status: .init(code: code))
+			)
+		}
 	}
 
 	private func listRecords(
