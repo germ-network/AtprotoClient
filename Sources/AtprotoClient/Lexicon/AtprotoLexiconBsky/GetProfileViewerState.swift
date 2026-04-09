@@ -17,10 +17,18 @@ extension XRPCProxyCallable {
 		try await call(
 			Lexicon.App.Bsky.Actor.GetProfile.self,
 			parameters: .init(actor: .did(did)),
-			proxy: .init(
-				did: .init(string: "did:web:api.bsky.app"),
+			proxy: .bskyAppView
+		).viewer.tryUnwrap
+	}
+}
+
+extension ProxyService {
+	public static var bskyAppView: Self {
+		get throws {
+			.init(
+				did: try .init(string: "did:web:api.bsky.app"),
 				endpoint: "bsky_appview"
 			)
-		).viewer.tryUnwrap
+		}
 	}
 }

@@ -13,14 +13,20 @@ import HTTPTypes
 public actor MockRepo {
 	typealias EncodedRecordKey = String
 
-	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
+	static let knownRecords: [any AtprotoRecord.Type] = [
+		Lexicon.App.Bsky.Actor.Profile.self,
+		Lexicon.App.Bsky.Graph.Block.self,
+		Lexicon.App.Bsky.Graph.Follow.self,
+	]
+	private var typedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
+
 	//to allow for storing records we don't know, we just store the encoded data
-	private var repo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
+	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
 
 	public init() {}
 
 	public func printPds() {
-		print(repo)
+		print(untypedRepo)
 	}
 }
 
@@ -35,7 +41,7 @@ extension MockRepo {
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> [String: Any] {
-		guard let collectionContents = repo[collection] else {
+		guard let collectionContents = untypedRepo[collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 		guard let record = collectionContents[encodedRkey] else {
@@ -97,7 +103,7 @@ extension MockRepo {
 			}
 		}
 
-		guard let collectionContents = repo[collection] else {
+		guard let collectionContents = untypedRepo[collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 
@@ -168,6 +174,6 @@ extension MockRepo {
 		rkey: String,
 		encodedRecord: Data
 	) throws {
-		repo[collection, default: [:]][rkey] = encodedRecord
+		untypedRepo[collection, default: [:]][rkey] = encodedRecord
 	}
 }
