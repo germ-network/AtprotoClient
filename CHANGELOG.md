@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.4.0
+
+### Minor Changes
+
+- [#14](https://github.com/germ-network/AtprotoClient/pull/14) [`6fe6a0f`](https://github.com/germ-network/AtprotoClient/commit/6fe6a0fabe65ee58609591137b5e40d18764bdef) Thanks [@germ-mark](https://github.com/germ-mark)! - Remove default parameter of URLSession.shared
+
 ## 0.3.0
 
 ### Minor Changes
