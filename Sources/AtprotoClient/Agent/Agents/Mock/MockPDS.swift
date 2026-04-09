@@ -323,4 +323,10 @@ extension MockPDS {
 			)
 
 	}
+
+	public func follow(did: Atproto.DID, from viewer: Atproto.DID) async throws {
+		try await repos[viewer]
+			.tryUnwrap
+			.follow(did: did)
+	}
 }

@@ -235,4 +235,13 @@ extension MockRepo {
 
 		return (follows, blocks)
 	}
+
+	public func follow(did: Atproto.DID) throws {
+		try putRecord(
+			collection: Lexicon.App.Bsky.Graph.Follow.nsid,
+			rkey: UUID().uuidString,
+			encodedRecord: JSONEncoder()
+				.encode(Lexicon.App.Bsky.Graph.Follow(subject: did))
+		)
+	}
 }
