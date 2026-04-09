@@ -62,7 +62,7 @@ extension MockRepo {
 		cid: CID?
 	) throws -> [String: Any]? {
 		guard let collectionContents = untypedRepo[collection] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+			return nil
 		}
 		guard let record = collectionContents[encodedRkey] else {
 			return nil
@@ -128,7 +128,10 @@ extension MockRepo {
 		}
 
 		guard let collectionContents = untypedRepo[collection] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+			return try JSONSerialization.data(withJSONObject: [
+				"cursor": nil,
+				"records": [],
+			])
 		}
 
 		var records: [Any] = []
