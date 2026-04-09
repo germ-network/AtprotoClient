@@ -58,7 +58,7 @@ public actor MockPDS {
 
 	public func response(
 		_ requestComponents: XRPCRequestComponents,
-		auth: Bool
+		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
 		let requestUrl = try request.request.url.tryUnwrap
@@ -70,6 +70,14 @@ public actor MockPDS {
 		let queryParameters = try components.queryItems.tryUnwrap.asDictionary
 
 		let pathComponents = requestUrl.pathComponents
+		
+		if authedDid != nil {
+			let authHeader = try requestComponents.headers[.authorization].tryUnwrap
+			guard authHeader.lowercased().hasPrefix("dpop") else {
+				throw Errors.didAlreadyHostedHere
+			}
+			let _ = try requestComponents.headers[.init("DPoP").tryUnwrap].tryUnwrap
+		}
 
 		switch pathComponents[1] {
 		case "xrpc":
@@ -77,7 +85,7 @@ public actor MockPDS {
 				xrpcNsid: pathComponents[2],
 				queryParameters: queryParameters,
 				body: requestComponents.body,
-				auth: auth
+				authedDid: authedDid
 			)
 		case ".well-known":
 			return try await handleWellKnown(path: .init(pathComponents[2...]))
@@ -92,7 +100,7 @@ public actor MockPDS {
 		xrpcNsid: Atproto.NSID,
 		queryParameters: [String: String],
 		body: Data?,
-		auth: Bool
+		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		switch xrpcNsid {
 		case Lexicon.Com.Atproto.Repo.getRecordNSID:
@@ -102,12 +110,12 @@ public actor MockPDS {
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
 		case Lexicon.Com.Atproto.Repo.putRecordNSID:
-			guard auth else {
+			guard let authedDid else {
 				throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
 			}
 
 			return try await putRecord(
-				bodyData: body.tryUnwrap
+				authedDid: authedDid, bodyData: body.tryUnwrap
 			)
 		default:
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
@@ -213,6 +221,7 @@ public actor MockPDS {
 	}
 
 	private func putRecord(
+		authedDid: Atproto.DID,
 		bodyData: Data
 	) async throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
@@ -220,8 +229,12 @@ public actor MockPDS {
 		guard case .did(let did) = protoSchema.repo else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
+		
+		guard did == authedDid else {
+			throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
+		}
 
-		let repo = try repos[did].tryUnwrap(
+		let repo = try repos[authedDid].tryUnwrap(
 			HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		)
 
@@ -269,6 +282,8 @@ public actor MockPDS {
 	}
 
 	enum Errors: Error {
+		case missingAuthHeader
+		case missingDPoPHeader
 		case didAlreadyHostedHere
 		case didNotHostedHere
 	}
@@ -278,7 +293,7 @@ extension MockPDS.PublicAgent: PDSAgent {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
-		try await pds.response(requestComponents, auth: false)
+		try await pds.response(requestComponents, authedDid: nil)
 	}
 }
 
@@ -286,7 +301,7 @@ extension MockPDS.AuthAgent: PDSAgent, XRPCAuthCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
-		try await pds.response(requestComponents, auth: true)
+		try await pds.response(requestComponents, authedDid: did)
 	}
 }
 
