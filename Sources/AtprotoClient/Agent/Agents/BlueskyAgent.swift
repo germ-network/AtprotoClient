@@ -13,7 +13,7 @@ public struct BlueskyPublicAgent {
 	public let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
 
-	public init(resourceFetcher: HTTPFetcher = URLSession.shared) throws {
+	public init(resourceFetcher: HTTPFetcher) throws {
 		self.serviceUrl = try URL(string: "https://public.api.bsky.app").tryUnwrap
 		self.resourceFetcher = resourceFetcher
 	}

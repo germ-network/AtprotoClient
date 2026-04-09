@@ -16,7 +16,7 @@ public struct PublicPDSAgent: PDSAgent {
 
 	public init(
 		did: Atproto.DID,
-		resourceFetcher: HTTPFetcher = URLSession.shared,
+		resourceFetcher: HTTPFetcher,
 		serviceUrl: URL
 	) {
 		self.did = did
