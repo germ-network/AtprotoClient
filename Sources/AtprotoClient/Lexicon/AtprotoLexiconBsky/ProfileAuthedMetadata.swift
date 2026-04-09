@@ -57,6 +57,22 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		/// An array of labels created by the user. Optional.
 		//		public let labels: [ComAtprotoLexicon.Label.LabelDefinition]?
 
+		public init(
+			did: String,
+			handle: String,
+			displayName: String?,
+			pronouns: String?,
+			avatar: URL?,
+			viewer: ViewerState?
+		) {
+			self.did = did
+			self.handle = handle
+			self.displayName = displayName
+			self.pronouns = pronouns
+			self.avatar = avatar
+			self.viewer = viewer
+		}
+
 	}
 
 	/// A definition model for an actor viewer state.
