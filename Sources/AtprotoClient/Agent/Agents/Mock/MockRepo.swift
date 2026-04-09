@@ -13,13 +13,19 @@ import HTTPTypes
 public actor MockRepo {
 	typealias EncodedRecordKey = String
 
-	// Might want to check that the appropriate AtprotoRecord type is stored in a given NSID collection
-	private var repo: [Atproto.NSID: [EncodedRecordKey: any AtprotoRecord]] = [:]
+	static let knownRecords: [any AtprotoRecord.Type] = [
+		Lexicon.App.Bsky.Actor.Profile.self,
+		Lexicon.App.Bsky.Graph.Block.self,
+		Lexicon.App.Bsky.Graph.Follow.self,
+	]
+
+	//to allow for storing records we don't know, we just store the encoded data
+	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
 
 	public init() {}
 
 	public func printPds() {
-		print(repo)
+		print(untypedRepo)
 	}
 }
 
@@ -29,39 +35,63 @@ enum AtprotoMockAgentError: Error {
 
 // Get record
 extension MockRepo {
-	func getRecord<R: AtprotoRecord>(
-		_ type: R.Type,
+	func getTypedRecord<R: AtprotoRecord>(
+		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
-	) throws -> Lexicon.Com.Atproto.Repo.GetRecord<R>.Output {
-		guard let collectionContents = repo[R.nsid] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
-		}
-		guard let record = collectionContents[encodedRkey] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
-		}
-
-		// TODO: Mock CID
-		return Lexicon.Com.Atproto.Repo.GetRecord<R>.Output(
-			uri: UUID().uuidString,
-			cid: cid?.string ?? CID.mock().string,
-			value: record as! R
-		)
-	}
-
-	func getRecordResponse<R: AtprotoRecord>(
-		_ type: R.Type,
-		encodedRkey: EncodedRecordKey,
-		cid: CID?
-	) throws -> GermConvenience.HTTPDataResponse {
-		let result = try getRecord(
-			type,
+	) throws -> R? {
+		let dict = try getAnyRecord(
+			collection: collection,
 			encodedRkey: encodedRkey,
 			cid: cid
 		)
-		let data = try JSONEncoder().encode(result)
+
+		guard let dict else {
+			return nil
+		}
+
+		let anyType = try dict["value"].tryUnwrap
+		let encoded = try JSONSerialization.data(withJSONObject: anyType, options: [])
+
+		return try JSONDecoder().decode(R.self, from: encoded)
+	}
+
+	func getAnyRecord(
+		collection: Atproto.NSID,
+		encodedRkey: EncodedRecordKey,
+		cid: CID?
+	) throws -> [String: Any]? {
+		guard let collectionContents = untypedRepo[collection] else {
+			return nil
+		}
+		guard let record = collectionContents[encodedRkey] else {
+			return nil
+		}
+
+		// TODO: Mock CID
+		return [
+			"uri": UUID().uuidString,
+			"cid": cid?.string ?? CID.mock().string,
+			"value": try JSONSerialization.jsonObject(with: record),
+		]
+	}
+
+	func getRecordResponse(
+		collection: Atproto.NSID,
+		encodedRkey: EncodedRecordKey,
+		cid: CID?
+	) throws -> GermConvenience.HTTPDataResponse {
+		let resultObject = try getAnyRecord(
+			collection: collection,
+			encodedRkey: encodedRkey,
+			cid: cid
+		)
+
+		guard let resultObject else {
+			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+		}
 		return .init(
-			data: data,
+			data: try JSONSerialization.data(withJSONObject: resultObject),
 			response: .init(
 				status: .ok,
 				headerFields: .init(
@@ -74,47 +104,59 @@ extension MockRepo {
 			)
 		)
 	}
+
+	//type-erased GetRecord
+	struct MockGetRecordOutput: Encodable {
+		let uri: String
+		let cid: String
+		let value: String
+	}
 }
 
 // List records
 extension MockRepo {
-	func listRecords<R: AtprotoRecord>(
-		_ type: R.Type,
+	func listRecords(
+		collection: Atproto.NSID,
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?
-	) throws -> Lexicon.Com.Atproto.Repo.ListRecords<R>.Output {
+	) throws -> Data {
 		if let limit {
 			guard limit >= 1, limit <= 100 else {
 				throw AtprotoMockAgentError.badParameters
 			}
 		}
 
-		guard let collectionContents = repo[R.nsid] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+		guard let collectionContents = untypedRepo[collection] else {
+			return try JSONSerialization.data(withJSONObject: [
+				"cursor": nil,
+				"records": [],
+			])
 		}
 
-		var records: [Lexicon.Com.Atproto.Repo.GetRecord<R>.Output] = []
+		var records: [Any] = []
 
 		// TODO: Implement cursor and CID
 		for (encodedRkey, _) in collectionContents {
-			records.append(
-				try getRecord(
-					type,
-					encodedRkey: .init(string: encodedRkey),
-					cid: nil
-				)
+			let result = try getAnyRecord(
+				collection: collection,
+				encodedRkey: .init(string: encodedRkey),
+				cid: nil
 			)
+			if let result {
+				records.append(result)
+			}
+
 		}
 
-		return Lexicon.Com.Atproto.Repo.ListRecords<R>.Output(
-			cursor: nil,
-			records: records as! [Lexicon.Com.Atproto.Repo.ListRecords<R>.Record]
-		)
+		return try JSONSerialization.data(withJSONObject: [
+			"cursor": nil,
+			"records": records,
+		])
 	}
 
-	func listRecordsResponse<R: AtprotoRecord>(
-		_ type: R.Type,
+	func listRecordsResponse(
+		collection: Atproto.NSID,
 		limit: String?,
 		cursor: String?,
 		reverse: String?
@@ -132,7 +174,7 @@ extension MockRepo {
 				nil
 			}
 		let result = try listRecords(
-			type,
+			collection: collection,
 			limit: limitInt,
 			cursor: cursor,
 			reverse: reverseBool
@@ -156,10 +198,50 @@ extension MockRepo {
 }
 
 extension MockRepo {
-	func putRecord<R: AtprotoRecord>(
-		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input.Schema
+	func createRecord(
+		collection: String,
+		rkey: String?,
+		encodedRecord: Data
+	) throws {
+		untypedRepo[collection, default: [:]][rkey ?? UUID().uuidString] = encodedRecord
+	}
+
+	func putRecord(
+		collection: String,
+		rkey: String,
+		encodedRecord: Data
+	) throws {
+		untypedRepo[collection, default: [:]][rkey] = encodedRecord
+	}
+}
+
+extension MockRepo {
+	func getGraph() throws -> (
+		[Lexicon.App.Bsky.Graph.Follow], [Lexicon.App.Bsky.Graph.Block]
 	) {
-		repo[input.collection, default: [:]][input.rkey.stringRepresentation] =
-			input.record
+		let follows = try (untypedRepo[Lexicon.App.Bsky.Graph.Follow.nsid] ?? [:])
+			.values
+			.map {
+				try JSONDecoder().decode(
+					Lexicon.App.Bsky.Graph.Follow.self, from: $0)
+			}
+
+		let blocks = try (untypedRepo[Lexicon.App.Bsky.Graph.Block.nsid] ?? [:])
+			.values
+			.map {
+				try JSONDecoder().decode(
+					Lexicon.App.Bsky.Graph.Block.self, from: $0)
+			}
+
+		return (follows, blocks)
+	}
+
+	public func follow(did: Atproto.DID) throws {
+		try putRecord(
+			collection: Lexicon.App.Bsky.Graph.Follow.nsid,
+			rkey: UUID().uuidString,
+			encodedRecord: JSONEncoder()
+				.encode(Lexicon.App.Bsky.Graph.Follow(subject: did))
+		)
 	}
 }
