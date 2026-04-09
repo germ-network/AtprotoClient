@@ -291,7 +291,7 @@ extension MockPDS.AuthAgent: PDSAgent, XRPCAuthCallable {
 }
 
 extension [URLQueryItem] {
-	var asDictionary: [String: String] {
+	public var asDictionary: [String: String] {
 		reduce(into: [:]) { result, queryItem in
 			result[queryItem.name] = queryItem.value
 		}
