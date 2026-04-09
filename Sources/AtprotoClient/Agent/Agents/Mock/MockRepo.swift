@@ -18,7 +18,6 @@ public actor MockRepo {
 		Lexicon.App.Bsky.Graph.Block.self,
 		Lexicon.App.Bsky.Graph.Follow.self,
 	]
-	private var typedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
 
 	//to allow for storing records we don't know, we just store the encoded data
 	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
@@ -36,16 +35,37 @@ enum AtprotoMockAgentError: Error {
 
 // Get record
 extension MockRepo {
-	func getRecord(
+	func getTypedRecord<R: AtprotoRecord>(
 		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
-	) throws -> [String: Any] {
+	) throws -> R? {
+		let dict = try getAnyRecord(
+			collection: collection,
+			encodedRkey: encodedRkey,
+			cid: cid
+		)
+
+		guard let dict else {
+			return nil
+		}
+
+		let anyType = try dict["value"].tryUnwrap
+		let encoded = try JSONSerialization.data(withJSONObject: anyType, options: [])
+
+		return try JSONDecoder().decode(R.self, from: encoded)
+	}
+
+	func getAnyRecord(
+		collection: Atproto.NSID,
+		encodedRkey: EncodedRecordKey,
+		cid: CID?
+	) throws -> [String: Any]? {
 		guard let collectionContents = untypedRepo[collection] else {
 			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
 		}
 		guard let record = collectionContents[encodedRkey] else {
-			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+			return nil
 		}
 
 		// TODO: Mock CID
@@ -61,11 +81,15 @@ extension MockRepo {
 		encodedRkey: EncodedRecordKey,
 		cid: CID?
 	) throws -> GermConvenience.HTTPDataResponse {
-		let resultObject = try getRecord(
+		let resultObject = try getAnyRecord(
 			collection: collection,
 			encodedRkey: encodedRkey,
 			cid: cid
 		)
+
+		guard let resultObject else {
+			throw HTTPResponseError.unsuccessfulString(400, "RecordNotFound")
+		}
 		return .init(
 			data: try JSONSerialization.data(withJSONObject: resultObject),
 			response: .init(
@@ -111,13 +135,15 @@ extension MockRepo {
 
 		// TODO: Implement cursor and CID
 		for (encodedRkey, _) in collectionContents {
-			records.append(
-				try getRecord(
-					collection: collection,
-					encodedRkey: .init(string: encodedRkey),
-					cid: nil
-				)
+			let result = try getAnyRecord(
+				collection: collection,
+				encodedRkey: .init(string: encodedRkey),
+				cid: nil
 			)
+			if let result {
+				records.append(result)
+			}
+
 		}
 
 		return try JSONSerialization.data(withJSONObject: [
@@ -169,11 +195,41 @@ extension MockRepo {
 }
 
 extension MockRepo {
+	func createRecord(
+		collection: String,
+		rkey: String?,
+		encodedRecord: Data
+	) throws {
+		untypedRepo[collection, default: [:]][rkey ?? UUID().uuidString] = encodedRecord
+	}
+
 	func putRecord(
 		collection: String,
 		rkey: String,
 		encodedRecord: Data
 	) throws {
 		untypedRepo[collection, default: [:]][rkey] = encodedRecord
+	}
+}
+
+extension MockRepo {
+	func getGraph() throws -> (
+		[Lexicon.App.Bsky.Graph.Follow], [Lexicon.App.Bsky.Graph.Block]
+	) {
+		let follows = try (untypedRepo[Lexicon.App.Bsky.Graph.Follow.nsid] ?? [:])
+			.values
+			.map {
+				try JSONDecoder().decode(
+					Lexicon.App.Bsky.Graph.Follow.self, from: $0)
+			}
+
+		let blocks = try (untypedRepo[Lexicon.App.Bsky.Graph.Block.nsid] ?? [:])
+			.values
+			.map {
+				try JSONDecoder().decode(
+					Lexicon.App.Bsky.Graph.Block.self, from: $0)
+			}
+
+		return (follows, blocks)
 	}
 }

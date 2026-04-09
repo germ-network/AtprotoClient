@@ -70,14 +70,6 @@ public actor MockPDS {
 		let queryParameters = try components.queryItems.tryUnwrap.asDictionary
 
 		let pathComponents = requestUrl.pathComponents
-		
-		if authedDid != nil {
-			let authHeader = try requestComponents.headers[.authorization].tryUnwrap
-			guard authHeader.lowercased().hasPrefix("dpop") else {
-				throw Errors.didAlreadyHostedHere
-			}
-			let _ = try requestComponents.headers[.init("DPoP").tryUnwrap].tryUnwrap
-		}
 
 		switch pathComponents[1] {
 		case "xrpc":
@@ -229,7 +221,7 @@ public actor MockPDS {
 		guard case .did(let did) = protoSchema.repo else {
 			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
 		}
-		
+
 		guard did == authedDid else {
 			throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
 		}
@@ -310,5 +302,25 @@ extension [URLQueryItem] {
 		reduce(into: [:]) { result, queryItem in
 			result[queryItem.name] = queryItem.value
 		}
+	}
+}
+
+extension MockPDS {
+	public func getGraph(did: Atproto.DID) async throws -> (
+		[Lexicon.App.Bsky.Graph.Follow], [Lexicon.App.Bsky.Graph.Block]
+	) {
+		try await repos[did].tryUnwrap
+			.getGraph()
+	}
+
+	public func getBskyProfile(did: Atproto.DID) async throws -> Lexicon.App.Bsky.Actor.Profile?
+	{
+		try await repos[did].tryUnwrap
+			.getTypedRecord(
+				collection: Lexicon.App.Bsky.Actor.Profile.nsid,
+				encodedRkey: "self",
+				cid: nil
+			)
+
 	}
 }
