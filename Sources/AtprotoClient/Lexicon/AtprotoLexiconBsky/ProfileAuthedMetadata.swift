@@ -114,5 +114,19 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		/// - Note: According to the AT Protocol specifications: "The subject's followers whom you
 		/// also follow."
 		//		public let knownFollowers: KnownFollowers?
+		
+		public init(
+			muted: Bool?,
+			blockedBy: Bool?,
+			blocking: String?,
+			following: String?,
+			followedBy: String?
+		) {
+			self.muted = muted
+			self.blockedBy = blockedBy
+			self.blocking = blocking
+			self.following = following
+			self.followedBy = followedBy
+		}
 	}
 }
