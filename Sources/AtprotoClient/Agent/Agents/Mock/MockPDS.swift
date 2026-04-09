@@ -82,7 +82,7 @@ public actor MockPDS {
 		case ".well-known":
 			return try await handleWellKnown(path: .init(pathComponents[2...]))
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 
 		//here is where a directory of types would be handy
@@ -103,20 +103,20 @@ public actor MockPDS {
 		//			break
 		case Lexicon.Com.Atproto.Repo.putRecordNSID:
 			guard let authedDid else {
-				throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
+				return try .mock(error: "Unauthorized", status: 401)
 			}
 
 			return try await putRecord(
 				authedDid: authedDid, bodyData: body.tryUnwrap
 			)
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 	}
 
 	private func handleWellKnown(path: [String]) async throws -> HTTPDataResponse {
 		guard let component = path.first, path.count == 1 else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 		switch component {
 		case "oauth-protected-resource":
@@ -130,7 +130,7 @@ public actor MockPDS {
 				response: .init(status: .ok)
 			)
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 	}
 
@@ -165,10 +165,9 @@ public actor MockPDS {
 			return try .init(string: cid)
 		}()
 
-		let repo = try repos[.init(string: repoParam)]
-			.tryUnwrap(
-				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			)
+		guard let repo = try repos[.init(string: repoParam)] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		do {
 			return try await repo.getRecordResponse(
@@ -194,10 +193,9 @@ public actor MockPDS {
 		let cursor = queryParameters["cursor"]
 		let reverse = queryParameters["reverse"]
 
-		let repo = try repos[.init(string: repoParam)]
-			.tryUnwrap(
-				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			)
+		guard let repo = try repos[.init(string: repoParam)] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		return try await repo.listRecordsResponse(
 			collection: collection,
@@ -219,16 +217,16 @@ public actor MockPDS {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
 		guard case .did(let did) = protoSchema.repo else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 
 		guard did == authedDid else {
-			throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
+			return try .mock(error: "Unauthorized", status: 401)
 		}
 
-		let repo = try repos[authedDid].tryUnwrap(
-			HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		)
+		guard let repo = repos[authedDid] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		//hacky, but type-erases the record type
 		let input = try JSONSerialization.jsonObject(with: bodyData)
@@ -242,7 +240,7 @@ public actor MockPDS {
 			.data(withJSONObject: inputDict["record"].tryUnwrap)
 
 		guard inputRepo == did.stringRepresentation else {
-			throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
+			return try .mock(error: "Incorrect Repo", status: 400)
 		}
 
 		try await repo.putRecord(
