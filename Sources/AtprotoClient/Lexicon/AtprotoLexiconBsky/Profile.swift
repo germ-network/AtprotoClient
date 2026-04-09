@@ -66,6 +66,22 @@ extension Lexicon.App.Bsky.Actor {
 			case pronouns
 			case website
 		}
+
+		public init(
+			avatar: Atproto.Blob?,
+			banner: Atproto.Blob?,
+			description: String?,
+			displayName: String?,
+			pronouns: String?,
+			website: URL?
+		) {
+			self.avatar = avatar
+			self.banner = banner
+			self.description = description
+			self.displayName = displayName
+			self.pronouns = pronouns
+			self.website = website
+		}
 	}
 }
 
