@@ -27,10 +27,18 @@ public actor MockRepo {
 	public func printPds() {
 		print(untypedRepo)
 	}
+
+	enum Errors: Error {
+		case badParameters
+	}
 }
 
-enum AtprotoMockAgentError: Error {
-	case badParameters
+extension MockRepo.Errors: LocalizedError {
+	var errorDescription: String? {
+		switch self {
+		case .badParameters: "bad parameters"
+		}
+	}
 }
 
 // Get record
@@ -123,7 +131,7 @@ extension MockRepo {
 	) throws -> Data {
 		if let limit {
 			guard limit >= 1, limit <= 100 else {
-				throw AtprotoMockAgentError.badParameters
+				throw Errors.badParameters
 			}
 		}
 
@@ -212,6 +220,13 @@ extension MockRepo {
 		encodedRecord: Data
 	) throws {
 		untypedRepo[collection, default: [:]][rkey] = encodedRecord
+	}
+
+	func deleteRecord(
+		collection: String,
+		rkey: String
+	) throws {
+		untypedRepo[collection]?[rkey] = nil
 	}
 }
 

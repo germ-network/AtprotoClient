@@ -13,11 +13,11 @@ import HTTPTypes
 //returning an error instead of throwing reduces noise for tests
 extension HTTPDataResponse {
 	static func mock(
-		error: Lexicon.XRPCError,
+		errorObject: Lexicon.XRPCError,
 		status: HTTPResponse.Status
 	) throws -> Self {
 		.init(
-			data: try JSONEncoder().encode(error),
+			data: try JSONEncoder().encode(errorObject),
 			response: .init(status: status)
 		)
 	}
@@ -27,7 +27,7 @@ extension HTTPDataResponse {
 		status: HTTPResponse.Status
 	) throws -> Self {
 		try .mock(
-			error: .init(error: error, message: "Mock Error"),
+			errorObject: .init(error: error, message: "Mock Error"),
 			status: status
 		)
 	}
