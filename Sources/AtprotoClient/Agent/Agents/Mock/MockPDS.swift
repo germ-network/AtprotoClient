@@ -225,10 +225,6 @@ public actor MockPDS {
 	) async throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
-		guard protoSchema.collection == Lexicon.Com.Atproto.Repo.putRecordNSID else {
-			return try .mock(error: "Invalid Request", status: 400)
-		}
-
 		guard case .did(let did) = protoSchema.repo else {
 			return try .mock(error: "Invalid Request", status: 400)
 		}
@@ -291,9 +287,6 @@ public actor MockPDS {
 		bodyData: Data
 	) async throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
-		guard protoSchema.collection == Lexicon.Com.Atproto.Repo.deleteRecordNSID else {
-			return try .mock(error: "Invalid Request", status: 400)
-		}
 
 		guard case .did(let did) = protoSchema.repo else {
 			return try .mock(error: "Invalid Request", status: 400)
