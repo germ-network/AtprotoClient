@@ -7,8 +7,8 @@
 
 import AtprotoTypes
 import Foundation
-import HTTPTypes
 import GermConvenience
+import HTTPTypes
 
 //returning an error instead of throwing reduces noise for tests
 extension HTTPDataResponse {
@@ -21,7 +21,7 @@ extension HTTPDataResponse {
 			response: .init(status: status)
 		)
 	}
-	
+
 	static func mock(
 		error: String,
 		status: HTTPResponse.Status
