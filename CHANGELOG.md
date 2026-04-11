@@ -1,5 +1,13 @@
 # @germ-network/atprotoclient
 
+## 0.5.1
+
+### Patch Changes
+
+- [#18](https://github.com/germ-network/AtprotoClient/pull/18) [`5d7ad8d`](https://github.com/germ-network/AtprotoClient/commit/5d7ad8d00b68b3d3e9a5d90a647e9517830f3f74) Thanks [@germ-mark](https://github.com/germ-mark)! - add deleteRecord handling, and directly return an error HTTPResponse instead of throwing, catching ,and returning the error response
+
+- [#18](https://github.com/germ-network/AtprotoClient/pull/18) [`7f049c2`](https://github.com/germ-network/AtprotoClient/commit/7f049c211e0150317d53be0ad5f283cfbf300edd) Thanks [@germ-mark](https://github.com/germ-mark)! - implement mock deleteRecord
+
 ## 0.5.0
 
 ### Minor Changes
