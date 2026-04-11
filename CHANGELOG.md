@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.0
+
+### Minor Changes
+
+- [#15](https://github.com/germ-network/AtprotoClient/pull/15) [`6e21716`](https://github.com/germ-network/AtprotoClient/commit/6e21716e7f15cc5266b6d3c48edb1b4c79219a28) Thanks [@germ-mark](https://github.com/germ-mark)! - Change the PDS to store untyped, encoded records so it can store record types it's not aware of. Validating records is out of scope of this mock. Changes the response API to take an optional authed' DID, which the caller can infer from parsing auth parameters
+
 ## 0.4.0
 
 ### Minor Changes
