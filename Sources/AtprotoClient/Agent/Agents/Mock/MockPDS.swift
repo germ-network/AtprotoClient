@@ -82,7 +82,7 @@ public actor MockPDS {
 		case ".well-known":
 			return try await handleWellKnown(path: .init(pathComponents[2...]))
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 
 		//here is where a directory of types would be handy
@@ -103,20 +103,29 @@ public actor MockPDS {
 		//			break
 		case Lexicon.Com.Atproto.Repo.putRecordNSID:
 			guard let authedDid else {
-				throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
+				return try .mock(error: "Unauthorized", status: 401)
 			}
 
 			return try await putRecord(
 				authedDid: authedDid, bodyData: body.tryUnwrap
 			)
+
+		case Lexicon.Com.Atproto.Repo.deleteRecordNSID:
+			guard let authedDid else {
+				return try .mock(error: "Unauthorized", status: 401)
+			}
+
+			return try await deleteRecord(
+				authedDid: authedDid, bodyData: body.tryUnwrap
+			)
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 	}
 
 	private func handleWellKnown(path: [String]) async throws -> HTTPDataResponse {
 		guard let component = path.first, path.count == 1 else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 		switch component {
 		case "oauth-protected-resource":
@@ -130,7 +139,7 @@ public actor MockPDS {
 				response: .init(status: .ok)
 			)
 		default:
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 	}
 
@@ -165,10 +174,9 @@ public actor MockPDS {
 			return try .init(string: cid)
 		}()
 
-		let repo = try repos[.init(string: repoParam)]
-			.tryUnwrap(
-				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			)
+		guard let repo = try repos[.init(string: repoParam)] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		do {
 			return try await repo.getRecordResponse(
@@ -194,10 +202,9 @@ public actor MockPDS {
 		let cursor = queryParameters["cursor"]
 		let reverse = queryParameters["reverse"]
 
-		let repo = try repos[.init(string: repoParam)]
-			.tryUnwrap(
-				HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-			)
+		guard let repo = try repos[.init(string: repoParam)] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		return try await repo.listRecordsResponse(
 			collection: collection,
@@ -219,34 +226,28 @@ public actor MockPDS {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
 		guard case .did(let did) = protoSchema.repo else {
-			throw HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
+			return try .mock(error: "Invalid Request", status: 400)
 		}
 
 		guard did == authedDid else {
-			throw HTTPResponseError.unsuccessfulString(401, "Unauthorized")
+			return try .mock(error: "Unauthorized", status: 401)
 		}
 
-		let repo = try repos[authedDid].tryUnwrap(
-			HTTPResponseError.unsuccessfulString(400, "InvalidRequest")
-		)
+		guard let repo = repos[authedDid] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
 
 		//hacky, but type-erases the record type
 		let input = try JSONSerialization.jsonObject(with: bodyData)
 		let inputDict = try (input as? [String: Any]).tryUnwrap
-		let inputRepo = try (inputDict["repo"] as? String).tryUnwrap
 		let inputRkey = try (inputDict["rkey"] as? String).tryUnwrap
-		let inputCollection = try (inputDict["collection"] as? String).tryUnwrap
 
 		let encodedRecord =
 			try JSONSerialization
 			.data(withJSONObject: inputDict["record"].tryUnwrap)
 
-		guard inputRepo == did.stringRepresentation else {
-			throw HTTPResponseError.unsuccessfulString(400, "Incorrect repo")
-		}
-
 		try await repo.putRecord(
-			collection: inputCollection,
+			collection: protoSchema.collection,
 			rkey: inputRkey,
 			encodedRecord: encodedRecord
 		)
@@ -256,6 +257,65 @@ public actor MockPDS {
 				uri: "example.com",
 				cid: "mock",
 				validationStatus: "valid"
+			)
+		return .init(
+			data: try JSONEncoder().encode(returnVal),
+			response: .init(
+				status: .ok,
+				headerFields: .init(
+					[
+						.init(
+							name: .contentType,
+							value: HTTPContentType.json.rawValue
+						)
+					]
+				)
+			)
+		)
+	}
+
+	struct DeleteRecordSchema: Decodable {
+		let repo: AtIdentifier
+		let collection: Atproto.NSID
+		let rkey: String
+		let swapRecord: CID?
+		let swapCommit: CID?
+	}
+
+	private func deleteRecord(
+		authedDid: Atproto.DID,
+		bodyData: Data
+	) async throws -> HTTPDataResponse {
+		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
+
+		guard case .did(let did) = protoSchema.repo else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
+
+		guard did == authedDid else {
+			return try .mock(error: "Unauthorized", status: 401)
+		}
+
+		guard let repo = repos[authedDid] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
+
+		let input = try JSONDecoder().decode(
+			DeleteRecordSchema.self,
+			from: bodyData
+		)
+
+		try await repo.deleteRecord(
+			collection: input.collection,
+			rkey: input.rkey
+		)
+
+		let returnVal = Lexicon.Com.Atproto.Repo
+			.DeleteRecordResult(
+				commit: .init(
+					cid: .mock(),
+					rev: .mock()
+				)
 			)
 		return .init(
 			data: try JSONEncoder().encode(returnVal),
