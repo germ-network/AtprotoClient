@@ -16,7 +16,7 @@ public protocol XRPCAuthCallable: XRPCCallable {
 }
 
 extension XRPCAuthCallable {
-	public func createRecord<R: AtprotoRecord>(
+	public func createRecord<R: Atproto.Record>(
 		_ record: R,
 		rkey: R.Key? = nil,
 		validate: Bool? = nil,
@@ -36,7 +36,7 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func putRecord<R: AtprotoRecord>(
+	public func putRecord<R: Atproto.Record>(
 		type: R.Type = R.self,
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output {
@@ -46,7 +46,7 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func deleteRecord<R: AtprotoRecord>(
+	public func deleteRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		input: Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Input,

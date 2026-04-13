@@ -18,11 +18,14 @@ extension Lexicon.App.Bsky.Graph {
 
 		public struct Parameters: QueryParametrizable {
 
-			let actor: AtIdentifier
-			let others: [AtIdentifier]?  //maxlength 30
+			let actor: LexiconString.AtIdentifier
+			let others: [LexiconString.AtIdentifier]?  //maxlength 30
 			static let maxOthers = 30
 
-			public init(actor: AtIdentifier, others: [AtIdentifier]?) throws {
+			public init(
+				actor: LexiconString.AtIdentifier,
+				others: [LexiconString.AtIdentifier]?
+			) throws {
 				if let others {
 					guard others.count < Self.maxOthers else {
 						throw Errors.tooManyOthersInput
@@ -33,10 +36,10 @@ extension Lexicon.App.Bsky.Graph {
 			}
 
 			public func asQueryItems() -> [URLQueryItem] {
-				[URLQueryItem(name: "actor", value: actor.wireFormat)]
+				[URLQueryItem(name: "actor", value: actor.string)]
 					+ (others ?? [])
 					.map {
-						.init(name: "others", value: $0.wireFormat)
+						.init(name: "others", value: $0.string)
 					}
 			}
 		}
@@ -44,6 +47,11 @@ extension Lexicon.App.Bsky.Graph {
 		public struct Output: Sendable, Decodable {
 			public let actor: Atproto.DID
 			public let relationships: [Result]
+
+			package init(actor: Atproto.DID, relationships: [Result]) {
+				self.actor = actor
+				self.relationships = relationships
+			}
 		}
 
 		public enum Result: Decodable, Sendable {
@@ -87,7 +95,7 @@ extension Lexicon.App.Bsky.Graph {
 	}
 
 	public struct NotFoundActor: Decodable, Sendable {
-		public let actor: AtIdentifier
+		public let actor: LexiconString.AtIdentifier
 		var notFound: Bool = true
 	}
 }
@@ -97,12 +105,6 @@ extension Lexicon.App.Bsky.Graph.GetRelationships: XRPCResponseParsing {
 		defaultErrors.union(
 			["ActorNotFound"]
 		)
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.GetRelationships.Output: Mockable {
-	static public func mock() -> Lexicon.App.Bsky.Graph.GetRelationships.Output {
-		.init(actor: .mock(), relationships: [])
 	}
 }
 

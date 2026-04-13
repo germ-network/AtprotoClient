@@ -21,14 +21,14 @@ extension Lexicon.App.Bsky.Actor {
 		}
 
 		public struct Parameters: QueryParametrizable {
-			public let actor: AtIdentifier
+			public let actor: LexiconString.AtIdentifier
 
-			public init(actor: AtIdentifier) {
+			public init(actor: LexiconString.AtIdentifier) {
 				self.actor = actor
 			}
 
 			public func asQueryItems() -> [URLQueryItem] {
-				[.init(name: "actor", value: actor.wireFormat)]
+				[.init(name: "actor", value: actor.string)]
 			}
 		}
 	}
@@ -36,23 +36,4 @@ extension Lexicon.App.Bsky.Actor {
 
 extension Lexicon.App.Bsky.Actor.GetProfile: XRPCResponseParsing {
 	public static var badRequestErrors: Set<String> { defaultErrors }
-}
-
-extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {
-	public static func mock() -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
-		.init(
-			did: Atproto.DID.mock().stringRepresentation,
-			handle: "germnetwork.com",
-			displayName: "Germ Network",
-			pronouns: "it/them",
-			avatar: URL(string: "https://example.com/avatar.jpg"),
-			viewer: .init(
-				muted: false,
-				blockedBy: true,
-				blocking: "placeholder",
-				following: "placeholder",
-				followedBy: "placeholder"
-			)
-		)
-	}
 }

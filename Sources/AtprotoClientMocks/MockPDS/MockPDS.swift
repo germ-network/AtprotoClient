@@ -5,6 +5,7 @@
 //  Created by Mark @ Germ on 4/6/26.
 //
 
+import AtprotoClient
 import AtprotoTypes
 import Foundation
 import GermConvenience
@@ -215,7 +216,7 @@ public actor MockPDS {
 	}
 
 	struct ProtoSchema: Decodable {
-		let repo: AtIdentifier
+		let repo: LexiconString.AtIdentifier
 		let collection: Atproto.NSID
 	}
 
@@ -275,7 +276,7 @@ public actor MockPDS {
 	}
 
 	struct DeleteRecordSchema: Decodable {
-		let repo: AtIdentifier
+		let repo: LexiconString.AtIdentifier
 		let collection: Atproto.NSID
 		let rkey: String
 		let swapRecord: CID?
@@ -314,7 +315,7 @@ public actor MockPDS {
 			.DeleteRecordResult(
 				commit: .init(
 					cid: .mock(),
-					rev: .mock()
+					rev: try .mock()
 				)
 			)
 		return .init(

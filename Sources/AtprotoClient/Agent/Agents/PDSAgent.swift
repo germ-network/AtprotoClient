@@ -14,7 +14,7 @@ public protocol PDSAgent: XRPCCallable {
 }
 
 extension PDSAgent {
-	public func getRecord<R: AtprotoRecord>(
+	public func getRecord<R: Atproto.Record>(
 		type: R.Type = R.self,
 		rkey: R.Key,
 		cid: CID?
@@ -32,7 +32,7 @@ extension PDSAgent {
 		try await getRecord()
 	}
 
-	func listRecords<R: AtprotoRecord>(
+	func listRecords<R: Atproto.Record>(
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?

@@ -27,7 +27,7 @@ public protocol XRPCCallable: Sendable {
 }
 
 extension XRPCCallable {
-	public func getRecord<R: AtprotoRecord>(
+	public func getRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
@@ -45,7 +45,7 @@ extension XRPCCallable {
 		}
 	}
 
-	func listRecords<R: AtprotoRecord>(
+	func listRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
@@ -60,7 +60,7 @@ extension XRPCCallable {
 		return (result.records, result.cursor)
 	}
 
-	public func streamRecords<R: AtprotoRecord>(
+	public func streamRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		did: Atproto.DID,

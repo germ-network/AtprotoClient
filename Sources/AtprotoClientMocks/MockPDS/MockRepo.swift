@@ -13,7 +13,7 @@ import HTTPTypes
 public actor MockRepo {
 	typealias EncodedRecordKey = String
 
-	static let knownRecords: [any AtprotoRecord.Type] = [
+	static let knownRecords: [any Atproto.Record.Type] = [
 		Lexicon.App.Bsky.Actor.Profile.self,
 		Lexicon.App.Bsky.Graph.Block.self,
 		Lexicon.App.Bsky.Graph.Follow.self,
@@ -43,7 +43,7 @@ extension MockRepo.Errors: LocalizedError {
 
 // Get record
 extension MockRepo {
-	func getTypedRecord<R: AtprotoRecord>(
+	func getTypedRecord<R: Atproto.Record>(
 		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
 		cid: CID?

@@ -9,10 +9,10 @@ import AtprotoTypes
 import Foundation
 
 extension PDSAgent {
-	public func getRecord<R: AtprotoRecord>(
+	public func getRecord<R: Atproto.Record>(
 		type: R.Type = R.self,
 		cid: CID? = nil
-	) async throws -> R? where R.Key: Lexicon.DefaultableRecordKey {
+	) async throws -> R? where R.Key: LexiconTypes.DefaultableRecordKey {
 		try await getRecord(
 			parameters: .init(
 				repo: .did(did),
@@ -29,7 +29,7 @@ extension XRPCAuthCallable {
 		validate: Bool? = nil,
 		swapCommit: CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output
-	where R.Key: Lexicon.DefaultableRecordKey {
+	where R.Key: LexiconTypes.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
 			input: .init(
@@ -45,13 +45,13 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func putRecord<R: AtprotoRecord>(
+	public func putRecord<R: Atproto.Record>(
 		_ record: R,
 		validate: Bool? = nil,
 		swapCommit: CID? = nil,
 		swapRecord: CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output
-	where R.Key: Lexicon.DefaultableRecordKey {
+	where R.Key: LexiconTypes.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
 			input: .init(
@@ -66,13 +66,13 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func deleteRecord<R: AtprotoRecord>(
+	public func deleteRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
 		swapCommit: CID? = nil,
 		swapRecord: CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output
-	where R.Key: Lexicon.DefaultableRecordKey {
+	where R.Key: LexiconTypes.DefaultableRecordKey {
 		try await call(
 			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,
 			input: .init(
