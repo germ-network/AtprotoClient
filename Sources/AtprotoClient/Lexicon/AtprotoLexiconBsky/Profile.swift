@@ -79,7 +79,7 @@ extension Lexicon.App.Bsky.Actor {
 		) {
 			self.avatar = avatar
 			self.banner = banner
-			self.createdAt = .init(date: createdAt)
+			self.createdAt = if let createdAt { .init(date: createdAt) } else { nil }
 			self.description = description
 			self.displayName = displayName
 			self.pronouns = pronouns

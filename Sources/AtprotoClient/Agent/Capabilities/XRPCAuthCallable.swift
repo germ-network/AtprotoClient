@@ -45,7 +45,7 @@ extension XRPCAuthCallable {
 			input: input,
 		)
 	}
-	
+
 	public func deleteRecord<R: AtprotoRecord>(
 		type: R.Type,
 		rkey: R.Key,

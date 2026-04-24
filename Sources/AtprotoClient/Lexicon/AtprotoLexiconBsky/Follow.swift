@@ -26,6 +26,14 @@ extension Lexicon.App.Bsky.Graph {
 
 		// Ignore `via` field
 
+		public init(
+			subject: Atproto.DID,
+			createdAt: Date = .now
+		) {
+			self.subject = subject
+			self.createdAt = .init(date: createdAt)
+		}
+
 		enum CodingKeys: String, CodingKey {
 			case nsid = "$type"
 			case subject
@@ -36,6 +44,6 @@ extension Lexicon.App.Bsky.Graph {
 
 extension Lexicon.App.Bsky.Graph.Follow: AtprotoRecord {
 	public static func mock() -> Lexicon.App.Bsky.Graph.Follow {
-		.init(subject: .mock(), createdAt: .mock())
+		.init(subject: .mock(), createdAt: .now)
 	}
 }
