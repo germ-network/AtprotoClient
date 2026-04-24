@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.2
+
+### Patch Changes
+
+- [#21](https://github.com/germ-network/AtprotoClient/pull/21) [`18c1967`](https://github.com/germ-network/AtprotoClient/commit/18c19675cb2ed08a2b85e5cb66e32014842ea3f7) Thanks [@anna-germ](https://github.com/anna-germ)! - Update createdAt record properties to use Atproto.Datetime
+
 ## 0.5.1
 
 ### Patch Changes
