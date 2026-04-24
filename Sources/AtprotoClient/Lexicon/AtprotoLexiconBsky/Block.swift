@@ -33,11 +33,14 @@ extension Lexicon.App.Bsky.Graph {
 		public let subject: Atproto.DID
 
 		/// The date and time the block record was created.
-		public let createdAt: Date
+		public let createdAt: Atproto.Datetime
 
-		public init(subject: Atproto.DID, createdAt: Date) {
+		public init(
+			subject: Atproto.DID,
+			createdAt: Date = .now
+		) {
 			self.subject = subject
-			self.createdAt = createdAt
+			self.createdAt = .init(date: createdAt)
 		}
 
 		enum CodingKeys: String, CodingKey {

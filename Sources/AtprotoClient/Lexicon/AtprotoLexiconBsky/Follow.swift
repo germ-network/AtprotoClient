@@ -21,20 +21,29 @@ extension Lexicon.App.Bsky.Graph {
 		private(set) var nsid: Atproto.NSID = Self.nsid
 
 		public let subject: Atproto.DID  // DID
-		// Ignoring the createdAt field until we can easily decode
-		// public let createdAt: Date
+
+		public let createdAt: Atproto.Datetime
 
 		// Ignore `via` field
+
+		public init(
+			subject: Atproto.DID,
+			createdAt: Date = .now
+		) {
+			self.subject = subject
+			self.createdAt = .init(date: createdAt)
+		}
 
 		enum CodingKeys: String, CodingKey {
 			case nsid = "$type"
 			case subject
+			case createdAt
 		}
 	}
 }
 
 extension Lexicon.App.Bsky.Graph.Follow: AtprotoRecord {
 	public static func mock() -> Lexicon.App.Bsky.Graph.Follow {
-		.init(subject: .mock())
+		.init(subject: .mock(), createdAt: .now)
 	}
 }
