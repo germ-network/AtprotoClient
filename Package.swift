@@ -16,7 +16,7 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			from: "0.3.0"
+			branch: "anna/atproto-dates"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",

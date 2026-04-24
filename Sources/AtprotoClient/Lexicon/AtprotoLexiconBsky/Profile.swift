@@ -31,7 +31,7 @@ extension Lexicon.App.Bsky.Actor {
 
 		/// Optional
 		/// An RFC 3339 formatted timestamp.
-		// public let createdAt: Date
+		public let createdAt: Atproto.Datetime
 
 		/// Optional
 		/// Free-form profile description text.
@@ -61,6 +61,7 @@ extension Lexicon.App.Bsky.Actor {
 			case nsid = "$type"
 			case avatar
 			case banner
+			case createdAt
 			case description
 			case displayName
 			case pronouns
@@ -90,6 +91,7 @@ extension Lexicon.App.Bsky.Actor.Profile: AtprotoRecord {
 		.init(
 			avatar: nil,
 			banner: nil,
+			createdAt: .init(date: .now),
 			description: "Share what you want to, when you need to.",
 			displayName: "Germ Network",
 			pronouns: "they/them",
