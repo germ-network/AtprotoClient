@@ -8,7 +8,7 @@
 import AtprotoTypes
 import Foundation
 
-extension PDSAgent {
+extension Atproto.PDSAgent {
 	public func getFollowsStream() async throws -> AsyncMapSequence<
 		AsyncThrowingStream<
 			[Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Follow>

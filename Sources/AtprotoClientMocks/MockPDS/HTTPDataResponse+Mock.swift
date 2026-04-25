@@ -13,7 +13,7 @@ import HTTPTypes
 //returning an error instead of throwing reduces noise for tests
 extension HTTPDataResponse {
 	static func mock(
-		errorObject: Lexicon.XRPCError,
+		errorObject: Atproto.XRPC.ErrorResponse,
 		status: HTTPResponse.Status
 	) throws -> Self {
 		.init(

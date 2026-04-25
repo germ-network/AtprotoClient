@@ -12,10 +12,16 @@ import GermConvenience
 ///https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
 ///https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.actor.getProfile/docs
 extension Lexicon.App.Bsky.Actor {
-	public enum GetProfile: XRPCRequest {
+	public enum GetProfile: Atproto.XRPC.Request {
+		public struct Id: Atproto.XRPC.EndpointId {
+			public static var nsid: Atproto.NSID {
+				.init(string: "app.bsky.actor.getProfile")
+			}
+
+			public init() {}
+		}
 		public typealias Output = Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed
 
-		public static var nsid: String { "app.bsky.actor.getProfile" }
 		public static var outputEncoding: HTTPContentType {
 			.json
 		}
@@ -28,12 +34,12 @@ extension Lexicon.App.Bsky.Actor {
 			}
 
 			public func asQueryItems() -> [URLQueryItem] {
-				[.init(name: "actor", value: actor.string)]
+				[.init(name: "actor", value: actor.rawValue)]
 			}
 		}
 	}
 }
 
-extension Lexicon.App.Bsky.Actor.GetProfile: XRPCResponseParsing {
+extension Lexicon.App.Bsky.Actor.GetProfile: Atproto.XRPC.ResponseParsing {
 	public static var badRequestErrors: Set<String> { defaultErrors }
 }

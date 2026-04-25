@@ -9,15 +9,17 @@ import AtprotoTypes
 import Foundation
 
 //has a default repo
-public protocol PDSAgent: XRPCCallable {
-	var did: Atproto.DID { get }
+extension Atproto {
+	public protocol PDSAgent: Atproto.XRPC.Callable {
+		var did: Atproto.DID { get }
+	}
 }
 
-extension PDSAgent {
+extension Atproto.PDSAgent {
 	public func getRecord<R: Atproto.Record>(
 		type: R.Type = R.self,
 		rkey: R.Key,
-		cid: CID?
+		cid: Atproto.CID?
 	) async throws -> R? {
 		try await getRecord(
 			parameters: .init(
@@ -51,14 +53,17 @@ extension PDSAgent {
 	}
 
 	public func getBlob(
-		cid: CID,
+		cid: Atproto.CID,
 	) async throws -> Data? {
 		do {
 			return try await call(
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: .init(did: .did(did), cid: cid),
 			)
-		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
 			where errorObject.error == "BlobNotFound"
 		{
 			return nil

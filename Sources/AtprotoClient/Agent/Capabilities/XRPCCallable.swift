@@ -20,13 +20,15 @@ import HTTPTypes
 /// UnauthenticatedAtprotoAgent conforms to AtprotoAgent and throws on authed calls
 ///
 /// Have a method on it that declares whether or not it can do auth
-///
-public protocol XRPCCallable: Sendable {
-	func response(_ requestComponents: XRPCRequestComponents) async throws
-		-> HTTPDataResponse
+
+extension Atproto.XRPC {
+	public protocol Callable: Sendable {
+		func response(_ requestComponents: XRPCRequestComponents) async throws
+			-> HTTPDataResponse
+	}
 }
 
-extension XRPCCallable {
+extension Atproto.XRPC.Callable {
 	public func getRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		type: R.Type = R.self,
@@ -38,7 +40,10 @@ extension XRPCCallable {
 				parameters: parameters,
 			).value
 			//this is per the api docs, not the lexicon
-		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
 			where errorObject.error == "RecordNotFound"
 		{
 			return nil
@@ -106,7 +111,10 @@ extension XRPCCallable {
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: parameters,
 			)
-		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
 			where errorObject.error == "BlobNotFound"
 		{
 			return nil

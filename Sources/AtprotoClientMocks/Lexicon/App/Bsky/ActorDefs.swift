@@ -28,3 +28,16 @@ extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {
 		)
 	}
 }
+
+extension Lexicon.App.Bsky.Actor.Profile: Mockable {
+	public static func mock() -> Lexicon.App.Bsky.Actor.Profile {
+		.init(
+			avatar: nil,
+			banner: nil,
+			description: "Share what you want to, when you need to.",
+			displayName: "Germ Network",
+			pronouns: "they/them",
+			website: nil
+		)
+	}
+}

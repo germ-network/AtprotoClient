@@ -12,7 +12,7 @@ import HTTPTypes
 enum AtprotoClientError: Error {
 	case requestFailed(
 		responseStatus: HTTPResponse.Status,
-		error: ParseXRPCError
+		error: Atproto.XRPC.ParseError
 	)
 }
 

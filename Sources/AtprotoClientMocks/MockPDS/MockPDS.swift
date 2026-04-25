@@ -75,7 +75,7 @@ public actor MockPDS {
 		switch pathComponents[1] {
 		case "xrpc":
 			return try await handleXrpc(
-				xrpcNsid: pathComponents[2],
+				xrpcNsid: .init(string: pathComponents[2]),
 				queryParameters: queryParameters,
 				body: requestComponents.body,
 				authedDid: authedDid
@@ -96,13 +96,13 @@ public actor MockPDS {
 		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		switch xrpcNsid {
-		case Lexicon.Com.Atproto.Repo.getRecordNSID:
+		case Lexicon.Com.Atproto.Repo.GetRecordNSID.nsid:
 			return try await getRecord(queryParameters: queryParameters)
-		case Lexicon.Com.Atproto.Repo.listRecordsNSID:
+		case Lexicon.Com.Atproto.Repo.ListRecordsNSID.nsid:
 			return try await listRecords(queryParameters: queryParameters)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
-		case Lexicon.Com.Atproto.Repo.putRecordNSID:
+		case Lexicon.Com.Atproto.Repo.PutRecordNSID.nsid:
 			guard let authedDid else {
 				return try .mock(error: "Unauthorized", status: 401)
 			}
@@ -111,7 +111,7 @@ public actor MockPDS {
 				authedDid: authedDid, bodyData: body.tryUnwrap
 			)
 
-		case Lexicon.Com.Atproto.Repo.deleteRecordNSID:
+		case Lexicon.Com.Atproto.Repo.DeleteRecordNSID.nsid:
 			guard let authedDid else {
 				return try .mock(error: "Unauthorized", status: 401)
 			}
@@ -168,7 +168,7 @@ public actor MockPDS {
 		let collection = try queryParameters["collection"].tryUnwrap
 		let encodedRkey = try queryParameters["rkey"].tryUnwrap
 		let cid = queryParameters["cid"]
-		let typedCid: CID? = try {
+		let typedCid: Atproto.CID? = try {
 			guard let cid else {
 				return nil
 			}
@@ -181,14 +181,14 @@ public actor MockPDS {
 
 		do {
 			return try await repo.getRecordResponse(
-				collection: collection,
+				collection: .init(string: collection),
 				encodedRkey: encodedRkey,
 				cid: typedCid
 			)
 		} catch HTTPResponseError.unsuccessfulString(let code, let error) {
 			return .init(
 				data: try JSONEncoder().encode(
-					Lexicon.XRPCError(error: error, message: error)),
+					Atproto.XRPC.ErrorResponse(error: error, message: error)),
 				response: .init(status: .init(code: code))
 			)
 		}
@@ -208,7 +208,7 @@ public actor MockPDS {
 		}
 
 		return try await repo.listRecordsResponse(
-			collection: collection,
+			collection: .init(string: collection),
 			limit: limit,
 			cursor: cursor,
 			reverse: reverse,
@@ -254,7 +254,7 @@ public actor MockPDS {
 		)
 
 		let returnVal = Lexicon.Com.Atproto.Repo
-			.PutRecordResult(
+			.PutRecordOutput(
 				uri: "example.com",
 				cid: "mock",
 				validationStatus: "valid"
@@ -279,8 +279,8 @@ public actor MockPDS {
 		let repo: LexiconString.AtIdentifier
 		let collection: Atproto.NSID
 		let rkey: String
-		let swapRecord: CID?
-		let swapCommit: CID?
+		let swapRecord: Atproto.CID?
+		let swapCommit: Atproto.CID?
 	}
 
 	private func deleteRecord(
@@ -312,10 +312,10 @@ public actor MockPDS {
 		)
 
 		let returnVal = Lexicon.Com.Atproto.Repo
-			.DeleteRecordResult(
+			.DeleteRecordOutput(
 				commit: .init(
 					cid: .mock(),
-					rev: try .mock()
+					rev: .mock()
 				)
 			)
 		return .init(
@@ -342,7 +342,7 @@ public actor MockPDS {
 	}
 }
 
-extension MockPDS.PublicAgent: PDSAgent {
+extension MockPDS.PublicAgent: Atproto.PDSAgent {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
@@ -350,7 +350,7 @@ extension MockPDS.PublicAgent: PDSAgent {
 	}
 }
 
-extension MockPDS.AuthAgent: PDSAgent, XRPCAuthCallable {
+extension MockPDS.AuthAgent: Atproto.PDSAgent, Atproto.XRPC.AuthCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
@@ -378,7 +378,7 @@ extension MockPDS {
 	{
 		try await repos[did].tryUnwrap
 			.getTypedRecord(
-				collection: Lexicon.App.Bsky.Actor.Profile.nsid,
+				collection: Lexicon.App.Bsky.Actor.Profile.Collection.nsid,
 				encodedRkey: "self",
 				cid: nil
 			)

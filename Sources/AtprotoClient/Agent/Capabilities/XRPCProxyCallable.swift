@@ -9,13 +9,15 @@ import AtprotoTypes
 import Foundation
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of proxying requests
-public protocol XRPCProxyCallable: XRPCCallable {}
+extension Atproto.XRPC {
+	public protocol ProxyCallable: Callable {}
+}
 
-extension XRPCProxyCallable {
-	public func call<X: XRPCRequest>(
+extension Atproto.XRPC.ProxyCallable {
+	public func call<X: Atproto.XRPC.Request>(
 		_ request: X.Type,
 		parameters: X.Parameters,
-		proxy: ProxyService
+		proxy: Atproto.Service
 	) async throws -> X.Output {
 		var request = try constructRequest(request, parameters: parameters)
 
@@ -25,11 +27,11 @@ extension XRPCProxyCallable {
 			.parse(X.self)
 	}
 
-	public func call<X: XRPCProcedure>(
+	public func call<X: Atproto.XRPC.Procedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
 		input: X.Input,
-		proxy: ProxyService
+		proxy: Atproto.Service
 	) async throws -> X.Output {
 		var request = try constructRequest(
 			procedure,

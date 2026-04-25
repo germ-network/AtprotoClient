@@ -11,16 +11,18 @@ import GermConvenience
 import HTTPTypes
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of authed requests
-public protocol XRPCAuthCallable: XRPCCallable {
-	var did: Atproto.DID { get }
+extension Atproto.XRPC {
+	public protocol AuthCallable: Callable {
+		var did: Atproto.DID { get }
+	}
 }
 
-extension XRPCAuthCallable {
+extension Atproto.XRPC.AuthCallable {
 	public func createRecord<R: Atproto.Record>(
 		_ record: R,
 		rkey: R.Key? = nil,
 		validate: Bool? = nil,
-		swapCommit: CID? = nil,
+		swapCommit: Atproto.CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output {
 		try await call(
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,

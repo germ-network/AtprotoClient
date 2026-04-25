@@ -15,12 +15,12 @@ let package = Package(
 		.library(name: "AtprotoClientMocks", targets: ["AtprotoClientMocks"]),
 	],
 	dependencies: [
-		.package(
-			url: "https://github.com/germ-network/AtprotoTypes.git",
-			//			from: "0.3.0"
-			//			branch: "reorg/rename+mocks"
-			revision: "d5c7f377924e701521e68287e57002055eaad42c"
-		),
+		//		.package(
+		//			url: "https://github.com/germ-network/AtprotoTypes.git",
+		//			//			from: "0.3.0"
+		//						branch: "reorg/rename+mocks"
+		//		),
+		.package(path: "../AtprotoTypes"),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
 			from: "0.1.1"

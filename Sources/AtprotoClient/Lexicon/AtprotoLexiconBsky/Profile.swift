@@ -11,23 +11,25 @@ import Foundation
 extension Lexicon.App.Bsky.Actor {
 	/// For reading profile only. In order to write must implemented commented-out fields.
 	/// https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.actor.profile/docs
-	public struct Profile: Sendable, Codable, Equatable {
-		/// The identifier of the lexicon.
-		///
-		/// - Warning: The value must not change.
-		//is "id" in the lexicon but avoid conflict with Swift id
-		public static let nsid: Atproto.NSID = "app.bsky.actor.profile"
+	public struct Profile: Atproto.Record, Equatable {
+		public struct Collection: Atproto.RecordType {
+			static public var nsid: Atproto.NSID {
+				.init(string: "app.bsky.actor.profile")
+			}
+			public init() {}
+		}
 		//for encoding
-		private(set) var nsid: Atproto.NSID = Self.nsid
-		public typealias Key = LexiconTypes.LiteralSelfRecordKey
+		private(set) var nsid = Collection()
+
+		public typealias Key = Atproto.LiteralSelfRecordKey
 
 		/// Optional
 		/// Small image to be displayed next to posts from account. AKA, 'profile picture'
-		public let avatar: Atproto.Blob?
+		public let avatar: Atproto.Primitive.Blob?
 
 		/// Optional
 		/// Larger horizontal image to display behind profile view.
-		public let banner: Atproto.Blob?
+		public let banner: Atproto.Primitive.Blob?
 
 		/// Optional
 		/// An RFC 3339 formatted timestamp.
@@ -68,8 +70,8 @@ extension Lexicon.App.Bsky.Actor {
 		}
 
 		public init(
-			avatar: Atproto.Blob?,
-			banner: Atproto.Blob?,
+			avatar: Atproto.Primitive.Blob?,
+			banner: Atproto.Primitive.Blob?,
 			description: String?,
 			displayName: String?,
 			pronouns: String?,
@@ -82,18 +84,5 @@ extension Lexicon.App.Bsky.Actor {
 			self.pronouns = pronouns
 			self.website = website
 		}
-	}
-}
-
-extension Lexicon.App.Bsky.Actor.Profile: Atproto.Record {
-	public static func mock() -> Lexicon.App.Bsky.Actor.Profile {
-		.init(
-			avatar: nil,
-			banner: nil,
-			description: "Share what you want to, when you need to.",
-			displayName: "Germ Network",
-			pronouns: "they/them",
-			website: nil
-		)
 	}
 }

@@ -12,8 +12,14 @@ import GermConvenience
 //https://docs.bsky.app/docs/api/app-bsky-graph-get-relationships
 //https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.graph.getRelationships
 extension Lexicon.App.Bsky.Graph {
-	public enum GetRelationships: XRPCRequest {
-		public static var nsid: Atproto.NSID { "app.bsky.graph.getRelationships" }
+	public enum GetRelationships: Atproto.XRPC.Request {
+		public struct Id: Atproto.XRPC.EndpointId {
+			public static var nsid: Atproto.NSID {
+				.init(string: "app.bsky.graph.getRelationships")
+			}
+
+			public init() {}
+		}
 		public static let outputEncoding: HTTPContentType = .json
 
 		public struct Parameters: QueryParametrizable {
@@ -36,10 +42,10 @@ extension Lexicon.App.Bsky.Graph {
 			}
 
 			public func asQueryItems() -> [URLQueryItem] {
-				[URLQueryItem(name: "actor", value: actor.string)]
+				[URLQueryItem(name: "actor", value: actor.rawValue)]
 					+ (others ?? [])
 					.map {
-						.init(name: "others", value: $0.string)
+						.init(name: "others", value: $0.rawValue)
 					}
 			}
 		}
@@ -79,8 +85,15 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		enum Errors: Error {
+		enum Errors: LocalizedError {
 			case tooManyOthersInput
+
+			var errorDescription: String? {
+				switch self {
+				case .tooManyOthersInput:
+					"Too many others input"
+				}
+			}
 		}
 	}
 
@@ -100,19 +113,10 @@ extension Lexicon.App.Bsky.Graph {
 	}
 }
 
-extension Lexicon.App.Bsky.Graph.GetRelationships: XRPCResponseParsing {
+extension Lexicon.App.Bsky.Graph.GetRelationships: Atproto.XRPC.ResponseParsing {
 	public static var badRequestErrors: Set<String> {
 		defaultErrors.union(
 			["ActorNotFound"]
 		)
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.GetRelationships.Errors: LocalizedError {
-	var errorDescription: String? {
-		switch self {
-		case .tooManyOthersInput:
-			"Too many others input"
-		}
 	}
 }
