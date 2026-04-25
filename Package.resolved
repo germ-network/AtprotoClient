@@ -1,6 +1,15 @@
 {
-  "originHash" : "b32bba3e0746c31aabd7428aef326b3dd2b7fbb043ade179a0c39140fa1b1847",
+  "originHash" : "0449e3d0e0b5e7b536adbf281295e79c497ea850113e1a68da24ab5bc64d3789",
   "pins" : [
+    {
+      "identity" : "atprototypes",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/germ-network/AtprotoTypes.git",
+      "state" : {
+        "branch" : "reorg/rename+mocks",
+        "revision" : "b361dfebb92a6c2bd829cb052a03bef79d8fda9b"
+      }
+    },
     {
       "identity" : "base32",
       "kind" : "remoteSourceControl",

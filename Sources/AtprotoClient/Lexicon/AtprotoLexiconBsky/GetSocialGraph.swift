@@ -27,3 +27,23 @@ extension Atproto.PDSAgent {
 		}
 	}
 }
+
+extension Atproto.PDSAgent {
+	public func getBlocksStream() async throws -> AsyncMapSequence<
+		AsyncThrowingStream<
+			[Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Block>
+				.Record], any Error
+		>, [Atproto.DID]
+	> {
+		try await streamRecords(
+			type: Lexicon.App.Bsky.Graph.Block.self,
+			did: did
+		)
+		.map { records in
+			records.compactMap {
+				// TODO: Log if any of these fail?
+				$0.value.subject
+			}
+		}
+	}
+}

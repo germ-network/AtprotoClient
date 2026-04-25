@@ -49,13 +49,22 @@ extension Atproto.XRPC.AuthCallable {
 	}
 
 	public func deleteRecord<R: Atproto.Record>(
-		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
-		input: Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Input,
+	//allows for type inference when clear and explicit defn when not
+		type: R.Type,
+		rkey: R.Key,
+		swapRecord: Atproto.CID? = nil,
+		swapCommit: Atproto.CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output {
 		try await call(
 			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,
-			input: input,
+			input: .init(
+				schema: .init(
+					repo: .did(did),
+					rkey: rkey,
+					swapRecord: swapRecord,
+					swapCommit: swapCommit,
+				)
+			),
 		)
 	}
 }

@@ -34,6 +34,7 @@ extension Lexicon.App.Bsky.Actor.Profile: Mockable {
 		.init(
 			avatar: nil,
 			banner: nil,
+			createdAt: .now,
 			description: "Share what you want to, when you need to.",
 			displayName: "Germ Network",
 			pronouns: "they/them",
