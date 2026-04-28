@@ -257,7 +257,8 @@ public actor MockPDS {
 			.PutRecordOutput(
 				uri: "example.com",
 				cid: "mock",
-				validationStatus: "valid"
+				commit: try .mock(),
+				validationStatus: .valid
 			)
 		return .init(
 			data: try JSONEncoder().encode(returnVal),
