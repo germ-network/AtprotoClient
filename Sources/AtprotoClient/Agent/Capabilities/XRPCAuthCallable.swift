@@ -49,7 +49,7 @@ extension Atproto.XRPC.AuthCallable {
 	}
 
 	public func deleteRecord<R: Atproto.Record>(
-	//allows for type inference when clear and explicit defn when not
+		//allows for type inference when clear and explicit defn when not
 		type: R.Type,
 		rkey: R.Key,
 		swapRecord: Atproto.CID? = nil,

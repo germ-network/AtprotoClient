@@ -17,7 +17,7 @@ extension Lexicon.App.Bsky.Graph {
 			}
 			public init() {}
 		}
-		
+
 		//periphery: ignore
 		private(set) var nsid = Collection()
 
