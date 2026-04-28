@@ -16,7 +16,7 @@ extension Atproto.PDSAgent {
 		>, [Atproto.DID]
 	> {
 		try await streamRecords(
-			type: Lexicon.App.Bsky.Graph.Follow.self,
+			Lexicon.App.Bsky.Graph.Follow.self,
 			did: did
 		)
 		.map { records in
@@ -36,7 +36,7 @@ extension Atproto.PDSAgent {
 		>, [Atproto.DID]
 	> {
 		try await streamRecords(
-			type: Lexicon.App.Bsky.Graph.Block.self,
+			Lexicon.App.Bsky.Graph.Block.self,
 			did: did
 		)
 		.map { records in

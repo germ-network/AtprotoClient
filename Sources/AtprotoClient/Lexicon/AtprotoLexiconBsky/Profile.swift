@@ -19,6 +19,7 @@ extension Lexicon.App.Bsky.Actor {
 			public init() {}
 		}
 		//for encoding
+		//periphery: ignore
 		private(set) var nsid = Collection()
 
 		public typealias Key = Atproto.LiteralSelfRecordKey

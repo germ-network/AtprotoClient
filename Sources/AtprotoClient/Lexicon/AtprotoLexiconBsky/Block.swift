@@ -30,6 +30,7 @@ extension Lexicon.App.Bsky.Graph {
 		public typealias Key = Atproto.TID
 
 		//for encoding
+		//periphery: ignore
 		private(set) var nsid = Collection()
 		/// The decentralized identifier(DID) of the subject that has been blocked.
 		///

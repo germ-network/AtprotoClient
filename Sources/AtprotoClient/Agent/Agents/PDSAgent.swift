@@ -17,7 +17,7 @@ extension Atproto {
 
 extension Atproto.PDSAgent {
 	public func getRecord<R: Atproto.Record>(
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		rkey: R.Key,
 		cid: Atproto.CID?
 	) async throws -> R? {
@@ -34,7 +34,7 @@ extension Atproto.PDSAgent {
 		try await getRecord()
 	}
 
-	func listRecords<R: Atproto.Record>(
+	public func listRecords<R: Atproto.Record>(
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?

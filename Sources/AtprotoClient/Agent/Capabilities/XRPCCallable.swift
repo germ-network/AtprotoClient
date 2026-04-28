@@ -31,7 +31,7 @@ extension Atproto.XRPC {
 extension Atproto.XRPC.Callable {
 	public func getRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
 	) async throws -> R? {
 		do {
@@ -52,7 +52,7 @@ extension Atproto.XRPC.Callable {
 
 	func listRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
 	) async throws -> (
 		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record],
@@ -67,7 +67,7 @@ extension Atproto.XRPC.Callable {
 
 	public func streamRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		did: Atproto.DID,
 	) async throws -> AsyncThrowingStream<
 		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error
@@ -83,7 +83,7 @@ extension Atproto.XRPC.Callable {
 				repeat {
 					let result: (records: [Record], cursor: String?) =
 						try await listRecords(
-							type: R.self,
+							R.self,
 							parameters: .init(
 								repo: .did(did),
 								limit: 100,  // max

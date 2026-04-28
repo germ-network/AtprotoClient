@@ -39,7 +39,7 @@ extension Atproto.XRPC.AuthCallable {
 	}
 
 	public func putRecord<R: Atproto.Record>(
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output {
 		try await call(

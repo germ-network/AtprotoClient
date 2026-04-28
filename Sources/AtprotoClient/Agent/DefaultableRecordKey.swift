@@ -10,7 +10,7 @@ import Foundation
 
 extension Atproto.PDSAgent {
 	public func getRecord<R: Atproto.Record>(
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		cid: Atproto.CID? = nil
 	) async throws -> R? where R.Key: Atproto.DefaultableRecordKey {
 		try await getRecord(
@@ -59,6 +59,7 @@ extension Atproto.XRPC.AuthCallable {
 					repo: .did(did),
 					rkey: .defaultValue(),
 					record: record,
+					validate: validate,
 					swapCommit: swapCommit,
 					swapRecord: swapRecord
 				)
@@ -68,7 +69,7 @@ extension Atproto.XRPC.AuthCallable {
 
 	public func deleteRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		swapCommit: Atproto.CID? = nil,
 		swapRecord: Atproto.CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output

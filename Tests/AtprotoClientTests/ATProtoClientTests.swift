@@ -23,7 +23,7 @@ struct APIOnlineTests {
 
 		// Make a request via this mock agent and decode the result
 		let profile = try await authAgent.getRecord(
-			type: Lexicon.App.Bsky.Actor.Profile.self
+			Lexicon.App.Bsky.Actor.Profile.self
 		)
 
 		assert(profile?.displayName == record.displayName)
