@@ -29,7 +29,7 @@ extension Atproto.XRPC.Callable {
 		parameters: X.Parameters,
 	) throws -> XRPCRequestComponents {
 		.init(
-			relativePath: "/xrpc/" + X.Id.self.nsid.rawValue,
+			relativePath: "/xrpc/" + X.Id.nsid.rawValue,
 			queryItems: parameters.asQueryItems(),
 			headers: .init(
 				dictionaryLiteral: (.accept, X.outputEncoding.rawValue)
