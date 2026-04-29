@@ -19,7 +19,7 @@ extension Lexicon.App.Bsky.Graph {
 		}
 
 		//periphery: ignore
-		private(set) var nsid = Collection()
+		public private(set) var nsid = Collection()
 
 		public typealias Key = Atproto.TID
 		//for encoding

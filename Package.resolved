@@ -1,5 +1,5 @@
 {
-  "originHash" : "0449e3d0e0b5e7b536adbf281295e79c497ea850113e1a68da24ab5bc64d3789",
+  "originHash" : "4128f5630da03add748f0837daca6fdbfe5f31c2138670493b017125620e353d",
   "pins" : [
     {
       "identity" : "atprototypes",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
         "branch" : "reorg/rename+mocks",
-        "revision" : "60c2e09e54cb04f00b9756573348ce13440f7ce0"
+        "revision" : "7b431008172c249d1ae017a5ceed5a0454703d72"
       }
     },
     {

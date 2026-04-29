@@ -31,7 +31,7 @@ extension Lexicon.App.Bsky.Graph {
 
 		//for encoding
 		//periphery: ignore
-		private(set) var nsid = Collection()
+		public private(set) var nsid = Collection()
 		/// The decentralized identifier(DID) of the subject that has been blocked.
 		///
 		/// - Note: According to the AT Protocol specifications: "DID of the account to be blocked."
