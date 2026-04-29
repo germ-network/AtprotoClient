@@ -20,7 +20,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 
 		/// The decentralized identifier (DID) of the user.
 		public let did: Atproto.DID
-		public let handle: String
+		public let handle: Atproto.Handle
 		public let displayName: String?
 		public let pronouns: String?
 		public let avatar: URL?
@@ -59,7 +59,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 
 		public init(
 			did: Atproto.DID,
-			handle: String,
+			handle: Atproto.Handle,
 			displayName: String?,
 			pronouns: String?,
 			avatar: URL?,

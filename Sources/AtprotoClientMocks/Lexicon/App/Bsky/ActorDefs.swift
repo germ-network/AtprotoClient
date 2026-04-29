@@ -11,10 +11,10 @@ import Foundation
 import Mockable
 
 extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {
-	public static func mock() -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
+	public static func mock() throws -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
 		.init(
 			did: .mock(),
-			handle: "germnetwork.com",
+			handle: try .init(string: "germnetwork.com"),
 			displayName: "Germ Network",
 			pronouns: "it/them",
 			avatar: URL(string: "https://example.com/avatar.jpg"),
