@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.3
+
+### Patch Changes
+
+- [#23](https://github.com/germ-network/AtprotoClient/pull/23) [`068804e`](https://github.com/germ-network/AtprotoClient/commit/068804e891f39175d60d6239570e4d4313348694) Thanks [@germ-mark](https://github.com/germ-mark)! - adopt AtprotoTypes renaming and separate out a mocks target
+
 ## 0.5.2
 
 ### Patch Changes
