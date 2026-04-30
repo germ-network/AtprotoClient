@@ -7,6 +7,7 @@
 
 import AtprotoClient
 import AtprotoTypes
+import AtprotoTypesMocks
 import Foundation
 import Mockable
 
