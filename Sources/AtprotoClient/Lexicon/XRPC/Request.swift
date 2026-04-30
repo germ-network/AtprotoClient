@@ -10,8 +10,8 @@ import Foundation
 import GermConvenience
 import HTTPTypes
 
-extension XRPCCallable {
-	public func call<X: XRPCRequest>(
+extension Atproto.XRPC.Callable {
+	public func call<X: Atproto.XRPC.Request>(
 		_ request: X.Type,
 		parameters: X.Parameters,
 	) async throws -> X.Output {
@@ -24,12 +24,12 @@ extension XRPCCallable {
 			.parse(X.self)
 	}
 
-	func constructRequest<X: XRPCRequest>(
+	func constructRequest<X: Atproto.XRPC.Request>(
 		_ request: X.Type,
 		parameters: X.Parameters,
 	) throws -> XRPCRequestComponents {
 		.init(
-			relativePath: "/xrpc/" + X.nsid,
+			relativePath: "/xrpc/" + X.Id.nsid.rawValue,
 			queryItems: parameters.asQueryItems(),
 			headers: .init(
 				dictionaryLiteral: (.accept, X.outputEncoding.rawValue)

@@ -10,17 +10,18 @@ let package = Package(
 		// Products define the executables and libraries a package produces, making them visible to other packages.
 		.library(
 			name: "AtprotoClient",
-			targets: ["AtprotoClient"]
-		)
+			targets: ["AtprotoClient"],
+		),
+		.library(name: "AtprotoClientMocks", targets: ["AtprotoClientMocks"]),
 	],
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			from: "0.3.4"
+			from: "0.4.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			from: "0.1.1"
+			from: "0.1.5"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
@@ -41,9 +42,19 @@ let package = Package(
 				.product(name: "Logging", package: "swift-log"),
 			]
 		),
+		.target(
+			name: "AtprotoClientMocks",
+			dependencies: [
+				"AtprotoClient",
+				.product(name: "AtprotoTypesMocks", package: "AtprotoTypes"),
+				"GermConvenience",
+				.product(name: "HTTPTypes", package: "swift-http-types"),
+				.product(name: "Mockable", package: "AtprotoTypes"),
+			]
+		),
 		.testTarget(
 			name: "AtprotoClientTests",
-			dependencies: ["AtprotoClient"]
+			dependencies: ["AtprotoClient", "AtprotoClientMocks"]
 		),
 	]
 )

@@ -19,14 +19,19 @@ extension Lexicon.App.Bsky.Graph {
 	/// - SeeAlso: This is based on the [`app.bsky.graph.block`][github] lexicon.
 	///
 	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/graph/block.json
-	public struct Block: Sendable, Codable {
-		/// The identifier of the lexicon.
-		///
-		/// - Warning: The value must not change.
-		public static let nsid: String = "app.bsky.graph.block"
+	public struct Block: Atproto.Record {
+		public struct Collection: Atproto.RecordType {
+			static public var nsid: Atproto.NSID {
+				.init(string: "app.bsky.graph.block")
+			}
+			public init() {}
+		}
+
 		public typealias Key = Atproto.TID
 
-		private(set) var nsid: Atproto.NSID = Self.nsid
+		//for encoding
+		//periphery: ignore
+		public private(set) var nsid = Collection()
 		/// The decentralized identifier(DID) of the subject that has been blocked.
 		///
 		/// - Note: According to the AT Protocol specifications: "DID of the account to be blocked."
@@ -48,11 +53,5 @@ extension Lexicon.App.Bsky.Graph {
 			case subject
 			case createdAt
 		}
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.Block: AtprotoRecord {
-	public static func mock() -> AtprotoTypes.Lexicon.App.Bsky.Graph.Block {
-		.init(subject: .mock(), createdAt: .now)
 	}
 }

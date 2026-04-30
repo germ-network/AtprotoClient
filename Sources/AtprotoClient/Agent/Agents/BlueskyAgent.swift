@@ -5,6 +5,7 @@
 //  Created by Mark @ Germ on 3/28/26.
 //
 
+import AtprotoTypes
 import Foundation
 import GermConvenience
 
@@ -19,7 +20,7 @@ public struct BlueskyPublicAgent {
 	}
 }
 
-extension BlueskyPublicAgent: XRPCCallable {
+extension BlueskyPublicAgent: Atproto.XRPC.Callable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {

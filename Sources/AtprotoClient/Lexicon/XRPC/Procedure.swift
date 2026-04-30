@@ -10,12 +10,12 @@ import Foundation
 import GermConvenience
 import HTTPTypes
 
-extension XRPCCallable {
+extension Atproto.XRPC.Callable {
 	//most procedures don't have a queryParams
-	public func call<X: XRPCProcedure>(
+	public func call<X: Atproto.XRPC.Procedure>(
 		_ procedure: X.Type,
 		input: X.Input,
-	) async throws -> X.Output where X.Parameters == EmptyXRPCParameters {
+	) async throws -> X.Output where X.Parameters == Atproto.XRPC.EmptyParameters {
 		try await call(
 			procedure,
 			queryParams: .init(),
@@ -23,7 +23,7 @@ extension XRPCCallable {
 		)
 	}
 
-	public func call<X: XRPCProcedure>(
+	public func call<X: Atproto.XRPC.Procedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
 		input: X.Input,
@@ -39,7 +39,7 @@ extension XRPCCallable {
 	}
 
 	//breaking this apart lets us inject proxying
-	func constructRequest<X: XRPCProcedure>(
+	func constructRequest<X: Atproto.XRPC.Procedure>(
 		_ procedure: X.Type,
 		queryParams: X.Parameters,
 		input: X.Input,
@@ -51,7 +51,7 @@ extension XRPCCallable {
 		}
 
 		return .init(
-			relativePath: "/xrpc/" + X.nsid,
+			relativePath: "/xrpc/" + X.Id.nsid.rawValue,
 			queryItems: queryParams.asQueryItems(),
 			headers: headerFields,
 			method: .post,

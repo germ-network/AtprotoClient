@@ -20,16 +20,18 @@ import HTTPTypes
 /// UnauthenticatedAtprotoAgent conforms to AtprotoAgent and throws on authed calls
 ///
 /// Have a method on it that declares whether or not it can do auth
-///
-public protocol XRPCCallable: Sendable {
-	func response(_ requestComponents: XRPCRequestComponents) async throws
-		-> HTTPDataResponse
+
+extension Atproto.XRPC {
+	public protocol Callable: Sendable {
+		func response(_ requestComponents: XRPCRequestComponents) async throws
+			-> HTTPDataResponse
+	}
 }
 
-extension XRPCCallable {
-	public func getRecord<R: AtprotoRecord>(
+extension Atproto.XRPC.Callable {
+	public func getRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
 	) async throws -> R? {
 		do {
@@ -38,16 +40,19 @@ extension XRPCCallable {
 				parameters: parameters,
 			).value
 			//this is per the api docs, not the lexicon
-		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
 			where errorObject.error == "RecordNotFound"
 		{
 			return nil
 		}
 	}
 
-	func listRecords<R: AtprotoRecord>(
+	func listRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.ListRecords<R>.Parameters,
 	) async throws -> (
 		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record],
@@ -60,9 +65,9 @@ extension XRPCCallable {
 		return (result.records, result.cursor)
 	}
 
-	public func streamRecords<R: AtprotoRecord>(
+	public func streamRecords<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
-		type: R.Type = R.self,
+		_: R.Type = R.self,
 		did: Atproto.DID,
 	) async throws -> AsyncThrowingStream<
 		[Lexicon.Com.Atproto.Repo.ListRecords<R>.Record], Error
@@ -78,7 +83,7 @@ extension XRPCCallable {
 				repeat {
 					let result: (records: [Record], cursor: String?) =
 						try await listRecords(
-							type: R.self,
+							R.self,
 							parameters: .init(
 								repo: .did(did),
 								limit: 100,  // max
@@ -106,7 +111,10 @@ extension XRPCCallable {
 				Lexicon.Com.Atproto.Sync.GetBlob.self,
 				parameters: parameters,
 			)
-		} catch ParseXRPCError.xrpcError(status: .badRequest, error: let errorObject)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
 			where errorObject.error == "BlobNotFound"
 		{
 			return nil

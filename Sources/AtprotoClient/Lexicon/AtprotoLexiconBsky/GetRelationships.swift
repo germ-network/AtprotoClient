@@ -12,17 +12,26 @@ import GermConvenience
 //https://docs.bsky.app/docs/api/app-bsky-graph-get-relationships
 //https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.graph.getRelationships
 extension Lexicon.App.Bsky.Graph {
-	public enum GetRelationships: XRPCRequest {
-		public static var nsid: Atproto.NSID { "app.bsky.graph.getRelationships" }
+	public enum GetRelationships: Atproto.XRPC.Request {
+		public struct Id: Atproto.XRPC.EndpointId {
+			public static var nsid: Atproto.NSID {
+				.init(string: "app.bsky.graph.getRelationships")
+			}
+
+			public init() {}
+		}
 		public static let outputEncoding: HTTPContentType = .json
 
 		public struct Parameters: QueryParametrizable {
 
-			let actor: AtIdentifier
-			let others: [AtIdentifier]?  //maxlength 30
+			let actor: LexiconString.AtIdentifier
+			let others: [LexiconString.AtIdentifier]?  //maxlength 30
 			static let maxOthers = 30
 
-			public init(actor: AtIdentifier, others: [AtIdentifier]?) throws {
+			public init(
+				actor: LexiconString.AtIdentifier,
+				others: [LexiconString.AtIdentifier]?
+			) throws {
 				if let others {
 					guard others.count < Self.maxOthers else {
 						throw Errors.tooManyOthersInput
@@ -33,10 +42,10 @@ extension Lexicon.App.Bsky.Graph {
 			}
 
 			public func asQueryItems() -> [URLQueryItem] {
-				[URLQueryItem(name: "actor", value: actor.wireFormat)]
+				[URLQueryItem(name: "actor", value: actor.rawValue)]
 					+ (others ?? [])
 					.map {
-						.init(name: "others", value: $0.wireFormat)
+						.init(name: "others", value: $0.rawValue)
 					}
 			}
 		}
@@ -44,6 +53,11 @@ extension Lexicon.App.Bsky.Graph {
 		public struct Output: Sendable, Decodable {
 			public let actor: Atproto.DID
 			public let relationships: [Result]
+
+			package init(actor: Atproto.DID, relationships: [Result]) {
+				self.actor = actor
+				self.relationships = relationships
+			}
 		}
 
 		public enum Result: Decodable, Sendable {
@@ -71,8 +85,15 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		enum Errors: Error {
+		enum Errors: LocalizedError {
 			case tooManyOthersInput
+
+			var errorDescription: String? {
+				switch self {
+				case .tooManyOthersInput:
+					"Too many others input"
+				}
+			}
 		}
 	}
 
@@ -87,30 +108,15 @@ extension Lexicon.App.Bsky.Graph {
 	}
 
 	public struct NotFoundActor: Decodable, Sendable {
-		public let actor: AtIdentifier
+		public let actor: LexiconString.AtIdentifier
 		var notFound: Bool = true
 	}
 }
 
-extension Lexicon.App.Bsky.Graph.GetRelationships: XRPCResponseParsing {
+extension Lexicon.App.Bsky.Graph.GetRelationships: Atproto.XRPC.ResponseParsing {
 	public static var badRequestErrors: Set<String> {
 		defaultErrors.union(
 			["ActorNotFound"]
 		)
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.GetRelationships.Output: Mockable {
-	static public func mock() -> Lexicon.App.Bsky.Graph.GetRelationships.Output {
-		.init(actor: .mock(), relationships: [])
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.GetRelationships.Errors: LocalizedError {
-	var errorDescription: String? {
-		switch self {
-		case .tooManyOthersInput:
-			"Too many others input"
-		}
 	}
 }

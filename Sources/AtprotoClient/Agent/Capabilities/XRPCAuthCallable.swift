@@ -11,16 +11,18 @@ import GermConvenience
 import HTTPTypes
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of authed requests
-public protocol XRPCAuthCallable: XRPCCallable {
-	var did: Atproto.DID { get }
+extension Atproto.XRPC {
+	public protocol AuthCallable: Callable {
+		var did: Atproto.DID { get }
+	}
 }
 
-extension XRPCAuthCallable {
-	public func createRecord<R: AtprotoRecord>(
+extension Atproto.XRPC.AuthCallable {
+	public func createRecord<R: Atproto.Record>(
 		_ record: R,
 		rkey: R.Key? = nil,
 		validate: Bool? = nil,
-		swapCommit: CID? = nil,
+		swapCommit: Atproto.CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.CreateRecord<R>.Output {
 		try await call(
 			Lexicon.Com.Atproto.Repo.CreateRecord<R>.self,
@@ -36,8 +38,8 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func putRecord<R: AtprotoRecord>(
-		type: R.Type = R.self,
+	public func putRecord<R: Atproto.Record>(
+		_: R.Type = R.self,
 		input: Lexicon.Com.Atproto.Repo.PutRecord<R>.Input,
 	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output {
 		try await call(
@@ -46,11 +48,12 @@ extension XRPCAuthCallable {
 		)
 	}
 
-	public func deleteRecord<R: AtprotoRecord>(
+	public func deleteRecord<R: Atproto.Record>(
+		//allows for type inference when clear and explicit defn when not
 		type: R.Type,
 		rkey: R.Key,
-		swapRecord: CID? = nil,
-		swapCommit: CID? = nil,
+		swapRecord: Atproto.CID? = nil,
+		swapCommit: Atproto.CID? = nil,
 	) async throws -> Lexicon.Com.Atproto.Repo.DeleteRecord<R>.Output {
 		try await call(
 			Lexicon.Com.Atproto.Repo.DeleteRecord<R>.self,

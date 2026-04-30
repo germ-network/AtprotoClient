@@ -19,8 +19,8 @@ extension Lexicon.App.Bsky.Actor.Defs {
 	public struct ProfileViewDetailed: Sendable, Codable {
 
 		/// The decentralized identifier (DID) of the user.
-		public let did: String
-		public let handle: String
+		public let did: Atproto.DID
+		public let handle: Atproto.Handle
 		public let displayName: String?
 		public let pronouns: String?
 		public let avatar: URL?
@@ -58,8 +58,8 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		//		public let labels: [ComAtprotoLexicon.Label.LabelDefinition]?
 
 		public init(
-			did: String,
-			handle: String,
+			did: Atproto.DID,
+			handle: Atproto.Handle,
 			displayName: String?,
 			pronouns: String?,
 			avatar: URL?,

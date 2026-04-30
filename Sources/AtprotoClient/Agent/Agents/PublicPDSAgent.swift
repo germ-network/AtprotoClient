@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-public struct PublicPDSAgent: PDSAgent {
+public struct PublicPDSAgent: Atproto.PDSAgent {
 	public let did: Atproto.DID
 	let serviceUrl: URL
 	private let resourceFetcher: HTTPFetcher
@@ -25,7 +25,7 @@ public struct PublicPDSAgent: PDSAgent {
 	}
 }
 
-extension PublicPDSAgent: XRPCCallable {
+extension PublicPDSAgent: Atproto.XRPC.Callable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {

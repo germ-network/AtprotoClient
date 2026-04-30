@@ -10,15 +10,19 @@ import Foundation
 
 //https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.graph.follow/docs
 extension Lexicon.App.Bsky.Graph {
-	public struct Follow: Sendable, Codable {
-		/// The identifier of the lexicon.
-		///
-		/// - Warning: The value must not change.
-		//is "id" in the lexicon but avoid conflict with Swift id
-		public static let nsid: Atproto.NSID = "app.bsky.graph.follow"
+	public struct Follow: Atproto.Record {
+		public struct Collection: Atproto.RecordType {
+			static public var nsid: Atproto.NSID {
+				.init(string: "app.bsky.graph.follow")
+			}
+			public init() {}
+		}
+
+		//periphery: ignore
+		public private(set) var nsid = Collection()
+
 		public typealias Key = Atproto.TID
 		//for encoding
-		private(set) var nsid: Atproto.NSID = Self.nsid
 
 		public let subject: Atproto.DID  // DID
 
@@ -26,7 +30,7 @@ extension Lexicon.App.Bsky.Graph {
 
 		// Ignore `via` field
 
-		public init(
+		package init(
 			subject: Atproto.DID,
 			createdAt: Date = .now
 		) {
@@ -39,11 +43,5 @@ extension Lexicon.App.Bsky.Graph {
 			case subject
 			case createdAt
 		}
-	}
-}
-
-extension Lexicon.App.Bsky.Graph.Follow: AtprotoRecord {
-	public static func mock() -> Lexicon.App.Bsky.Graph.Follow {
-		.init(subject: .mock(), createdAt: .now)
 	}
 }

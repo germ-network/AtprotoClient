@@ -10,7 +10,7 @@ import Foundation
 
 //this needs to be proxied to https://public.api.bsky.app
 //reference for the endpoint: https://docs.bsky.app/docs/advanced-guides/api-directory#bluesky-services
-extension XRPCProxyCallable {
+extension Atproto.XRPC.ProxyCallable {
 	public func authBskyProfileViewerState(
 		for did: Atproto.DID
 	) async throws -> Lexicon.App.Bsky.Actor.Defs.ViewerState {
@@ -22,7 +22,7 @@ extension XRPCProxyCallable {
 	}
 }
 
-extension ProxyService {
+extension Atproto.Service {
 	public static var bskyAppView: Self {
 		get throws {
 			.init(

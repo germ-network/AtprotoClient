@@ -8,7 +8,7 @@
 import AtprotoTypes
 import Foundation
 
-extension PDSAgent {
+extension Atproto.PDSAgent {
 	public func getFollowsStream() async throws -> AsyncMapSequence<
 		AsyncThrowingStream<
 			[Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Follow>
@@ -16,7 +16,7 @@ extension PDSAgent {
 		>, [Atproto.DID]
 	> {
 		try await streamRecords(
-			type: Lexicon.App.Bsky.Graph.Follow.self,
+			Lexicon.App.Bsky.Graph.Follow.self,
 			did: did
 		)
 		.map { records in
@@ -28,7 +28,7 @@ extension PDSAgent {
 	}
 }
 
-extension PDSAgent {
+extension Atproto.PDSAgent {
 	public func getBlocksStream() async throws -> AsyncMapSequence<
 		AsyncThrowingStream<
 			[Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Block>
@@ -36,7 +36,7 @@ extension PDSAgent {
 		>, [Atproto.DID]
 	> {
 		try await streamRecords(
-			type: Lexicon.App.Bsky.Graph.Block.self,
+			Lexicon.App.Bsky.Graph.Block.self,
 			did: did
 		)
 		.map { records in
