@@ -11,50 +11,49 @@ import GermConvenience
 
 extension Atproto {
 	public protocol Resolver: Sendable {
+		///like https://docs.bsky.app/docs/api/com-atproto-identity-resolve-handle
+		///or compatible versions such as https://slingshot.microcosm.blue/#tag/comatproto-queries/GET/xrpc/com.atproto.identity.resolveHandle
 		func resolve(handle: Handle) async throws -> DID?
+
+		///equivalent to a plc query or did:web lookup
 		func resolve(did: DID) async throws -> DIDDocument?
 
 		//we supply a default implementation of this
+		//allows for the single request use of Slingshot's resolveMiniDoc
 		func verifiedResolve(
 			handle: Handle
-		) async throws -> (DID, DIDDocument)?
-	}
-
-	enum ResolverError: LocalizedError {
-		case handleMismatch
+		) async throws -> Atproto.DIDDocument.Verified?
 	}
 }
 
 // Default implementation for verifiedResolve, can be overridden
 extension Atproto.Resolver {
-	public func verifiedResolve(handle: Atproto.Handle) async throws -> (
-		Atproto.DID,
-		Atproto.DIDDocument
-	)? {
+	public func verifiedResolve(
+		handle: Atproto.Handle
+	) async throws -> Atproto.DIDDocument.Verified? {
 		guard let did = try await resolve(handle: handle) else {
 			return nil
 		}
 
 		//if a did doc doesn't resolve it's an error
-		let document = try await resolve(did: did).tryUnwrap
-
-		guard let documentHandle = document.handle,
-			documentHandle == handle
-		else {
-			throw Atproto.ResolverError.handleMismatch
-		}
-
-		return (did, document)
+		return try await resolve(did: did).tryUnwrap
+			.verified(expecting: handle)
 	}
 
-	public func resolve(
+	public func verifiedResolve(
 		atIdentifier: LexiconString.AtIdentifier
-	) async throws -> (Atproto.DID, Atproto.DIDDocument)? {
+	) async throws -> Atproto.DIDDocument.Verified? {
 		switch atIdentifier {
 		case .handle(let handle):
-			try await verifiedResolve(handle: handle)
+			return try await verifiedResolve(handle: handle)
 		case .did(let did):
-			(did, try await resolve(did: did).tryUnwrap)
+			return try await resolve(did: did)?
+				.verified { unverifiedHandle in
+					let didDoc = try await resolve(handle: unverifiedHandle)
+						.tryUnwrap
+					return try .init(string: didDoc.identifier)
+				}
+
 		}
 	}
 }
