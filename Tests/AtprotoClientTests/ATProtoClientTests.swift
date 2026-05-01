@@ -1,9 +1,8 @@
+import AtprotoClient
 import AtprotoClientMocks
+import AtprotoTypes
 import Foundation
 import Testing
-
-@testable import AtprotoClient
-@testable import AtprotoTypes
 
 struct APIOnlineTests {
 	let mockPDS: MockPDS
