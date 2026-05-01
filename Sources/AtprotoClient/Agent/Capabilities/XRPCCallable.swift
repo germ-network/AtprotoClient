@@ -34,20 +34,10 @@ extension Atproto.XRPC.Callable {
 		_: R.Type = R.self,
 		parameters: Lexicon.Com.Atproto.Repo.GetRecord<R>.Parameters,
 	) async throws -> R? {
-		do {
-			return try await call(
-				Lexicon.Com.Atproto.Repo.GetRecord<R>.self,
-				parameters: parameters,
-			).value
-			//this is per the api docs, not the lexicon
-		} catch Atproto.XRPC.ParseError.xrpcError(
-			status: .badRequest,
-			error: let errorObject
-		)
-			where errorObject.error == "RecordNotFound"
-		{
-			return nil
-		}
+		try await callExpectingOptional(
+			Lexicon.Com.Atproto.Repo.GetRecord<R>.self,
+			parameters: parameters,
+		)?.value
 	}
 
 	func listRecords<R: Atproto.Record>(
@@ -106,18 +96,9 @@ extension Atproto.XRPC.Callable {
 	public func getBlob(
 		parameters: Lexicon.Com.Atproto.Sync.GetBlob.Parameters,
 	) async throws -> Data? {
-		do {
-			return try await call(
-				Lexicon.Com.Atproto.Sync.GetBlob.self,
-				parameters: parameters,
-			)
-		} catch Atproto.XRPC.ParseError.xrpcError(
-			status: .badRequest,
-			error: let errorObject
+		try await callExpectingOptional(
+			Lexicon.Com.Atproto.Sync.GetBlob.self,
+			parameters: parameters,
 		)
-			where errorObject.error == "BlobNotFound"
-		{
-			return nil
-		}
 	}
 }

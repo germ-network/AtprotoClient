@@ -38,3 +38,29 @@ extension Atproto.XRPC.Callable {
 		)
 	}
 }
+
+extension Atproto.XRPC.Callable {
+	public func callExpectingOptional<X: Atproto.XRPC.OptionalResultRequest>(
+		_ request: X.Type,
+		parameters: X.Parameters,
+	) async throws -> X.Output? {
+		let request = try constructRequest(
+			request,
+			parameters: parameters
+		)
+
+		let responseBody = try await response(request)
+		
+		do {
+			return try responseBody.parse(X.self)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let errorObject
+		)
+					where X.notFoundCodes.contains(errorObject.error)
+		{
+			return nil
+		}
+			
+	}
+}

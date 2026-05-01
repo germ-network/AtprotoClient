@@ -55,18 +55,9 @@ extension Atproto.PDSAgent {
 	public func getBlob(
 		cid: Atproto.CID,
 	) async throws -> Data? {
-		do {
-			return try await call(
-				Lexicon.Com.Atproto.Sync.GetBlob.self,
-				parameters: .init(did: .did(did), cid: cid),
-			)
-		} catch Atproto.XRPC.ParseError.xrpcError(
-			status: .badRequest,
-			error: let errorObject
+		try await callExpectingOptional(
+			Lexicon.Com.Atproto.Sync.GetBlob.self,
+			parameters: .init(did: .did(did), cid: cid),
 		)
-			where errorObject.error == "BlobNotFound"
-		{
-			return nil
-		}
 	}
 }
