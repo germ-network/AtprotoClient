@@ -51,9 +51,8 @@ extension Atproto.Resolver {
 		case .did(let did):
 			try await resolve(did: did)?
 				.verified { unverifiedHandle in
-					let didDoc = try await resolve(handle: unverifiedHandle)
+					try await resolve(handle: unverifiedHandle)
 						.tryUnwrap
-					return try .init(string: didDoc.identifier)
 				}
 		}
 	}
