@@ -16,6 +16,8 @@ extension Atproto {
 		func resolve(handle: Handle) async throws -> DID?
 
 		///equivalent to a plc query or did:web lookup
+		///must always compare the did to the returned document's id and throw
+		///if mismatched
 		func resolve(did: DID) async throws -> DIDDocument?
 
 		//we supply a default implementation of this
@@ -37,8 +39,7 @@ extension Atproto.Resolver {
 
 		//if a did doc doesn't resolve it's an error
 		return try await resolve(did: did).tryUnwrap
-			.verified(expecting: handle)
-			.check(expectedDid: did)
+			.verified(expecting: handle, did: did)
 	}
 
 	public func verifiedResolve(
@@ -53,7 +54,7 @@ extension Atproto.Resolver {
 					let didDoc = try await resolve(handle: unverifiedHandle)
 						.tryUnwrap
 					return try .init(string: didDoc.identifier)
-				}.check(expectedDid: did)
+				}
 		}
 	}
 }
