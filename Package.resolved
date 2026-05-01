@@ -7,7 +7,7 @@
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
         "branch" : "fix/handleValidation",
-        "revision" : "7dc7ecd115c883a087749bb89614c2a6a46d3d16"
+        "revision" : "fcfc4849df0d519e068c702569d0696663cbef59"
       }
     },
     {

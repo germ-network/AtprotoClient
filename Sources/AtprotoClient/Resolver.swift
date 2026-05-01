@@ -38,6 +38,7 @@ extension Atproto.Resolver {
 		//if a did doc doesn't resolve it's an error
 		return try await resolve(did: did).tryUnwrap
 			.verified(expecting: handle)
+			.check(expectedDid: did)
 	}
 
 	public func verifiedResolve(
@@ -45,15 +46,14 @@ extension Atproto.Resolver {
 	) async throws -> Atproto.DIDDocument.Verified? {
 		switch atIdentifier {
 		case .handle(let handle):
-			return try await verifiedResolve(handle: handle)
+			try await verifiedResolve(handle: handle)
 		case .did(let did):
-			return try await resolve(did: did)?
+			try await resolve(did: did)?
 				.verified { unverifiedHandle in
 					let didDoc = try await resolve(handle: unverifiedHandle)
 						.tryUnwrap
 					return try .init(string: didDoc.identifier)
-				}
-
+				}.check(expectedDid: did)
 		}
 	}
 }

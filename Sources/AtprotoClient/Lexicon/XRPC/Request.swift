@@ -50,17 +50,17 @@ extension Atproto.XRPC.Callable {
 		)
 
 		let responseBody = try await response(request)
-		
+
 		do {
 			return try responseBody.parse(X.self)
 		} catch Atproto.XRPC.ParseError.xrpcError(
 			status: .badRequest,
 			error: let errorObject
 		)
-					where X.notFoundCodes.contains(errorObject.error)
+			where X.notFoundCodes.contains(errorObject.error)
 		{
 			return nil
 		}
-			
+
 	}
 }
