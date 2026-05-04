@@ -38,7 +38,7 @@ extension Lexicon.App.Bsky.Graph {
 		public let subject: Atproto.DID
 
 		/// The date and time the block record was created.
-		public let createdAt: Atproto.Datetime
+		public let createdAt: LexiconString.Datetime
 
 		public init(
 			subject: Atproto.DID,

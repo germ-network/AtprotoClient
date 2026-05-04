@@ -29,3 +29,14 @@ extension BlueskyPublicAgent: Atproto.XRPC.Callable {
 		return try await resourceFetcher.data(for: request)
 	}
 }
+
+extension BlueskyPublicAgent {
+	public func bskyProfile(
+		for did: Atproto.DID
+	) async throws -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
+		try await call(
+			Lexicon.App.Bsky.Actor.GetProfile.self,
+			parameters: .init(actor: .did(did)),
+		)
+	}
+}

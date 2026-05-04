@@ -26,7 +26,7 @@ extension Lexicon.App.Bsky.Graph {
 
 		public let subject: Atproto.DID  // DID
 
-		public let createdAt: Atproto.Datetime
+		public let createdAt: LexiconString.Datetime
 
 		// Ignore `via` field
 
