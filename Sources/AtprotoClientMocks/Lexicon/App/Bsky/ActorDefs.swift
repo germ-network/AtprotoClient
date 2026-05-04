@@ -15,16 +15,24 @@ extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {
 	public static func mock() throws -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
 		.init(
 			did: .mock(),
-			handle: try .init(string: "germnetwork.com"),
-			displayName: "Germ Network",
+			handle: try .init(string: "example.com"),
+			displayName: "profile for Bluesky Actor",
+			description: "mock description",
 			pronouns: "it/them",
-			avatar: URL(string: "https://example.com/avatar.jpg"),
+			website: nil,
+			avatar: nil,
+			banner: nil,
+			followersCount: 2,
+			followsCount: 5,
+			postsCount: 10,
+			indexedAt: .init(date: .now),
+			createdAt: .init(date: .distantPast),
 			viewer: .init(
 				muted: false,
 				blockedBy: true,
-				blocking: "placeholder",
-				following: "placeholder",
-				followedBy: "placeholder"
+				blocking: .mock(),
+				following: .mock(),
+				followedBy: .mock(),
 			)
 		)
 	}

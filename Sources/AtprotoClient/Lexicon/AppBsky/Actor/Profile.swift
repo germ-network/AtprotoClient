@@ -34,7 +34,7 @@ extension Lexicon.App.Bsky.Actor {
 
 		/// Optional
 		/// An RFC 3339 formatted timestamp.
-		public let createdAt: Atproto.Datetime?
+		public let createdAt: LexiconString.Datetime?
 
 		/// Optional
 		/// Free-form profile description text.

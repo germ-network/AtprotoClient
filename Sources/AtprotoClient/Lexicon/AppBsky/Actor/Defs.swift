@@ -15,61 +15,69 @@ extension Lexicon.App.Bsky.Actor.Defs {
 	/// - SeeAlso: This is based on the [`app.bsky.actor.defs`][github] lexicon.
 	///
 	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/actor/defs.json
-	///TODO: match the lexicon def
+	///
+	//TODO: finish te remaining defs objects
 	public struct ProfileViewDetailed: Sendable, Codable {
 
-		/// The decentralized identifier (DID) of the user.
+		//required
 		public let did: Atproto.DID
 		public let handle: Atproto.Handle
+
 		public let displayName: String?
+		public let description: String?
 		public let pronouns: String?
+		public let website: URL?
 		public let avatar: URL?
+		public let banner: URL?
 
-		/// The unique handle of the user.
-		//		public let actorHandle: String
+		public let followersCount: Int?
+		public let followsCount: Int?
 
-		/// The display name of the user's profile. Optional.
-		///
-		/// - Important: Current maximum length is 64 characters.
-		//		public let displayName: String?
+		public let postsCount: Int?
 
-		/// The description of the user's profile. Optional.
-		///
-		/// - Important: Current maximum length is 256 characters.
-		//		public let description: String?
+		//public let associated: ProfileAssociated?
+		//public let joinedViaStarterPack: JoinedViaStarterPack?
 
-		/// The avatar image URL of a user's profile. Optional.
-		//		public let avatarImageURL: URL?
+		public let indexedAt: LexiconString.Datetime?
+		public let createdAt: LexiconString.Datetime?
 
-		/// The associated profile view. Optional.
-		//		public let associated: ProfileAssociatedDefinition?
-
-		/// The date the profile was last indexed. Optional.
-		//		public let indexedAt: Date?
-
-		/// The date and time the profile was created. Optional.
-		//		public let createdAt: Date?
-
-		/// The list of metadata relating to the requesting account's relationship with the
-		/// subject account. Optional.
 		public let viewer: ViewerState?
 
-		/// An array of labels created by the user. Optional.
-		//		public let labels: [ComAtprotoLexicon.Label.LabelDefinition]?
+		//public let labels: [Label]
+		//public let pinnedPost: StrongRef
+		//public let verification: VerificationState
+		//public let status: StatusView
+		//public let debug
 
 		public init(
 			did: Atproto.DID,
 			handle: Atproto.Handle,
 			displayName: String?,
+			description: String?,
 			pronouns: String?,
+			website: URL?,
 			avatar: URL?,
+			banner: URL?,
+			followersCount: Int?,
+			followsCount: Int?,
+			postsCount: Int?,
+			indexedAt: LexiconString.Datetime?,
+			createdAt: LexiconString.Datetime?,
 			viewer: ViewerState?
 		) {
 			self.did = did
 			self.handle = handle
 			self.displayName = displayName
+			self.description = description
 			self.pronouns = pronouns
+			self.website = website
 			self.avatar = avatar
+			self.banner = banner
+			self.followersCount = followersCount
+			self.followsCount = followsCount
+			self.postsCount = postsCount
+			self.indexedAt = indexedAt
+			self.createdAt = createdAt
 			self.viewer = viewer
 		}
 
@@ -98,16 +106,16 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		public let blockedBy: Bool?
 
 		/// A URI which indicates the authed user is blocking the account requested.
-		public let blocking: String?
+		public let blocking: Atproto.ATURI?
 
 		/// An array of the subject account's lists.
 		//		public let blockingByArray: AppBskyLexicon.Graph.ListViewBasicDefinition?
 
 		/// A URI which indicates the authed user is following the account requested.
-		public let following: String?
+		public let following: Atproto.ATURI?
 
 		/// A URI which indicates the authed user is being followed by the account requested.
-		public let followedBy: String?
+		public let followedBy: Atproto.ATURI?
 
 		/// An array of mutual followers. Optional.
 		///
@@ -118,9 +126,9 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		public init(
 			muted: Bool?,
 			blockedBy: Bool?,
-			blocking: String?,
-			following: String?,
-			followedBy: String?
+			blocking: Atproto.ATURI?,
+			following: Atproto.ATURI?,
+			followedBy: Atproto.ATURI?
 		) {
 			self.muted = muted
 			self.blockedBy = blockedBy
