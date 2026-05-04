@@ -1,5 +1,17 @@
 # @germ-network/atprotoclient
 
+## 0.5.4
+
+### Patch Changes
+
+- [#25](https://github.com/germ-network/AtprotoClient/pull/25) [`3482ed2`](https://github.com/germ-network/AtprotoClient/commit/3482ed2b582ab04d146bb457dfb1b819cae80d4f) Thanks [@germ-mark](https://github.com/germ-mark)! - We must verify the handle we get back in a DiDDocument
+
+  Following the [AtprotoTypes changes](https://github.com/germ-network/AtprotoTypes/pull/34), we
+
+  - define a shared method to make a call, check for not found error code(s), and return an optional (we use this for `resolveHandle`, but also for `getBlob` and `getRecord`
+  - Adjust the `Resolver` interface slightly to return the `Atproto.DiDDocument.Verified` struct instead of a tuple
+  - add default implementations to check the resolved DIDDocument for handle validity and did equality
+
 ## 0.5.3
 
 ### Patch Changes
