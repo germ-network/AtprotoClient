@@ -1,5 +1,12 @@
 # @germ-network/atprotoclient
 
+## 0.5.5
+
+### Patch Changes
+
+- [#27](https://github.com/germ-network/AtprotoClient/pull/27) [`73a7b06`](https://github.com/germ-network/AtprotoClient/commit/73a7b06881dabb046ce23b6363b971a69c387c81) Thanks [@germ-mark](https://github.com/germ-mark)! - \* Expand ProfileRecordDetailed to include all primitive fields
+  - adjust the profile record API's so that we can get an unauth request, and the full auth response object
+
 ## 0.5.4
 
 ### Patch Changes
