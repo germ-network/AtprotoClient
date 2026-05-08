@@ -9,7 +9,7 @@ import AtprotoTypes
 import Foundation
 import GermConvenience
 
-extension Atproto {
+extension Atproto.XRPC {
 	//an agent (aka an app-view) that services the app.bsky.* application
 	//e.g. https://api.blacksky.community or https://public.api.bsky.app
 	public protocol BskyAppCallable: Atproto.XRPC.Callable {
@@ -44,7 +44,7 @@ public struct BskyAppViewAgent {
 	}
 }
 
-extension BskyAppViewAgent: Atproto.BskyAppCallable {
+extension BskyAppViewAgent: Atproto.XRPC.BskyAppCallable {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {
@@ -54,13 +54,13 @@ extension BskyAppViewAgent: Atproto.BskyAppCallable {
 	}
 }
 
-extension Atproto.BskyAppCallable {
+extension Atproto.XRPC.BskyAppCallable {
 	public func bskyProfile(
-		for did: Atproto.DID
+		actor: LexiconString.AtIdentifier
 	) async throws -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed {
 		try await call(
 			Lexicon.App.Bsky.Actor.GetProfile.self,
-			parameters: .init(actor: .did(did)),
+			parameters: .init(actor: actor)
 		)
 	}
 }
