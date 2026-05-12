@@ -64,3 +64,91 @@ extension Atproto.XRPC.BskyAppCallable {
 		)
 	}
 }
+
+public enum BskyGraphs: Sendable {
+	case follows
+	case blocks
+	case knownFollowers
+
+	enum Errors: LocalizedError {
+		case notImplemented
+
+		var errorDescription: String? {
+			switch self {
+			case .notImplemented: "Not implemented"
+			}
+		}
+	}
+}
+
+extension Atproto.XRPC.BskyAppCallable {
+
+	public func streamProfileViews(
+		for actor: LexiconString.AtIdentifier,
+		graphType: BskyGraphs,
+	) async throws -> AsyncThrowingStream<
+		[Lexicon.App.Bsky.Actor.Defs.ProfileView], Error
+	> {
+		let (stream, continuation) = AsyncThrowingStream<
+			[Lexicon.App.Bsky.Actor.Defs.ProfileView], Error
+		>
+		.makeStream(bufferingPolicy: .unbounded)
+
+		Task {
+			var cursor: String? = nil
+			var fetchCount = 0
+			do {
+				repeat {
+					let result:
+						(
+							profiles: [Lexicon.App.Bsky.Actor.Defs
+								.ProfileView],
+							cursor: String?
+						) =
+							try await getProfileBatch(
+								for: actor,
+								graphType: graphType,
+								cursor: cursor
+							)
+					continuation.yield(result.profiles)
+					cursor = result.cursor
+					fetchCount += 1
+				} while cursor != nil && fetchCount < ATProtoConstants.maxFetches
+				continuation.finish()
+			} catch {
+				continuation.finish(throwing: error)
+			}
+		}
+		return stream
+	}
+
+	private func getProfileBatch(
+		for actor: LexiconString.AtIdentifier,
+		graphType: BskyGraphs,
+		cursor: String?
+	) async throws -> (
+		[Lexicon.App.Bsky.Actor.Defs.ProfileView], String?
+	) {
+		switch graphType {
+		case .blocks:
+			throw BskyGraphs.Errors.notImplemented
+		case .follows:
+			try await call(
+				Lexicon.App.Bsky.Graph.GetFollows.self,
+				parameters: .init(
+					actor: actor,
+					limit: 100,
+					cursor: cursor
+				)
+			).profileBatch
+		case .knownFollowers:
+			throw BskyGraphs.Errors.notImplemented
+		}
+	}
+}
+
+extension Lexicon.App.Bsky.Graph.GetFollows.Output {
+	var profileBatch: ([Lexicon.App.Bsky.Actor.Defs.ProfileView], String?) {
+		(follows, cursor)
+	}
+}
