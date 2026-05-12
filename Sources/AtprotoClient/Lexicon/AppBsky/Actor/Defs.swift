@@ -10,6 +10,59 @@ import Foundation
 
 extension Lexicon.App.Bsky.Actor.Defs {
 
+	/// A definition model for a profile view based on profileView
+	///
+	/// - SeeAlso: This is based on the [`app.bsky.actor.defs`][github] lexicon.
+	///
+	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/actor/defs.json
+	///
+	public struct ProfileView: Sendable, Codable {
+
+		//required
+		public let did: Atproto.DID
+		public let handle: Atproto.Handle
+
+		public let displayName: String?
+		public let pronouns: String?
+		public let description: String?
+		public let avatar: URL?
+
+		//public let associated: ProfileAssociated?
+
+		public let indexedAt: LexiconString.Datetime?
+		public let createdAt: LexiconString.Datetime?
+
+		public let viewer: ViewerState?
+
+		//public let labels: [Label]
+		//public let verification: VerificationState
+		//public let status: StatusView
+		//public let debug
+
+		public init(
+			did: Atproto.DID,
+			handle: Atproto.Handle,
+			displayName: String?,
+			pronouns: String?,
+			description: String?,
+			avatar: URL?,
+			indexedAt: LexiconString.Datetime?,
+			createdAt: LexiconString.Datetime?,
+			viewer: ViewerState?
+		) {
+			self.did = did
+			self.handle = handle
+			self.displayName = displayName
+			self.pronouns = pronouns
+			self.description = description
+			self.avatar = avatar
+			self.indexedAt = indexedAt
+			self.createdAt = createdAt
+			self.viewer = viewer
+		}
+
+	}
+
 	/// A definition model for a profile view based on profileViewDetailed.
 	///
 	/// - SeeAlso: This is based on the [`app.bsky.actor.defs`][github] lexicon.
