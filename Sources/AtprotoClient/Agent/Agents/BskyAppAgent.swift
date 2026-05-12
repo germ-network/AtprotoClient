@@ -67,15 +67,18 @@ extension Atproto.XRPC.BskyAppCallable {
 
 public enum BskySocialGraphs: Sendable {
 	case follows
+	case followers
 	case blocks
 	case knownFollowers
 
 	enum Errors: LocalizedError {
 		case notImplemented
+		case requiresAuth
 
 		var errorDescription: String? {
 			switch self {
 			case .notImplemented: "Not implemented"
+			case .requiresAuth: "Requires auth"
 			}
 		}
 	}
@@ -131,7 +134,7 @@ extension Atproto.XRPC.BskyAppCallable {
 	) {
 		switch socialGraphType {
 		case .blocks:
-			throw BskySocialGraphs.Errors.notImplemented
+			throw BskySocialGraphs.Errors.requiresAuth
 		case .follows:
 			try await call(
 				Lexicon.App.Bsky.Graph.GetFollows.self,
@@ -141,8 +144,24 @@ extension Atproto.XRPC.BskyAppCallable {
 					cursor: cursor
 				)
 			).profileBatch
+		case .followers:
+			try await call(
+				Lexicon.App.Bsky.Graph.GetFollowers.self,
+				parameters: .init(
+					actor: actor,
+					limit: 100,
+					cursor: cursor
+				)
+			).profileBatch
 		case .knownFollowers:
-			throw BskySocialGraphs.Errors.notImplemented
+			try await call(
+				Lexicon.App.Bsky.Graph.GetKnownFollowers.self,
+				parameters: .init(
+					actor: actor,
+					limit: 100,
+					cursor: cursor
+				)
+			).profileBatch
 		}
 	}
 }
@@ -150,5 +169,17 @@ extension Atproto.XRPC.BskyAppCallable {
 extension Lexicon.App.Bsky.Graph.GetFollows.Output {
 	var profileBatch: ([Lexicon.App.Bsky.Actor.Defs.ProfileView], String?) {
 		(follows, cursor)
+	}
+}
+
+extension Lexicon.App.Bsky.Graph.GetKnownFollowers.Output {
+	var profileBatch: ([Lexicon.App.Bsky.Actor.Defs.ProfileView], String?) {
+		(followers, cursor)
+	}
+}
+
+extension Lexicon.App.Bsky.Graph.GetFollowers.Output {
+	var profileBatch: ([Lexicon.App.Bsky.Actor.Defs.ProfileView], String?) {
+		(followers, cursor)
 	}
 }
