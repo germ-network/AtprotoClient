@@ -65,7 +65,7 @@ extension Atproto.XRPC.BskyAppCallable {
 	}
 }
 
-public enum BskyGraphs: Sendable {
+public enum BskySocialGraphs: Sendable {
 	case follows
 	case blocks
 	case knownFollowers
@@ -85,7 +85,7 @@ extension Atproto.XRPC.BskyAppCallable {
 
 	public func streamProfileViews(
 		for actor: LexiconString.AtIdentifier,
-		graphType: BskyGraphs,
+		socialGraphType: BskySocialGraphs,
 	) async throws -> AsyncThrowingStream<
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], Error
 	> {
@@ -107,7 +107,7 @@ extension Atproto.XRPC.BskyAppCallable {
 						) =
 							try await getProfileBatch(
 								for: actor,
-								graphType: graphType,
+								socialGraphType: socialGraphType,
 								cursor: cursor
 							)
 					continuation.yield(result.profiles)
@@ -124,14 +124,14 @@ extension Atproto.XRPC.BskyAppCallable {
 
 	private func getProfileBatch(
 		for actor: LexiconString.AtIdentifier,
-		graphType: BskyGraphs,
+		socialGraphType: BskySocialGraphs,
 		cursor: String?
 	) async throws -> (
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], String?
 	) {
-		switch graphType {
+		switch socialGraphType {
 		case .blocks:
-			throw BskyGraphs.Errors.notImplemented
+			throw BskySocialGraphs.Errors.notImplemented
 		case .follows:
 			try await call(
 				Lexicon.App.Bsky.Graph.GetFollows.self,
@@ -142,7 +142,7 @@ extension Atproto.XRPC.BskyAppCallable {
 				)
 			).profileBatch
 		case .knownFollowers:
-			throw BskyGraphs.Errors.notImplemented
+			throw BskySocialGraphs.Errors.notImplemented
 		}
 	}
 }
