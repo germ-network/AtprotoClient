@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.6
+
+### Patch Changes
+
+- [#29](https://github.com/germ-network/AtprotoClient/pull/29) [`644597f`](https://github.com/germ-network/AtprotoClient/commit/644597f68cb6139b4e028cc80af26557792d2a6d) Thanks [@germ-mark](https://github.com/germ-mark)! - Add Bluesky-specific social graph XRPC calls
+
 ## 0.5.5
 
 ### Patch Changes
