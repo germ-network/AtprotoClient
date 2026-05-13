@@ -21,12 +21,16 @@ public actor MockPDS {
 		).tryUnwrap
 	}
 
-	public func host(did: Atproto.DID) throws -> AuthAgent {
+	public func host(
+		did: Atproto.DID,
+		bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil
+	) throws -> AuthAgent {
 		guard repos[did] == nil else {
 			throw Errors.didAlreadyHostedHere
 		}
 
-		repos[did] = .init()
+		repos[did] = try .init(bskyProfile: bskyProfile)
+
 		return .init(did: did, pds: self)
 	}
 
@@ -161,7 +165,7 @@ public actor MockPDS {
 		{"issuer":"https://example.com","request_parameter_supported":true,"request_uri_parameter_supported":true,"require_request_uri_registration":true,"scopes_supported":["atproto","transition:email","transition:generic","transition:chat.bsky"],"subject_types_supported":["public"],"response_types_supported":["code"],"response_modes_supported":["query","fragment","form_post"],"grant_types_supported":["authorization_code","refresh_token"],"code_challenge_methods_supported":["S256"],"ui_locales_supported":["en-US"],"display_values_supported":["page","popup","touch"],"request_object_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512","none"],"authorization_response_iss_parameter_supported":true,"request_object_encryption_alg_values_supported":[],"request_object_encryption_enc_values_supported":[],"jwks_uri":"https://example.com/oauth/jwks","authorization_endpoint":"https://example.com/oauth/authorize","token_endpoint":"https://example.com/oauth/token","token_endpoint_auth_methods_supported":["none","private_key_jwt"],"token_endpoint_auth_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"revocation_endpoint":"https://example.com/oauth/revoke","pushed_authorization_request_endpoint":"https://example.com/oauth/par","require_pushed_authorization_requests":true,"dpop_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"client_id_metadata_document_supported":true,"prompt_values_supported":["none","login","consent","select_account","create"]}
 		"""
 
-	private func getRecord(
+	public func getRecord(
 		queryParameters: [String: String]
 	) async throws -> HTTPDataResponse {
 		let repoParam = try queryParameters["repo"].tryUnwrap
