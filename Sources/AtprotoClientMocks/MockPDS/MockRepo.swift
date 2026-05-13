@@ -5,6 +5,7 @@
 //  Created by Anna Mistele on 3/13/26.
 //
 
+import AtprotoClient
 import AtprotoTypes
 import Foundation
 import GermConvenience
@@ -20,9 +21,21 @@ public actor MockRepo {
 	]
 
 	//to allow for storing records we don't know, we just store the encoded data
-	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]] = [:]
+	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]]
 
-	public init() {}
+	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
+		guard let bskyProfile else {
+			untypedRepo = [:]
+			return
+		}
+
+		let encoded = try JSONEncoder().encode(bskyProfile)
+		untypedRepo = [
+			Lexicon.App.Bsky.Actor.Profile.Collection.nsid:
+				[Atproto.LiteralSelfRecordKey().rawValue: encoded]
+		]
+
+	}
 
 	public func printPds() {
 		print(untypedRepo)
@@ -187,9 +200,9 @@ extension MockRepo {
 			cursor: cursor,
 			reverse: reverseBool
 		)
-		let data = try JSONEncoder().encode(result)
+
 		return .init(
-			data: data,
+			data: result,
 			response: .init(
 				status: .ok,
 				headerFields: .init(
