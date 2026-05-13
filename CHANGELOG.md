@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.7
+
+### Patch Changes
+
+- [#31](https://github.com/germ-network/AtprotoClient/pull/31) [`a8447aa`](https://github.com/germ-network/AtprotoClient/commit/a8447aa1eb22266946e3e3df1e3ba477b02977ed) Thanks [@germ-mark](https://github.com/germ-mark)! - bootstrap the mock PDS with a mock bsky profile, fix error with listRecords encoding
+
 ## 0.5.6
 
 ### Patch Changes
