@@ -187,9 +187,9 @@ extension MockRepo {
 			cursor: cursor,
 			reverse: reverseBool
 		)
-		let data = try JSONEncoder().encode(result)
+
 		return .init(
-			data: data,
+			data: result,
 			response: .init(
 				status: .ok,
 				headerFields: .init(
