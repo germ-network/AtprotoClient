@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import HTTPTypes
+
+import struct HTTPTypes.HTTPField
 
 extension HTTPField.Name {
 	//https://atproto.com/specs/xrpc#service-proxying

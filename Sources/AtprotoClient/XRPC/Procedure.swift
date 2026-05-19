@@ -8,7 +8,8 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
-import HTTPTypes
+
+import struct HTTPTypes.HTTPFields
 
 extension Atproto.XRPC.Callable {
 	//most procedures don't have a queryParams

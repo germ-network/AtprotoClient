@@ -8,7 +8,6 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
-import HTTPTypes
 
 //an implementation (e.g. auth'd PDS) can declare itself capable of authed requests
 extension Atproto.XRPC {
