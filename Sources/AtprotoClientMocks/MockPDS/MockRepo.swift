@@ -9,7 +9,6 @@ import AtprotoClient
 import AtprotoTypes
 import Foundation
 import GermConvenience
-import HTTPTypes
 
 public actor MockRepo {
 	typealias EncodedRecordKey = String

@@ -8,7 +8,8 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
-import HTTPTypes
+
+import struct HTTPTypes.HTTPResponse
 
 //returning an error instead of throwing reduces noise for tests
 extension HTTPDataResponse {
