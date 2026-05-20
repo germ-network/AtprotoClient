@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.8
+
+### Patch Changes
+
+- [#33](https://github.com/germ-network/AtprotoClient/pull/33) [`433f819`](https://github.com/germ-network/AtprotoClient/commit/433f819a0256d7c6b54cf3fe9907e7a9ec7f01bf) Thanks [@germ-mark](https://github.com/germ-mark)! - make http requests through GermConvenience, not HTTPTypes, safely wrapping a precondition check in the HTTPResponse init
+
 ## 0.5.7
 
 ### Patch Changes
