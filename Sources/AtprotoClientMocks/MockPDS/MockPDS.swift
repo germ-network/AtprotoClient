@@ -72,7 +72,6 @@ public actor MockPDS {
 			url: requestUrl,
 			resolvingAgainstBaseURL: false
 		).tryUnwrap
-		let queryParameters = try components.queryItems.tryUnwrap.asDictionary
 
 		let pathComponents = requestUrl.pathComponents
 
@@ -80,7 +79,7 @@ public actor MockPDS {
 		case "xrpc":
 			return try await handleXrpc(
 				xrpcNsid: .init(string: pathComponents[2]),
-				queryParameters: queryParameters,
+				queryItems: components.queryItems,
 				body: requestComponents.body,
 				authedDid: authedDid
 			)
@@ -95,15 +94,15 @@ public actor MockPDS {
 
 	private func handleXrpc(
 		xrpcNsid: Atproto.NSID,
-		queryParameters: [String: String],
+		queryItems: [URLQueryItem]?,
 		body: Data?,
 		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		switch xrpcNsid {
 		case Lexicon.Com.Atproto.Repo.GetRecordNSID.nsid:
-			return try await getRecord(queryParameters: queryParameters)
+			return try await getRecord(queryItems: queryItems)
 		case Lexicon.Com.Atproto.Repo.ListRecordsNSID.nsid:
-			return try await listRecords(queryParameters: queryParameters)
+			return try await listRecords(queryItems: queryItems)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
 		case Lexicon.Com.Atproto.Repo.PutRecordNSID.nsid:
@@ -166,12 +165,12 @@ public actor MockPDS {
 		"""
 
 	public func getRecord(
-		queryParameters: [String: String]
+		queryItems: [URLQueryItem]?,
 	) async throws -> HTTPDataResponse {
-		let repoParam = try queryParameters["repo"].tryUnwrap
-		let collection = try queryParameters["collection"].tryUnwrap
-		let encodedRkey = try queryParameters["rkey"].tryUnwrap
-		let cid = queryParameters["cid"]
+		let repoParam = try (queryItems?["repo"]).tryUnwrap
+		let collection = try (queryItems?["collection"]).tryUnwrap
+		let encodedRkey = try (queryItems?["rkey"]).tryUnwrap
+		let cid = queryItems?["cid"]
 		let typedCid: Atproto.CID? = try {
 			guard let cid else {
 				return nil
@@ -199,13 +198,13 @@ public actor MockPDS {
 	}
 
 	private func listRecords(
-		queryParameters: [String: String]
+		queryItems: [URLQueryItem]?
 	) async throws -> HTTPDataResponse {
-		let repoParam = try queryParameters["repo"].tryUnwrap
-		let collection = try queryParameters["collection"].tryUnwrap
-		let limit = queryParameters["limit"]
-		let cursor = queryParameters["cursor"]
-		let reverse = queryParameters["reverse"]
+		let repoParam = try (queryItems?["repo"]).tryUnwrap
+		let collection = try (queryItems?["collection"]).tryUnwrap
+		let limit = queryItems?["limit"]
+		let cursor = queryItems?["cursor"]
+		let reverse = queryItems?["reverse"]
 
 		guard let repo = try repos[.init(string: repoParam)] else {
 			return try .mock(error: "Invalid Request", status: 400)
@@ -364,10 +363,9 @@ extension MockPDS.AuthAgent: Atproto.PDSAgent, Atproto.XRPC.AuthCallable {
 }
 
 extension [URLQueryItem] {
-	public var asDictionary: [String: String] {
-		reduce(into: [:]) { result, queryItem in
-			result[queryItem.name] = queryItem.value
-		}
+	public subscript(name: String) -> String? {
+		first(where: { $0.name == name })?
+			.name
 	}
 }
 
