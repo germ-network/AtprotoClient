@@ -50,17 +50,17 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		public struct Output: Sendable, Decodable {
+		public struct Output: Sendable, Codable {
 			public let actor: Atproto.DID
 			public let relationships: [Result]
 
-			package init(actor: Atproto.DID, relationships: [Result]) {
+			public init(actor: Atproto.DID, relationships: [Result]) {
 				self.actor = actor
 				self.relationships = relationships
 			}
 		}
 
-		public enum Result: Decodable, Sendable {
+		public enum Result: Codable, Sendable {
 			case relationship(Relationships)
 			case notFoundActor(NotFoundActor)
 
@@ -97,7 +97,7 @@ extension Lexicon.App.Bsky.Graph {
 		}
 	}
 
-	public struct Relationships: Decodable, Sendable {
+	public struct Relationships: Codable, Sendable {
 		public let did: Atproto.DID
 		public let blocking: Atproto.ATURI?
 		public let blockedBy: Atproto.ATURI?
@@ -105,11 +105,33 @@ extension Lexicon.App.Bsky.Graph {
 		public let followedBy: Atproto.ATURI?
 		public let blockedByList: Atproto.ATURI?
 		public let blockingbyList: Atproto.ATURI?
+
+		public init(
+			did: Atproto.DID,
+			blocking: Atproto.ATURI?,
+			blockedBy: Atproto.ATURI?,
+			following: Atproto.ATURI?,
+			followedBy: Atproto.ATURI?,
+			blockedByList: Atproto.ATURI?,
+			blockingbyList: Atproto.ATURI?
+		) {
+			self.did = did
+			self.blocking = blocking
+			self.blockedBy = blockedBy
+			self.following = following
+			self.followedBy = followedBy
+			self.blockedByList = blockedByList
+			self.blockingbyList = blockingbyList
+		}
 	}
 
-	public struct NotFoundActor: Decodable, Sendable {
+	public struct NotFoundActor: Codable, Sendable {
 		public let actor: LexiconString.AtIdentifier
 		var notFound: Bool = true
+
+		public init(actor: LexiconString.AtIdentifier) {
+			self.actor = actor
+		}
 	}
 }
 
