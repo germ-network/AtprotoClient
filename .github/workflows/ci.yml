@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Test platform ${{ matrix.destination }}
         run: set -o pipefail && xcodebuild -skipMacroValidation -scheme AtprotoClient-Package -destination "${{ matrix.destination }}" test | xcbeautify
-  test:
+  mocks:
     name: Build Mock on MacOS
     runs-on: macOS-26
     timeout-minutes: 30
