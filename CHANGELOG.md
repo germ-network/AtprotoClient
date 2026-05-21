@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.9
+
+### Patch Changes
+
+- [#36](https://github.com/germ-network/AtprotoClient/pull/36) [`543dcff`](https://github.com/germ-network/AtprotoClient/commit/543dcffc5fdc07dd39ea980120a5fe637179dd73) Thanks [@germ-mark](https://github.com/germ-mark)! - don't flatten queryItems into a flat array, add subscript accessor for first matching
+
 ## 0.5.8
 
 ### Patch Changes
