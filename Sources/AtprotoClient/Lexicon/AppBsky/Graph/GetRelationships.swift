@@ -60,7 +60,7 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		public enum Result: Codable, Sendable {
+		public enum Result: LexiconUnion {
 			case relationship(Relationships)
 			case notFoundActor(NotFoundActor)
 
@@ -73,14 +73,33 @@ extension Lexicon.App.Bsky.Graph {
 				}
 			}
 
-			public init(from decoder: Decoder) throws {
-				let container = try decoder.singleValueContainer()
+			public static var members:
+				[AtprotoTypes.Atproto.Ref: any AtprotoTypes.Atproto.Schema.Type]
+			{
+				[
+					Relationships.ref: Relationships.self,
+					NotFoundActor.ref: NotFoundActor.self,
+				]
+			}
 
-				if let value = try? container.decode(Relationships.self) {
-					self = .relationship(value)
+			public init(object: any Codable) throws {
+				if let relationships = object as? Relationships {
+					self = .relationship(relationships)
+				} else if let notFound = object as? NotFoundActor {
+					self = .notFoundActor(notFound)
 				} else {
-					let value = try container.decode(NotFoundActor.self)
-					self = .notFoundActor(value)
+					throw LexionUnionError.unknownObject
+				}
+			}
+
+			//LexiconUnion provides decode
+			public func encode(to encoder: any Encoder) throws {
+				var container = encoder.singleValueContainer()
+				switch self {
+				case .relationship(let relationships):
+					try container.encode(relationships)
+				case .notFoundActor(let notFoundActor):
+					try container.encode(notFoundActor)
 				}
 			}
 		}
@@ -94,43 +113,6 @@ extension Lexicon.App.Bsky.Graph {
 					"Too many others input"
 				}
 			}
-		}
-	}
-
-	public struct Relationships: Codable, Sendable {
-		public let did: Atproto.DID
-		public let blocking: Atproto.ATURI?
-		public let blockedBy: Atproto.ATURI?
-		public let following: Atproto.ATURI?
-		public let followedBy: Atproto.ATURI?
-		public let blockedByList: Atproto.ATURI?
-		public let blockingbyList: Atproto.ATURI?
-
-		public init(
-			did: Atproto.DID,
-			blocking: Atproto.ATURI?,
-			blockedBy: Atproto.ATURI?,
-			following: Atproto.ATURI?,
-			followedBy: Atproto.ATURI?,
-			blockedByList: Atproto.ATURI?,
-			blockingbyList: Atproto.ATURI?
-		) {
-			self.did = did
-			self.blocking = blocking
-			self.blockedBy = blockedBy
-			self.following = following
-			self.followedBy = followedBy
-			self.blockedByList = blockedByList
-			self.blockingbyList = blockingbyList
-		}
-	}
-
-	public struct NotFoundActor: Codable, Sendable {
-		public let actor: LexiconString.AtIdentifier
-		var notFound: Bool = true
-
-		public init(actor: LexiconString.AtIdentifier) {
-			self.actor = actor
 		}
 	}
 }

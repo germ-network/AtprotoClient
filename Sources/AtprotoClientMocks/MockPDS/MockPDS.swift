@@ -365,7 +365,7 @@ extension MockPDS.AuthAgent: Atproto.PDSAgent, Atproto.XRPC.AuthCallable {
 extension [URLQueryItem] {
 	public subscript(name: String) -> String? {
 		first(where: { $0.name == name })?
-			.name
+			.value
 	}
 }
 
