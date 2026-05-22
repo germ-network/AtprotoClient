@@ -7,7 +7,9 @@
 
 import Foundation
 import GermConvenience
-import HTTPTypes
+
+import struct HTTPTypes.HTTPFields
+import struct HTTPTypes.HTTPRequest
 
 public struct XRPCRequestComponents: Sendable {
 	public var relativePath: String
@@ -43,11 +45,9 @@ public struct XRPCRequestComponents: Sendable {
 		components.queryItems = queryItems
 
 		return try .init(
-			request: .init(
-				method: method,
-				url: components.url.tryUnwrap,
-				headerFields: headers
-			),
+			method: method,
+			url: components.url.tryUnwrap,
+			headerFields: headers,
 			body: body
 		)
 	}

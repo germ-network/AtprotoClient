@@ -50,17 +50,17 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		public struct Output: Sendable, Decodable {
+		public struct Output: Sendable, Codable {
 			public let actor: Atproto.DID
 			public let relationships: [Result]
 
-			package init(actor: Atproto.DID, relationships: [Result]) {
+			public init(actor: Atproto.DID, relationships: [Result]) {
 				self.actor = actor
 				self.relationships = relationships
 			}
 		}
 
-		public enum Result: Decodable, Sendable {
+		public enum Result: LexiconUnion {
 			case relationship(Relationships)
 			case notFoundActor(NotFoundActor)
 
@@ -73,14 +73,33 @@ extension Lexicon.App.Bsky.Graph {
 				}
 			}
 
-			public init(from decoder: Decoder) throws {
-				let container = try decoder.singleValueContainer()
+			public static var members:
+				[AtprotoTypes.Atproto.Ref: any AtprotoTypes.Atproto.Schema.Type]
+			{
+				[
+					Relationships.ref: Relationships.self,
+					NotFoundActor.ref: NotFoundActor.self,
+				]
+			}
 
-				if let value = try? container.decode(Relationships.self) {
-					self = .relationship(value)
+			public init(object: any Codable) throws {
+				if let relationships = object as? Relationships {
+					self = .relationship(relationships)
+				} else if let notFound = object as? NotFoundActor {
+					self = .notFoundActor(notFound)
 				} else {
-					let value = try container.decode(NotFoundActor.self)
-					self = .notFoundActor(value)
+					throw LexionUnionError.unknownObject
+				}
+			}
+
+			//LexiconUnion provides decode
+			public func encode(to encoder: any Encoder) throws {
+				var container = encoder.singleValueContainer()
+				switch self {
+				case .relationship(let relationships):
+					try container.encode(relationships)
+				case .notFoundActor(let notFoundActor):
+					try container.encode(notFoundActor)
 				}
 			}
 		}
@@ -95,21 +114,6 @@ extension Lexicon.App.Bsky.Graph {
 				}
 			}
 		}
-	}
-
-	public struct Relationships: Decodable, Sendable {
-		public let did: Atproto.DID
-		public let blocking: Atproto.ATURI?
-		public let blockedBy: Atproto.ATURI?
-		public let following: Atproto.ATURI?
-		public let followedBy: Atproto.ATURI?
-		public let blockedByList: Atproto.ATURI?
-		public let blockingbyList: Atproto.ATURI?
-	}
-
-	public struct NotFoundActor: Decodable, Sendable {
-		public let actor: LexiconString.AtIdentifier
-		var notFound: Bool = true
 	}
 }
 
