@@ -80,15 +80,15 @@ extension Atproto.XRPC.BskyAppCallable {
 	}
 }
 
-public enum BskyPublicSocialGraphs: Sendable {
+public enum BskyAppViewPublicSocialGraphs: Sendable {
 	case follows
 	case followers
 }
 
 extension Atproto.XRPC.BskyAppCallable {
-	public func streamProfileViews(
+	public func streamSocialGraphs(
 		for actor: LexiconString.AtIdentifier,
-		socialGraphType: BskyPublicSocialGraphs,
+		socialGraphType: BskyAppViewPublicSocialGraphs,
 	) async throws -> AsyncThrowingStream<
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], Error
 	> {
@@ -127,7 +127,7 @@ extension Atproto.XRPC.BskyAppCallable {
 
 	private func getProfileBatch(
 		for actor: LexiconString.AtIdentifier,
-		socialGraphType: BskyPublicSocialGraphs,
+		socialGraphType: BskyAppViewPublicSocialGraphs,
 		cursor: String?
 	) async throws -> (
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], String?

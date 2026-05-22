@@ -8,15 +8,15 @@
 import AtprotoTypes
 import Foundation
 
-public enum BskyAuthedSocialGraphs: Sendable {
+public enum BskyAppViewAuthedSocialGraphs: Sendable {
 	case blocks
 	case knownFollowers
 }
 
 extension AuthPDSAgent {
-	public func streamProfileViews(
+	public func streamSocialGraphs(
 		for actor: LexiconString.AtIdentifier,
-		socialGraphType: BskyAuthedSocialGraphs,
+		socialGraphType: BskyAppViewAuthedSocialGraphs,
 	) async throws -> AsyncThrowingStream<
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], Error
 	> {
@@ -55,7 +55,7 @@ extension AuthPDSAgent {
 
 	private func getProfileBatch(
 		for actor: LexiconString.AtIdentifier,
-		socialGraphType: BskyAuthedSocialGraphs,
+		socialGraphType: BskyAppViewAuthedSocialGraphs,
 		cursor: String?
 	) async throws -> (
 		[Lexicon.App.Bsky.Actor.Defs.ProfileView], String?
