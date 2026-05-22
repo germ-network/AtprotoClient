@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.10
+
+### Patch Changes
+
+- [#38](https://github.com/germ-network/AtprotoClient/pull/38) [`f7b0726`](https://github.com/germ-network/AtprotoClient/commit/f7b0726f911079306d54ccf758ba27d85b90912c) Thanks [@anna-germ](https://github.com/anna-germ)! - Add getKnownFollowers
+
 ## 0.5.9
 
 ### Patch Changes
