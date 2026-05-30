@@ -23,8 +23,8 @@ public actor MockRepo {
 	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]]
 
 	//remainders from prior listRecords pages, keyed by an opaque UUID cursor
-	typealias Cursor = String
-	private var paginationCache: [Cursor: [(EncodedRecordKey, Data)]] = [:]
+	typealias Cursor = UUID
+	private var paginationCache: [UUID: [(EncodedRecordKey, Data)]] = [:]
 
 	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
 		guard let bskyProfile else {
@@ -46,6 +46,7 @@ public actor MockRepo {
 
 	enum Errors: Error {
 		case badParameters
+		case cursorNotFound
 	}
 }
 
@@ -53,6 +54,7 @@ extension MockRepo.Errors: LocalizedError {
 	var errorDescription: String? {
 		switch self {
 		case .badParameters: "bad parameters"
+		case .cursorNotFound: "cursor not found"
 		}
 	}
 }
@@ -154,8 +156,11 @@ extension MockRepo {
 
 		let pending: [(EncodedRecordKey, Data)]
 		if let cursor {
-			guard let cached = paginationCache.removeValue(forKey: cursor) else {
-				throw Errors.badParameters
+
+			guard let uuidCursor = UUID(uuidString: cursor),
+				let cached = paginationCache.removeValue(forKey: uuidCursor)
+			else {
+				throw Errors.cursorNotFound
 			}
 			pending = cached
 		} else {
@@ -169,29 +174,32 @@ extension MockRepo {
 			pending = Array(collectionContents)
 		}
 
-		let page = Array(try pending.prefix(pageSize)
-			.map { (key, encodedRecord) in
-				[
-					"uri": "at://did:web:example.com/\(collection)/\(key)",
-					"cid": Atproto.CID.mock().string,
-					"value": try JSONSerialization
-						.jsonObject(with: encodedRecord),
-				]
-			}
+		let page = Array(
+			try pending.prefix(pageSize)
+				.map { (key, encodedRecord) in
+					[
+						"uri":
+							"at://did:web:example.com/\(collection)/\(key)",
+						"cid": Atproto.CID.mock().string,
+						"value":
+							try JSONSerialization
+							.jsonObject(with: encodedRecord),
+					]
+				}
 		)
 		let remainder = Array(pending.dropFirst(pageSize))
 
-		let nextCursor: String?
+		let nextCursor: UUID?
 		if remainder.isEmpty {
 			nextCursor = nil
 		} else {
-			let newCursor = UUID().uuidString
+			let newCursor = UUID()
 			paginationCache[newCursor] = remainder
 			nextCursor = newCursor
 		}
-		
+
 		return try JSONSerialization.data(withJSONObject: [
-			"cursor": nextCursor as Any,
+			"cursor": nextCursor?.uuidString as Any,
 			"records": page,
 		])
 	}

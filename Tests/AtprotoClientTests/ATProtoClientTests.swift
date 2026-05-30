@@ -27,24 +27,24 @@ struct MockPDSTests {
 
 		assert(profile?.displayName == record.displayName)
 	}
-	
+
 	@Test func testFollows() async throws {
 		let did: Atproto.DID = try .init(string: "did:plc:mynameisanna")
 		let authAgent = try await mockPDS.host(did: did)
 
 		let mockFollow = Atproto.DID.mock()
 		let mockBlock = Atproto.DID.mock()
-		
+
 		try await authAgent.pds.follow(did: mockFollow, from: did)
 		try await authAgent.pds.block(did: mockBlock, from: did)
-		
+
 		let _ = try await authAgent.listRecords(
 			Lexicon.App.Bsky.Graph.Follow.self,
 			limit: nil,
 			cursor: nil,
 			reverse: nil
 		)
-		
+
 		let _ = try await authAgent.listRecords(
 			Lexicon.App.Bsky.Graph.Block.self,
 			limit: nil,
@@ -52,7 +52,7 @@ struct MockPDSTests {
 			reverse: nil
 		)
 	}
-	
+
 	@Test func testFollowsCursor() async throws {
 		let did: Atproto.DID = try .init(string: "did:plc:mynameisanna")
 		let authAgent = try await mockPDS.host(did: did)
@@ -61,17 +61,17 @@ struct MockPDSTests {
 			let mockFollow = Atproto.DID.mock()
 			try await authAgent.pds.follow(did: mockFollow, from: did)
 		}
-		
+
 		let mockBlock = Atproto.DID.mock()
 		try await authAgent.pds.block(did: mockBlock, from: did)
-		
+
 		let _ = try await authAgent.listRecords(
 			Lexicon.App.Bsky.Graph.Follow.self,
 			limit: 5,
 			cursor: nil,
 			reverse: nil
 		)
-		
+
 		let _ = try await authAgent.listRecords(
 			Lexicon.App.Bsky.Graph.Block.self,
 			limit: nil,
