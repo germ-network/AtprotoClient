@@ -67,7 +67,8 @@ extension AuthPDSAgent {
 				parameters: .init(
 					limit: 100,
 					cursor: cursor
-				)
+				),
+				proxy: .bskyAppView
 			).profileBatch
 		case .knownFollowers:
 			try await call(
@@ -76,7 +77,8 @@ extension AuthPDSAgent {
 					actor: actor,
 					limit: 100,
 					cursor: cursor
-				)
+				),
+				proxy: .bskyAppView
 			).profileBatch
 		}
 	}

@@ -169,7 +169,7 @@ extension MockRepo {
 			pending = Array(collectionContents)
 		}
 
-		let page = Array(pending.prefix(pageSize))
+		let page = Array(pending.prefix(pageSize).map(\.1))
 		let remainder = Array(pending.dropFirst(pageSize))
 
 		let nextCursor: String?
@@ -180,11 +180,19 @@ extension MockRepo {
 			paginationCache[newCursor] = remainder
 			nextCursor = newCursor
 		}
+		
+		if let nextCursor {
+			return try JSONSerialization.data(withJSONObject: [
+				"cursor": nextCursor,
+				"records": page,
+			])
+		} else {
+			return try JSONSerialization.data(withJSONObject: [
+				"records": page,
+			])
+		}
 
-		return try JSONSerialization.data(withJSONObject: [
-			"cursor": nextCursor as Any?,
-			"records": page,
-		])
+		
 	}
 
 	func listRecordsResponse(
