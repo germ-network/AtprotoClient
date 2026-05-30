@@ -272,4 +272,13 @@ extension MockRepo {
 				.encode(Lexicon.App.Bsky.Graph.Follow(subject: did))
 		)
 	}
+
+	public func block(did: Atproto.DID) throws {
+		try putRecord(
+			collection: Lexicon.App.Bsky.Graph.Block.Collection.nsid,
+			rkey: UUID().uuidString,
+			encodedRecord: JSONEncoder()
+				.encode(Lexicon.App.Bsky.Graph.Block(subject: did))
+		)
+	}
 }

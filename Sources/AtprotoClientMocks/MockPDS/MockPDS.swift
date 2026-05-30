@@ -393,4 +393,10 @@ extension MockPDS {
 			.tryUnwrap
 			.follow(did: did)
 	}
+
+	public func block(did: Atproto.DID, from viewer: Atproto.DID) async throws {
+		try await repos[viewer]
+			.tryUnwrap
+			.block(did: did)
+	}
 }
