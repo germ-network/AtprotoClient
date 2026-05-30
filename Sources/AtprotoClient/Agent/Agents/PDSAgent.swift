@@ -35,6 +35,7 @@ extension Atproto.PDSAgent {
 	}
 
 	public func listRecords<R: Atproto.Record>(
+		_ type: R.Type = R.self,
 		limit: Int?,
 		cursor: String?,
 		reverse: Bool?

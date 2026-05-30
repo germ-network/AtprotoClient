@@ -42,7 +42,7 @@ public actor MockPDS {
 
 	public struct AuthAgent {
 		public let did: Atproto.DID
-		let pds: MockPDS
+		package let pds: MockPDS
 	}
 
 	public func publicAgent(did: Atproto.DID) throws -> PublicAgent {

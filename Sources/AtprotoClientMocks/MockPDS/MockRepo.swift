@@ -169,7 +169,16 @@ extension MockRepo {
 			pending = Array(collectionContents)
 		}
 
-		let page = Array(pending.prefix(pageSize).map(\.1))
+		let page = Array(try pending.prefix(pageSize)
+			.map { (key, encodedRecord) in
+				[
+					"uri": "at://did:web:example.com/\(collection)/\(key)",
+					"cid": Atproto.CID.mock().string,
+					"value": try JSONSerialization
+						.jsonObject(with: encodedRecord),
+				]
+			}
+		)
 		let remainder = Array(pending.dropFirst(pageSize))
 
 		let nextCursor: String?
@@ -181,18 +190,10 @@ extension MockRepo {
 			nextCursor = newCursor
 		}
 		
-		if let nextCursor {
-			return try JSONSerialization.data(withJSONObject: [
-				"cursor": nextCursor,
-				"records": page,
-			])
-		} else {
-			return try JSONSerialization.data(withJSONObject: [
-				"records": page,
-			])
-		}
-
-		
+		return try JSONSerialization.data(withJSONObject: [
+			"cursor": nextCursor as Any,
+			"records": page,
+		])
 	}
 
 	func listRecordsResponse(
