@@ -22,6 +22,10 @@ public actor MockRepo {
 	//to allow for storing records we don't know, we just store the encoded data
 	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]]
 
+	//remainders from prior listRecords pages, keyed by an opaque UUID cursor
+	typealias Cursor = String
+	private var paginationCache: [Cursor: [(EncodedRecordKey, Data)]] = [:]
+
 	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
 		guard let bskyProfile else {
 			untypedRepo = [:]
@@ -141,37 +145,45 @@ extension MockRepo {
 		cursor: String?,
 		reverse: Bool?
 	) throws -> Data {
-		if let limit {
-			guard limit >= 1, limit <= 100 else {
+		let pageSize: Int =
+			if let limit, (1...100).contains(limit) {
+				limit
+			} else {
+				50
+			}
+
+		let pending: [(EncodedRecordKey, Data)]
+		if let cursor {
+			guard let cached = paginationCache.removeValue(forKey: cursor) else {
 				throw Errors.badParameters
 			}
-		}
-
-		guard let collectionContents = untypedRepo[collection] else {
-			return try JSONSerialization.data(withJSONObject: [
-				"cursor": nil,
-				"records": [],
-			])
-		}
-
-		var records: [Any] = []
-
-		// TODO: Implement cursor and CID
-		for (encodedRkey, _) in collectionContents {
-			let result = try getAnyRecord(
-				collection: collection,
-				encodedRkey: encodedRkey,
-				cid: nil
-			)
-			if let result {
-				records.append(result)
+			pending = cached
+		} else {
+			guard let collectionContents = untypedRepo[collection] else {
+				return try JSONSerialization.data(withJSONObject: [
+					"cursor": nil,
+					"records": [],
+				])
 			}
 
+			pending = Array(collectionContents)
+		}
+
+		let page = Array(pending.prefix(pageSize))
+		let remainder = Array(pending.dropFirst(pageSize))
+
+		let nextCursor: String?
+		if remainder.isEmpty {
+			nextCursor = nil
+		} else {
+			let newCursor = UUID().uuidString
+			paginationCache[newCursor] = remainder
+			nextCursor = newCursor
 		}
 
 		return try JSONSerialization.data(withJSONObject: [
-			"cursor": nil,
-			"records": records,
+			"cursor": nextCursor as Any?,
+			"records": page,
 		])
 	}
 
