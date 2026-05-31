@@ -10,6 +10,10 @@ import AtprotoTypes
 import Foundation
 import Testing
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 struct OnlineTests {
 	let appView: BskyAppViewAgent
 
