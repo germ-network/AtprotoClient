@@ -22,6 +22,10 @@ public actor MockRepo {
 	//to allow for storing records we don't know, we just store the encoded data
 	private var untypedRepo: [Atproto.NSID: [EncodedRecordKey: Data]]
 
+	//remainders from prior listRecords pages, keyed by an opaque UUID cursor
+	typealias Cursor = UUID
+	private var paginationCache: [UUID: [(EncodedRecordKey, Data)]] = [:]
+
 	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
 		guard let bskyProfile else {
 			untypedRepo = [:]
@@ -42,6 +46,7 @@ public actor MockRepo {
 
 	enum Errors: Error {
 		case badParameters
+		case cursorNotFound
 	}
 }
 
@@ -49,6 +54,7 @@ extension MockRepo.Errors: LocalizedError {
 	var errorDescription: String? {
 		switch self {
 		case .badParameters: "bad parameters"
+		case .cursorNotFound: "cursor not found"
 		}
 	}
 }
@@ -141,37 +147,60 @@ extension MockRepo {
 		cursor: String?,
 		reverse: Bool?
 	) throws -> Data {
-		if let limit {
-			guard limit >= 1, limit <= 100 else {
-				throw Errors.badParameters
-			}
-		}
-
-		guard let collectionContents = untypedRepo[collection] else {
-			return try JSONSerialization.data(withJSONObject: [
-				"cursor": nil,
-				"records": [],
-			])
-		}
-
-		var records: [Any] = []
-
-		// TODO: Implement cursor and CID
-		for (encodedRkey, _) in collectionContents {
-			let result = try getAnyRecord(
-				collection: collection,
-				encodedRkey: encodedRkey,
-				cid: nil
-			)
-			if let result {
-				records.append(result)
+		let pageSize: Int =
+			if let limit, (1...100).contains(limit) {
+				limit
+			} else {
+				50
 			}
 
+		let pending: [(EncodedRecordKey, Data)]
+		if let cursor {
+
+			guard let uuidCursor = UUID(uuidString: cursor),
+				let cached = paginationCache.removeValue(forKey: uuidCursor)
+			else {
+				throw Errors.cursorNotFound
+			}
+			pending = cached
+		} else {
+			guard let collectionContents = untypedRepo[collection] else {
+				return try JSONSerialization.data(withJSONObject: [
+					"cursor": nil,
+					"records": [],
+				])
+			}
+
+			pending = Array(collectionContents)
+		}
+
+		let page = Array(
+			try pending.prefix(pageSize)
+				.map { (key, encodedRecord) in
+					[
+						"uri":
+							"at://did:web:example.com/\(collection)/\(key)",
+						"cid": Atproto.CID.mock().string,
+						"value":
+							try JSONSerialization
+							.jsonObject(with: encodedRecord),
+					]
+				}
+		)
+		let remainder = Array(pending.dropFirst(pageSize))
+
+		let nextCursor: UUID?
+		if remainder.isEmpty {
+			nextCursor = nil
+		} else {
+			let newCursor = UUID()
+			paginationCache[newCursor] = remainder
+			nextCursor = newCursor
 		}
 
 		return try JSONSerialization.data(withJSONObject: [
-			"cursor": nil,
-			"records": records,
+			"cursor": nextCursor?.uuidString as Any,
+			"records": page,
 		])
 	}
 
@@ -270,6 +299,15 @@ extension MockRepo {
 			rkey: UUID().uuidString,
 			encodedRecord: JSONEncoder()
 				.encode(Lexicon.App.Bsky.Graph.Follow(subject: did))
+		)
+	}
+
+	public func block(did: Atproto.DID) throws {
+		try putRecord(
+			collection: Lexicon.App.Bsky.Graph.Block.Collection.nsid,
+			rkey: UUID().uuidString,
+			encodedRecord: JSONEncoder()
+				.encode(Lexicon.App.Bsky.Graph.Block(subject: did))
 		)
 	}
 }

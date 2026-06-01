@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/GermConvenience.git",
       "state" : {
-        "revision" : "0ceb4174c93e5c4b59e85f396ce8b8122aaeeee6",
-        "version" : "0.2.3"
+        "revision" : "5ec8573dbceb2e03b9a32c3e84a53af471df5b89",
+        "version" : "0.2.4"
       }
     },
     {

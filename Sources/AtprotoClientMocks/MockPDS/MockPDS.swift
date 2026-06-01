@@ -42,7 +42,7 @@ public actor MockPDS {
 
 	public struct AuthAgent {
 		public let did: Atproto.DID
-		let pds: MockPDS
+		package let pds: MockPDS
 	}
 
 	public func publicAgent(did: Atproto.DID) throws -> PublicAgent {
@@ -392,5 +392,11 @@ extension MockPDS {
 		try await repos[viewer]
 			.tryUnwrap
 			.follow(did: did)
+	}
+
+	public func block(did: Atproto.DID, from viewer: Atproto.DID) async throws {
+		try await repos[viewer]
+			.tryUnwrap
+			.block(did: did)
 	}
 }

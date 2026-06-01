@@ -1,5 +1,5 @@
 //
-//  Test.swift
+//  OnlineTests.swift
 //  AtprotoClient
 //
 //  Created by Mark @ Germ on 5/20/26.
@@ -9,6 +9,10 @@ import AtprotoClient
 import AtprotoTypes
 import Foundation
 import Testing
+
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 struct OnlineTests {
 	let appView: BskyAppViewAgent
