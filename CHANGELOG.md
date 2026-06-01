@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.5.11
+
+### Patch Changes
+
+- [#40](https://github.com/germ-network/AtprotoClient/pull/40) [`a4d1b9c`](https://github.com/germ-network/AtprotoClient/commit/a4d1b9cafeb4f13ca36ae69df257856db82d8195) Thanks [@germ-mark](https://github.com/germ-mark)! - add mock blocking
+
 ## 0.5.10
 
 ### Patch Changes
