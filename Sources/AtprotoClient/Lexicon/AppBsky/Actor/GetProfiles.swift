@@ -1,8 +1,8 @@
 //
-//  GetProfile.swift
+//  GetProfiles.swift
 //  AtprotoClient
 //
-//  Created by Mark @ Germ on 2/26/26.
+//  Created by Anna Mistele on 6/4/26.
 //
 
 import AtprotoTypes
@@ -12,15 +12,14 @@ import GermConvenience
 ///https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
 ///https://lexicon.garden/lexicon/did:plc:4v4y5r3lwsbtmsxhile2ljac/app.bsky.actor.getProfile/docs
 extension Lexicon.App.Bsky.Actor {
-	public enum GetProfile: Atproto.XRPC.Request {
+	public enum GetProfiles: Atproto.XRPC.Request {
 		public struct Id: Atproto.XRPC.EndpointId {
 			public static var nsid: Atproto.NSID {
-				.init(string: "app.bsky.actor.getProfile")
+				.init(string: "app.bsky.actor.getProfiles")
 			}
 
 			public init() {}
 		}
-		public typealias Output = Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed
 
 		public static var outputEncoding: HTTPContentType {
 			.json
@@ -37,9 +36,13 @@ extension Lexicon.App.Bsky.Actor {
 				[.init(name: "actor", value: actor.rawValue)]
 			}
 		}
+
+		public struct Output: Sendable, Codable {
+			public let profiles: [Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed]
+		}
 	}
 }
 
-extension Lexicon.App.Bsky.Actor.GetProfile: Atproto.XRPC.ResponseParsing {
+extension Lexicon.App.Bsky.Actor.GetProfiles: Atproto.XRPC.ResponseParsing {
 	public static var badRequestErrors: Set<String> { defaultErrors }
 }
