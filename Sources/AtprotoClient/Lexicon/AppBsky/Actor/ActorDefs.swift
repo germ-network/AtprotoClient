@@ -27,7 +27,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 		public let description: String?
 		public let avatar: URL?
 
-		//public let associated: ProfileAssociated?
+		public let associated: ProfileAssociated?
 
 		public let indexedAt: LexiconString.Datetime?
 		public let createdAt: LexiconString.Datetime?
@@ -46,6 +46,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 			pronouns: String?,
 			description: String?,
 			avatar: URL?,
+			associated: ProfileAssociated?,
 			indexedAt: LexiconString.Datetime?,
 			createdAt: LexiconString.Datetime?,
 			viewer: ViewerState?
@@ -56,6 +57,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 			self.pronouns = pronouns
 			self.description = description
 			self.avatar = avatar
+			self.associated = associated
 			self.indexedAt = indexedAt
 			self.createdAt = createdAt
 			self.viewer = viewer
@@ -88,7 +90,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 
 		public let postsCount: Int?
 
-		//public let associated: ProfileAssociated?
+		public let associated: ProfileAssociated?
 		//public let joinedViaStarterPack: JoinedViaStarterPack?
 
 		public let indexedAt: LexiconString.Datetime?
@@ -114,6 +116,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 			followersCount: Int?,
 			followsCount: Int?,
 			postsCount: Int?,
+			associated: ProfileAssociated?,
 			indexedAt: LexiconString.Datetime?,
 			createdAt: LexiconString.Datetime?,
 			viewer: ViewerState?
@@ -129,6 +132,7 @@ extension Lexicon.App.Bsky.Actor.Defs {
 			self.followersCount = followersCount
 			self.followsCount = followsCount
 			self.postsCount = postsCount
+			self.associated = associated
 			self.indexedAt = indexedAt
 			self.createdAt = createdAt
 			self.viewer = viewer
@@ -188,6 +192,43 @@ extension Lexicon.App.Bsky.Actor.Defs {
 			self.blocking = blocking
 			self.following = following
 			self.followedBy = followedBy
+		}
+	}
+
+	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/actor/defs.json
+	public struct ProfileAssociated: Sendable, Codable {
+		public let lists: Int?
+		public let feedgens: Int?
+		public let starterPacks: Int?
+		public let labeler: Bool?
+		// public let chat: ProfileAssociatedChat?
+		// public let activitySubscription: ProfileAssociatedActivitySubscription?
+		public let germ: ProfileAssociatedGerm?
+
+		public init(
+			lists: Int?,
+			feedgens: Int?,
+			starterPacks: Int?,
+			labeler: Bool?,
+			germ: ProfileAssociatedGerm?
+		) {
+			self.lists = lists
+			self.feedgens = feedgens
+			self.starterPacks = starterPacks
+			self.labeler = labeler
+			self.germ = germ
+		}
+	}
+
+	/// [github]: https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/actor/defs.json
+	public struct ProfileAssociatedGerm: Sendable, Codable {
+		public let messageMeUrl: URL
+		// possible values: [usersIFollow, everyone]
+		public let showButtonTo: String
+
+		public init(messageMeUrl: URL, showButtonTo: String) {
+			self.messageMeUrl = messageMeUrl
+			self.showButtonTo = showButtonTo
 		}
 	}
 }
