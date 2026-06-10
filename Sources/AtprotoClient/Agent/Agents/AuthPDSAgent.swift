@@ -7,7 +7,9 @@
 
 import AtprotoTypes
 
-public protocol AuthPDSAgent: Atproto.PDSAgent, Atproto.XRPC.ProxyCallable, Atproto.XRPC
+extension Atproto {
+	public protocol AuthPDSAgent: Atproto.PDSAgent, Atproto.XRPC.ProxyCallable, Atproto.XRPC
 		.AuthCallable
-{
+	{
+	}
 }
