@@ -13,7 +13,7 @@ public enum BskyAppViewAuthedSocialGraphs: Sendable {
 	case knownFollowers
 }
 
-extension AuthPDSAgent {
+extension Atproto.AuthPDSAgent {
 	public func streamSocialGraphs(
 		for actor: LexiconString.AtIdentifier,
 		socialGraphType: BskyAppViewAuthedSocialGraphs,

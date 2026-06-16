@@ -354,7 +354,7 @@ extension MockPDS.PublicAgent: Atproto.PDSAgent {
 	}
 }
 
-extension MockPDS.AuthAgent: Atproto.PDSAgent, Atproto.XRPC.AuthCallable {
+extension MockPDS.AuthAgent: Atproto.AuthPDSAgent {
 	public func response(
 		_ requestComponents: XRPCRequestComponents
 	) async throws -> HTTPDataResponse {

@@ -25,6 +25,8 @@ extension Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed: Mockable {
 			followersCount: 2,
 			followsCount: 5,
 			postsCount: 10,
+			// TODO: Test with nil associated Germ as well
+			associated: .mock(),
 			indexedAt: .init(date: .now),
 			createdAt: .init(date: .distantPast),
 			viewer: .init(
@@ -48,6 +50,27 @@ extension Lexicon.App.Bsky.Actor.Profile: Mockable {
 			displayName: "Germ Network",
 			pronouns: "they/them",
 			website: nil
+		)
+	}
+}
+
+extension Lexicon.App.Bsky.Actor.Defs.ProfileAssociated: Mockable {
+	public static func mock() -> Lexicon.App.Bsky.Actor.Defs.ProfileAssociated {
+		.init(
+			lists: nil,
+			feedgens: nil,
+			starterPacks: nil,
+			labeler: nil,
+			germ: .mock()
+		)
+	}
+}
+
+extension Lexicon.App.Bsky.Actor.Defs.ProfileAssociatedGerm: Mockable {
+	public static func mock() -> Lexicon.App.Bsky.Actor.Defs.ProfileAssociatedGerm {
+		.init(
+			messageMeUrl: URL(string: "https://landing.ger.mx/newUser")!,
+			showButtonTo: "usersIFollow"
 		)
 	}
 }
