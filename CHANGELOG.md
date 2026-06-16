@@ -1,5 +1,13 @@
 # @germ-network/atprotoclient
 
+## 0.6.0
+
+### Minor Changes
+
+- [#42](https://github.com/germ-network/AtprotoClient/pull/42) [`c0b6e79`](https://github.com/germ-network/AtprotoClient/commit/c0b6e79f781b6ed7c5ebc429c6cee1cb9d2e8cf4) Thanks [@anna-germ](https://github.com/anna-germ)! - Add `GetProfiles` request and associated data to profile defs
+
+  Thanks @anna (anna@germ.network)!
+
 ## 0.5.11
 
 ### Patch Changes
