@@ -272,21 +272,24 @@ extension MockRepo {
 }
 
 extension MockRepo {
-	func getGraph() throws -> (
+	func getGraph() -> (
 		[Lexicon.App.Bsky.Graph.Follow], [Lexicon.App.Bsky.Graph.Block]
 	) {
-		let follows = try
+		//Best-effort decode: skip any record that doesn't parse as its type rather
+		//than failing the whole read on one bad/foreign record (matches `unfollow`).
+		let follows =
 			(untypedRepo[Lexicon.App.Bsky.Graph.Follow.Collection.nsid] ?? [:])
 			.values
-			.map {
-				try JSONDecoder().decode(
+			.compactMap {
+				try? JSONDecoder().decode(
 					Lexicon.App.Bsky.Graph.Follow.self, from: $0)
 			}
 
-		let blocks = try (untypedRepo[Lexicon.App.Bsky.Graph.Block.Collection.nsid] ?? [:])
+		let blocks =
+			(untypedRepo[Lexicon.App.Bsky.Graph.Block.Collection.nsid] ?? [:])
 			.values
-			.map {
-				try JSONDecoder().decode(
+			.compactMap {
+				try? JSONDecoder().decode(
 					Lexicon.App.Bsky.Graph.Block.self, from: $0)
 			}
 
@@ -313,15 +316,18 @@ extension MockRepo {
 
 	//Remove every follow record whose subject is `did` (the inverse of `follow`).
 	//A no-op if none exist. Iterate a snapshot so the delete doesn't mutate the
-	//dictionary being read.
-	public func unfollow(did: Atproto.DID) throws {
+	//dictionary being read. Decoding is best-effort: a record that doesn't parse
+	//as a Follow can't be the one we're removing, and must not abort the removal
+	//of the ones that do — so skip it rather than throw.
+	public func unfollow(did: Atproto.DID) {
 		let collection = Lexicon.App.Bsky.Graph.Follow.Collection.nsid
 		for (rkey, encoded) in untypedRepo[collection] ?? [:] {
-			let follow = try JSONDecoder()
-				.decode(Lexicon.App.Bsky.Graph.Follow.self, from: encoded)
-			if follow.subject == did {
-				untypedRepo[collection]?[rkey] = nil
-			}
+			guard
+				let follow = try? JSONDecoder()
+					.decode(Lexicon.App.Bsky.Graph.Follow.self, from: encoded),
+				follow.subject == did
+			else { continue }
+			untypedRepo[collection]?[rkey] = nil
 		}
 	}
 }
