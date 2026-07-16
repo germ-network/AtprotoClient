@@ -315,10 +315,7 @@ extension MockRepo {
 	}
 
 	//Remove every follow record whose subject is `did` (the inverse of `follow`).
-	//A no-op if none exist. Bind the collection to a `let` first so the loop
-	//iterates that snapshot while the deletes below mutate `untypedRepo` — the two
-	//are separate values (copy-on-write), so removing entries can't disturb the
-	//iteration. Decoding is best-effort: a record that doesn't parse as a Follow
+	//A no-op if none exist. Decoding is best-effort: a record that doesn't parse as a Follow
 	//can't be the one we're removing, and must not abort the removal of the ones
 	//that do — so skip it rather than throw.
 	public func unfollow(did: Atproto.DID) {
