@@ -310,4 +310,18 @@ extension MockRepo {
 				.encode(Lexicon.App.Bsky.Graph.Block(subject: did))
 		)
 	}
+
+	//Remove every follow record whose subject is `did` (the inverse of `follow`).
+	//A no-op if none exist. Iterate a snapshot so the delete doesn't mutate the
+	//dictionary being read.
+	public func unfollow(did: Atproto.DID) throws {
+		let collection = Lexicon.App.Bsky.Graph.Follow.Collection.nsid
+		for (rkey, encoded) in untypedRepo[collection] ?? [:] {
+			let follow = try JSONDecoder()
+				.decode(Lexicon.App.Bsky.Graph.Follow.self, from: encoded)
+			if follow.subject == did {
+				untypedRepo[collection]?[rkey] = nil
+			}
+		}
+	}
 }
