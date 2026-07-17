@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.7.0
+
+### Minor Changes
+
+- [#44](https://github.com/germ-network/AtprotoClient/pull/44) [`5a80abf`](https://github.com/germ-network/AtprotoClient/commit/5a80abfee6e76ac48a7bdad32db84028cb072c00) Thanks [@germ-mark](https://github.com/germ-mark)! - Add `unfollow(did:)` to the mock repo and `unfollow(did:from:)` to MockPDS — the inverse of `follow`, removing the matching follow record. Lets tests construct a "not followed" social-graph state (the anchor-route silence-and-relay case). MockAtmosphere parity is added in AtprotoOAuth.
+
 ## 0.6.0
 
 ### Minor Changes
