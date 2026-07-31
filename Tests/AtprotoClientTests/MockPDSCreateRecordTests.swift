@@ -113,6 +113,55 @@ struct MockPDSCreateRecordTests {
 		)
 	}
 
+	/// `cid` was the literal string "mock", which is not a CID — no `b` prefix, not
+	/// base32 — so anything that fed it back (a swapRecord round trip, say) failed
+	/// at the boundary. `PutRecordOutput.cid` is typed `String`, so nothing catches
+	/// it at decode; this does. Put returns one too, and it was equally broken.
+	@Test("the cid create and put return parses as a CID")
+	func returnedCidIsAWellFormedCID() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+
+		let created = try await authAgent.createRecord(
+			Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now)
+		)
+		#expect(throws: Never.self) { try Atproto.CID(string: created.cid) }
+
+		let put = try await authAgent.putRecord(
+			Lexicon.App.Bsky.Graph.Block.self,
+			input: .init(
+				schema: .init(
+					repo: .did(did),
+					rkey: try .init(string: "3kabcdefghij2"),
+					record: .init(subject: .mock(), createdAt: .now)
+				)
+			)
+		)
+		#expect(throws: Never.self) { try Atproto.CID(string: put.cid) }
+	}
+
+	/// Put chose the key, so its uri is not the only channel back the way create's
+	/// is — but it still has to name the record that was written. It returned the
+	/// bare placeholder "example.com".
+	@Test("put's uri names the record too")
+	func putUriNamesTheRecord() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+
+		let put = try await authAgent.putRecord(
+			Lexicon.App.Bsky.Graph.Block.self,
+			input: .init(
+				schema: .init(
+					repo: .did(did),
+					rkey: try .init(string: "3kabcdefghij2"),
+					record: .init(subject: .mock(), createdAt: .now)
+				)
+			)
+		)
+
+		#expect(put.uri == "at://\(did.rawValue)/app.bsky.graph.block/3kabcdefghij2")
+	}
+
 	/// Create mints the key, so a caller that supplies one is refused rather than
 	/// quietly given a different key. The alternative — honoring it — would need
 	/// the already-exists failure modeled too, and without that it is just

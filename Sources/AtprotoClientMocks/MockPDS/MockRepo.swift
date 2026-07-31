@@ -135,18 +135,8 @@ extension MockRepo {
 		guard let resultObject else {
 			return try .mock(error: "RecordNotFound", status: 400)
 		}
-		return .init(
-			data: try JSONSerialization.data(withJSONObject: resultObject),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue)
-					]
-				)
-			)
+		return .mock(
+			json: try JSONSerialization.data(withJSONObject: resultObject)
 		)
 	}
 
@@ -240,25 +230,12 @@ extension MockRepo {
 			} else {
 				nil
 			}
-		let result = try listRecords(
-			collection: collection,
-			limit: limitInt,
-			cursor: cursor,
-			reverse: reverseBool
-		)
-
-		return .init(
-			data: result,
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
-				)
+		return .mock(
+			json: try listRecords(
+				collection: collection,
+				limit: limitInt,
+				cursor: cursor,
+				reverse: reverseBool
 			)
 		)
 	}

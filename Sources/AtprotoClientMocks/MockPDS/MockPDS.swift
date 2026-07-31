@@ -288,28 +288,15 @@ public actor MockPDS {
 
 		//unlike put, the caller did not choose the key, so the uri is the only
 		//way it learns which record it just wrote
-		let returnVal = Lexicon.Com.Atproto.Repo
-			.PutRecordOutput(
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.PutRecordOutput(
 				uri: repo.recordUri(
 					collection: protoSchema.collection,
 					rkey: rkey
 				),
-				cid: "mock",
+				cid: Atproto.CID.mock().string,
 				commit: try .mock(),
 				validationStatus: .valid
-			)
-		return .init(
-			data: try JSONEncoder().encode(returnVal),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
-				)
 			)
 		)
 	}
@@ -347,25 +334,15 @@ public actor MockPDS {
 			encodedRecord: encodedRecord
 		)
 
-		let returnVal = Lexicon.Com.Atproto.Repo
-			.PutRecordOutput(
-				uri: "example.com",
-				cid: "mock",
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.PutRecordOutput(
+				uri: repo.recordUri(
+					collection: protoSchema.collection,
+					rkey: inputRkey
+				),
+				cid: Atproto.CID.mock().string,
 				commit: try .mock(),
 				validationStatus: .valid
-			)
-		return .init(
-			data: try JSONEncoder().encode(returnVal),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
-				)
 			)
 		)
 	}
@@ -406,24 +383,11 @@ public actor MockPDS {
 			rkey: input.rkey
 		)
 
-		let returnVal = Lexicon.Com.Atproto.Repo
-			.DeleteRecordOutput(
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.DeleteRecordOutput(
 				commit: .init(
 					cid: .mock(),
 					rev: .mock()
-				)
-			)
-		return .init(
-			data: try JSONEncoder().encode(returnVal),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
 				)
 			)
 		)
