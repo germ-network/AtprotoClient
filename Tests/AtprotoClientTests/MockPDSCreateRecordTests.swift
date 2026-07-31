@@ -1,0 +1,115 @@
+//
+//  MockPDSCreateRecordTests.swift
+//  AtprotoClientTests
+//
+//  `com.atproto.repo.createRecord` against `MockPDS`. Before it was served, any
+//  production path that creates a record — blocking someone, say — could not be
+//  tested against the mock at all: it 400'd on the way in.
+//
+//  What distinguishes create from put is that the PDS, not the caller, picks the
+//  record key, so both properties below are about the key: it comes back as a
+//  usable TID, and a second create does not land on top of the first.
+//
+
+import AtprotoClient
+import AtprotoClientMocks
+import AtprotoTypes
+import Foundation
+import Testing
+
+struct MockPDSCreateRecordTests {
+	let mockPDS: MockPDS
+
+	init() throws {
+		self.mockPDS = try .init()
+	}
+
+	/// The record key the caller gets back has to be a real TID: callers recover
+	/// it by splitting `uri`, then feed it to `deleteRecord` as an `Atproto.TID`,
+	/// which validates. A UUID or any other filler would store fine and fail there.
+	private func rkey(of output: Lexicon.Com.Atproto.Repo.PutRecordOutput) throws
+		-> Atproto.TID
+	{
+		try .init(string: .init(output.uri.split(separator: "/").last ?? ""))
+	}
+
+	@Test("a created record reads back at the key the PDS minted")
+	func createdRecordReadsBack() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+		let subject = Atproto.DID.mock()
+
+		let output = try await authAgent.createRecord(
+			Lexicon.App.Bsky.Graph.Block(subject: subject, createdAt: .now)
+		)
+
+		let readBack = try await authAgent.getRecord(
+			Lexicon.App.Bsky.Graph.Block.self,
+			rkey: try rkey(of: output),
+			cid: nil
+		)
+
+		#expect(readBack?.subject == subject)
+	}
+
+	/// The property that separates create from put: put twice at one key leaves
+	/// one record, create twice leaves two. A handler that reused a fixed key —
+	/// or read a key out of an input that carries none — would pass the test
+	/// above and fail this one.
+	@Test("two creates write two distinct records")
+	func twoCreatesWriteTwoRecords() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+		let first = Atproto.DID.mock()
+		let second = Atproto.DID.mock()
+
+		let firstOutput = try await authAgent.createRecord(
+			Lexicon.App.Bsky.Graph.Block(subject: first, createdAt: .now)
+		)
+		let secondOutput = try await authAgent.createRecord(
+			Lexicon.App.Bsky.Graph.Block(subject: second, createdAt: .now)
+		)
+
+		#expect(try rkey(of: firstOutput) != rkey(of: secondOutput))
+
+		let (records, _) = try await authAgent.listRecords(
+			Lexicon.App.Bsky.Graph.Block.self,
+			limit: nil,
+			cursor: nil,
+			reverse: nil
+		)
+		#expect(Set(records.map(\.subject)) == [first, second])
+	}
+
+	/// Unauthenticated callers get 401 rather than a write, same as put.
+	@Test("creating without a session is rejected")
+	func createWithoutAuthIsRejected() async throws {
+		let did = Atproto.DID.mock()
+		let _ = try await mockPDS.host(did: did)
+		let publicAgent = try await mockPDS.publicAgent(did: did)
+
+		await #expect(throws: (any Error).self) {
+			try await publicAgent.call(
+				Lexicon.Com.Atproto.Repo.CreateRecord<
+					Lexicon.App.Bsky.Graph.Block
+				>.self,
+				input: .init(
+					schema: .init(
+						repo: .did(did),
+						rkey: nil,
+						record: .init(subject: .mock(), createdAt: .now)
+					)
+				)
+			)
+		}
+
+		let (records, _) = try await mockPDS.authAgent(did: did)
+			.listRecords(
+				Lexicon.App.Bsky.Graph.Block.self,
+				limit: nil,
+				cursor: nil,
+				reverse: nil
+			)
+		#expect(records.isEmpty)
+	}
+}

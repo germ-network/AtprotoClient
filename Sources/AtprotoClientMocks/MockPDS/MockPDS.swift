@@ -7,6 +7,7 @@
 
 import AtprotoClient
 import AtprotoTypes
+import AtprotoTypesMocks
 import Foundation
 import GermConvenience
 
@@ -105,6 +106,15 @@ public actor MockPDS {
 			return try await listRecords(queryItems: queryItems)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
+		case Lexicon.Com.Atproto.Repo.CreateRecordNSID.nsid:
+			guard let authedDid else {
+				return try .mock(error: "Unauthorized", status: 401)
+			}
+
+			return try await createRecord(
+				authedDid: authedDid, bodyData: body.tryUnwrap
+			)
+
 		case Lexicon.Com.Atproto.Repo.PutRecordNSID.nsid:
 			guard let authedDid else {
 				return try .mock(error: "Unauthorized", status: 401)
@@ -221,6 +231,69 @@ public actor MockPDS {
 	struct ProtoSchema: Decodable {
 		let repo: LexiconString.AtIdentifier
 		let collection: Atproto.NSID
+	}
+
+	//Same guards and body handling as `putRecord`; the difference is the record
+	//key. Create mints one — a TID, since that is what the record keys the app
+	//then reads back out of `uri` have to parse as — where put takes one from the
+	//input. The lexicon still allows an explicit rkey, so honor it when sent.
+	private func createRecord(
+		authedDid: Atproto.DID,
+		bodyData: Data
+	) async throws -> HTTPDataResponse {
+		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
+
+		guard case .did(let did) = protoSchema.repo else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
+
+		guard did == authedDid else {
+			return try .mock(error: "Unauthorized", status: 401)
+		}
+
+		guard let repo = repos[authedDid] else {
+			return try .mock(error: "Invalid Request", status: 400)
+		}
+
+		//hacky, but type-erases the record type
+		let input = try JSONSerialization.jsonObject(with: bodyData)
+		let inputDict = try (input as? [String: Any]).tryUnwrap
+		let rkey = (inputDict["rkey"] as? String) ?? Atproto.TID.mock().rawValue
+
+		let encodedRecord =
+			try JSONSerialization
+			.data(withJSONObject: inputDict["record"].tryUnwrap)
+
+		try await repo.createRecord(
+			collection: protoSchema.collection,
+			rkey: rkey,
+			encodedRecord: encodedRecord
+		)
+
+		//unlike put, the caller did not choose the key, so the uri is the only
+		//way it learns which record it just wrote
+		let returnVal = Lexicon.Com.Atproto.Repo
+			.PutRecordOutput(
+				uri:
+					"at://\(authedDid.rawValue)/\(protoSchema.collection.rawValue)/\(rkey)",
+				cid: "mock",
+				commit: try .mock(),
+				validationStatus: .valid
+			)
+		return .init(
+			data: try JSONEncoder().encode(returnVal),
+			response: .init(
+				status: .ok,
+				headerFields: .init(
+					[
+						.init(
+							name: .contentType,
+							value: HTTPContentType.json.rawValue
+						)
+					]
+				)
+			)
+		)
 	}
 
 	private func putRecord(
