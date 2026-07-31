@@ -18,7 +18,7 @@ import Testing
 
 struct MockRepoResilienceTests {
 	@Test func graphReadAndUnfollowSkipUndecodableFollowRecords() async throws {
-		let repo = try MockRepo()
+		let repo = try MockRepo(did: .mock())
 		let collection = Lexicon.App.Bsky.Graph.Follow.Collection.nsid
 
 		let keep = Atproto.DID.mock()

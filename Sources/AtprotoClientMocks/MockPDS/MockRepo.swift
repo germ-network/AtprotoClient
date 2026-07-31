@@ -26,7 +26,15 @@ public actor MockRepo {
 	typealias Cursor = UUID
 	private var paginationCache: [UUID: [(EncodedRecordKey, Data)]] = [:]
 
-	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
+	//the repo this is, so record uris carry the right authority
+	nonisolated let did: Atproto.DID
+
+	public init(
+		did: Atproto.DID,
+		bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil
+	) throws {
+		self.did = did
+
 		guard let bskyProfile else {
 			untypedRepo = [:]
 			return
@@ -42,6 +50,17 @@ public actor MockRepo {
 
 	public func printPds() {
 		print(untypedRepo)
+	}
+
+	//Every record uri is built here, so what `createRecord` hands back and what
+	//`getRecord`/`listRecords` report for that same record cannot drift apart.
+	//They did: reads hardcoded a `did:web:example.com` authority and interpolated
+	//`collection` as a struct, which put `NSID(rawValue: "...")` in the path.
+	nonisolated func recordUri(
+		collection: Atproto.NSID,
+		rkey: EncodedRecordKey
+	) -> String {
+		"at://\(did.rawValue)/\(collection.rawValue)/\(rkey)"
 	}
 
 	enum Errors: Error {
@@ -94,9 +113,8 @@ extension MockRepo {
 			return nil
 		}
 
-		// TODO: Mock CID
 		return [
-			"uri": "at://did:web:example.com/\(collection)/\(encodedRkey)",
+			"uri": recordUri(collection: collection, rkey: encodedRkey),
 			"cid": Atproto.CID.mock().string,
 			"value": try JSONSerialization.jsonObject(with: record),
 		]
@@ -116,18 +134,8 @@ extension MockRepo {
 		guard let resultObject else {
 			return try .mock(error: "RecordNotFound", status: 400)
 		}
-		return .init(
-			data: try JSONSerialization.data(withJSONObject: resultObject),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue)
-					]
-				)
-			)
+		return .mock(
+			json: try JSONSerialization.data(withJSONObject: resultObject)
 		)
 	}
 
@@ -178,8 +186,7 @@ extension MockRepo {
 			try pending.prefix(pageSize)
 				.map { (key, encodedRecord) in
 					[
-						"uri":
-							"at://did:web:example.com/\(collection)/\(key)",
+						"uri": recordUri(collection: collection, rkey: key),
 						"cid": Atproto.CID.mock().string,
 						"value":
 							try JSONSerialization
@@ -222,25 +229,12 @@ extension MockRepo {
 			} else {
 				nil
 			}
-		let result = try listRecords(
-			collection: collection,
-			limit: limitInt,
-			cursor: cursor,
-			reverse: reverseBool
-		)
-
-		return .init(
-			data: result,
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
-				)
+		return .mock(
+			json: try listRecords(
+				collection: collection,
+				limit: limitInt,
+				cursor: cursor,
+				reverse: reverseBool
 			)
 		)
 	}

@@ -7,6 +7,7 @@
 
 import AtprotoClient
 import AtprotoTypes
+import AtprotoTypesMocks
 import Foundation
 import GermConvenience
 
@@ -29,7 +30,7 @@ public actor MockPDS {
 			throw Errors.didAlreadyHostedHere
 		}
 
-		repos[did] = try .init(bskyProfile: bskyProfile)
+		repos[did] = try .init(did: did, bskyProfile: bskyProfile)
 
 		return .init(did: did, pds: self)
 	}
@@ -86,7 +87,7 @@ public actor MockPDS {
 		case ".well-known":
 			return try await handleWellKnown(path: .init(pathComponents[2...]))
 		default:
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		//here is where a directory of types would be handy
@@ -105,6 +106,15 @@ public actor MockPDS {
 			return try await listRecords(queryItems: queryItems)
 		//		case Lexicon.Com.Atproto.Sync.GetBlob.nsid:
 		//			break
+		case Lexicon.Com.Atproto.Repo.CreateRecordNSID.nsid:
+			guard let authedDid else {
+				return try .mock(error: "Unauthorized", status: 401)
+			}
+
+			return try await createRecord(
+				authedDid: authedDid, bodyData: body.tryUnwrap
+			)
+
 		case Lexicon.Com.Atproto.Repo.PutRecordNSID.nsid:
 			guard let authedDid else {
 				return try .mock(error: "Unauthorized", status: 401)
@@ -123,13 +133,13 @@ public actor MockPDS {
 				authedDid: authedDid, bodyData: body.tryUnwrap
 			)
 		default:
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 	}
 
 	private func handleWellKnown(path: [String]) async throws -> HTTPDataResponse {
 		guard let component = path.first, path.count == 1 else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 		switch component {
 		case "oauth-protected-resource":
@@ -143,7 +153,7 @@ public actor MockPDS {
 				response: .init(status: .ok)
 			)
 		default:
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 	}
 
@@ -179,7 +189,7 @@ public actor MockPDS {
 		}()
 
 		guard let repo = try repos[.init(string: repoParam)] else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		do {
@@ -188,11 +198,18 @@ public actor MockPDS {
 				encodedRkey: encodedRkey,
 				cid: typedCid
 			)
-		} catch HTTPResponseError.unsuccessfulString(let code, let error) {
-			return .init(
-				data: try JSONEncoder().encode(
-					Atproto.XRPC.ErrorResponse(error: error, message: error)),
-				response: .init(status: .init(code: code))
+			//GermConvenience 0.3.0 reports every failure as `.unsuccessful` and reads
+			//the body through `bodyString`; `.unsuccessfulString` is no longer thrown
+			//from that module. Match the type and use the accessors, so this keeps
+			//converting whichever case a caller hands us. The body is the message —
+			//the name stays a code the response parser can recognize.
+		} catch let failure as HTTPResponseError {
+			return try .mock(
+				errorObject: .init(
+					error: "InvalidRequest",
+					message: failure.bodyString ?? "Mock Error"
+				),
+				status: .init(code: failure.code)
 			)
 		}
 	}
@@ -207,7 +224,7 @@ public actor MockPDS {
 		let reverse = queryItems?["reverse"]
 
 		guard let repo = try repos[.init(string: repoParam)] else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		return try await repo.listRecordsResponse(
@@ -223,14 +240,18 @@ public actor MockPDS {
 		let collection: Atproto.NSID
 	}
 
-	private func putRecord(
+	//Same guards and body handling as `putRecord`; the difference is the record
+	//key. Create mints one — a TID, since that is what the record keys the app
+	//then reads back out of `uri` have to parse as — where put takes one from the
+	//input.
+	private func createRecord(
 		authedDid: Atproto.DID,
 		bodyData: Data
 	) async throws -> HTTPDataResponse {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
 		guard case .did(let did) = protoSchema.repo else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		guard did == authedDid else {
@@ -238,7 +259,71 @@ public actor MockPDS {
 		}
 
 		guard let repo = repos[authedDid] else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
+		}
+
+		//hacky, but type-erases the record type
+		let input = try JSONSerialization.jsonObject(with: bodyData)
+		let inputDict = try (input as? [String: Any]).tryUnwrap
+
+		//The lexicon's optional rkey is deliberately NOT modeled. Honoring it
+		//without also modeling the already-exists failure would just be putRecord
+		//wearing create's name, and minting a different key anyway would strand a
+		//caller that asked for a specific one. Refuse it, loudly: a test that wants
+		//to choose the key wants `putRecord(_:input:)`.
+		guard inputDict["rkey"] as? String == nil else {
+			return try .mock(
+				errorObject: .init(
+					error: "InvalidRequest",
+					message:
+						"MockPDS mints record keys; use putRecord to choose one"
+				),
+				status: .badRequest
+			)
+		}
+		let rkey = Atproto.TID.mock().rawValue
+
+		let encodedRecord =
+			try JSONSerialization
+			.data(withJSONObject: inputDict["record"].tryUnwrap)
+
+		try await repo.createRecord(
+			collection: protoSchema.collection,
+			rkey: rkey,
+			encodedRecord: encodedRecord
+		)
+
+		//unlike put, the caller did not choose the key, so the uri is the only
+		//way it learns which record it just wrote
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.PutRecordOutput(
+				uri: repo.recordUri(
+					collection: protoSchema.collection,
+					rkey: rkey
+				),
+				cid: Atproto.CID.mock().string,
+				commit: try .mock(),
+				validationStatus: .valid
+			)
+		)
+	}
+
+	private func putRecord(
+		authedDid: Atproto.DID,
+		bodyData: Data
+	) async throws -> HTTPDataResponse {
+		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
+
+		guard case .did(let did) = protoSchema.repo else {
+			return try .mock(error: "InvalidRequest", status: 400)
+		}
+
+		guard did == authedDid else {
+			return try .mock(error: "Unauthorized", status: 401)
+		}
+
+		guard let repo = repos[authedDid] else {
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		//hacky, but type-erases the record type
@@ -256,25 +341,15 @@ public actor MockPDS {
 			encodedRecord: encodedRecord
 		)
 
-		let returnVal = Lexicon.Com.Atproto.Repo
-			.PutRecordOutput(
-				uri: "example.com",
-				cid: "mock",
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.PutRecordOutput(
+				uri: repo.recordUri(
+					collection: protoSchema.collection,
+					rkey: inputRkey
+				),
+				cid: Atproto.CID.mock().string,
 				commit: try .mock(),
 				validationStatus: .valid
-			)
-		return .init(
-			data: try JSONEncoder().encode(returnVal),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
-				)
 			)
 		)
 	}
@@ -294,7 +369,7 @@ public actor MockPDS {
 		let protoSchema = try JSONDecoder().decode(ProtoSchema.self, from: bodyData)
 
 		guard case .did(let did) = protoSchema.repo else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		guard did == authedDid else {
@@ -302,7 +377,7 @@ public actor MockPDS {
 		}
 
 		guard let repo = repos[authedDid] else {
-			return try .mock(error: "Invalid Request", status: 400)
+			return try .mock(error: "InvalidRequest", status: 400)
 		}
 
 		let input = try JSONDecoder().decode(
@@ -315,24 +390,11 @@ public actor MockPDS {
 			rkey: input.rkey
 		)
 
-		let returnVal = Lexicon.Com.Atproto.Repo
-			.DeleteRecordOutput(
+		return try .mock(
+			encoding: Lexicon.Com.Atproto.Repo.DeleteRecordOutput(
 				commit: .init(
 					cid: .mock(),
 					rev: .mock()
-				)
-			)
-		return .init(
-			data: try JSONEncoder().encode(returnVal),
-			response: .init(
-				status: .ok,
-				headerFields: .init(
-					[
-						.init(
-							name: .contentType,
-							value: HTTPContentType.json.rawValue
-						)
-					]
 				)
 			)
 		)
