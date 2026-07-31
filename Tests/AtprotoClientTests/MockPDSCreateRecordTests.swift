@@ -11,8 +11,9 @@
 //  TID, a second create does not land on top of the first, and a caller who tries
 //  to choose one is refused rather than quietly handed a different key.
 //
-//  The uri test is here for the same reason — minting means `uri` is the only
-//  channel back, so it has to agree with what a later read reports.
+//  Minting is also why `uri` matters here — it is the only channel back — so it
+//  has to agree with what a later read reports. Put's own response shape lives in
+//  `MockPDSPutRecordTests`.
 //
 
 import AtprotoClient
@@ -22,34 +23,18 @@ import Foundation
 import Testing
 
 struct MockPDSCreateRecordTests {
-	let mockPDS: MockPDS
-
-	init() throws {
-		self.mockPDS = try .init()
-	}
-
-	/// The record key the caller gets back has to be a real TID: callers recover
-	/// it by splitting `uri`, then feed it to `deleteRecord` as an `Atproto.TID`,
-	/// which validates. A UUID or any other filler would store fine and fail there.
-	private func rkey(of output: Lexicon.Com.Atproto.Repo.PutRecordOutput) throws
-		-> Atproto.TID
-	{
-		try .init(string: .init(output.uri.split(separator: "/").last ?? ""))
-	}
-
 	@Test("a created record reads back at the key the PDS minted")
 	func createdRecordReadsBack() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
+		let (_, _, agent) = try await MockPDSFixture.hosted()
 		let subject = Atproto.DID.mock()
 
-		let output = try await authAgent.createRecord(
+		let output = try await agent.createRecord(
 			Lexicon.App.Bsky.Graph.Block(subject: subject, createdAt: .now)
 		)
 
-		let readBack = try await authAgent.getRecord(
+		let readBack = try await agent.getRecord(
 			Lexicon.App.Bsky.Graph.Block.self,
-			rkey: try rkey(of: output),
+			rkey: try MockPDSFixture.rkey(of: output),
 			cid: nil
 		)
 
@@ -62,104 +47,67 @@ struct MockPDSCreateRecordTests {
 	/// above and fail this one.
 	@Test("two creates write two distinct records")
 	func twoCreatesWriteTwoRecords() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
+		let (_, _, agent) = try await MockPDSFixture.hosted()
 		let first = Atproto.DID.mock()
 		let second = Atproto.DID.mock()
 
-		let firstOutput = try await authAgent.createRecord(
+		let firstOutput = try await agent.createRecord(
 			Lexicon.App.Bsky.Graph.Block(subject: first, createdAt: .now)
 		)
-		let secondOutput = try await authAgent.createRecord(
+		let secondOutput = try await agent.createRecord(
 			Lexicon.App.Bsky.Graph.Block(subject: second, createdAt: .now)
 		)
 
-		#expect(try rkey(of: firstOutput) != rkey(of: secondOutput))
-
-		let (records, _) = try await authAgent.listRecords(
-			Lexicon.App.Bsky.Graph.Block.self,
-			limit: nil,
-			cursor: nil,
-			reverse: nil
+		#expect(
+			try MockPDSFixture.rkey(of: firstOutput)
+				!= MockPDSFixture.rkey(of: secondOutput)
 		)
-		#expect(Set(records.map(\.subject)) == [first, second])
+		#expect(
+			Set(try await MockPDSFixture.blocks(agent).map(\.subject))
+				== [first, second]
+		)
 	}
 
 	/// The uri create hands back has to be the uri the same record reports when
 	/// read: they are built from different code paths, and they diverged — reads
 	/// carried a hardcoded authority and a `NSID(rawValue:)` reflection dump where
-	/// the collection belongs, so a caller comparing the two got nonsense.
+	/// the collection belongs, so a caller comparing the two got nonsense. Both
+	/// read paths are checked, since each embeds a uri of its own.
 	@Test("create's uri is the uri the record reports when read")
 	func createUriMatchesTheReadUri() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
+		let (_, did, agent) = try await MockPDSFixture.hosted()
 
-		let output = try await authAgent.createRecord(
-			Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now)
+		let output = try await agent.createRecord(MockPDSFixture.block())
+		let rkey = try MockPDSFixture.rkey(of: output)
+
+		#expect(
+			output.uri == "at://\(did.rawValue)/app.bsky.graph.block/\(rkey.rawValue)"
 		)
 
-		let listed = try await authAgent.call(
+		let listed = try await agent.call(
 			Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Block>
 				.self,
 			parameters: .init(
 				repo: .did(did), limit: nil, cursor: nil, reverse: nil)
 		)
-
 		#expect(listed.records.map(\.uri.rawValue) == [output.uri])
-		#expect(
-			output.uri
-				== "at://\(did.rawValue)/app.bsky.graph.block/"
-				+ "\(try rkey(of: output).rawValue)"
+
+		//getRecord embeds a uri too, on a path listRecords does not share
+		let fetched = try await agent.callExpectingOptional(
+			Lexicon.Com.Atproto.Repo.GetRecord<Lexicon.App.Bsky.Graph.Block>
+				.self,
+			parameters: .init(repo: .did(did), rkey: rkey, cid: nil)
 		)
+		#expect(fetched?.uri.rawValue == output.uri)
 	}
 
-	/// `cid` was the literal string "mock", which is not a CID — no `b` prefix, not
-	/// base32 — so anything that fed it back (a swapRecord round trip, say) failed
-	/// at the boundary. `PutRecordOutput.cid` is typed `String`, so nothing catches
-	/// it at decode; this does. Put returns one too, and it was equally broken.
-	@Test("the cid create and put return parses as a CID")
-	func returnedCidIsAWellFormedCID() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
+	@Test("the cid create returns parses as a CID")
+	func createReturnsAWellFormedCID() async throws {
+		let (_, _, agent) = try await MockPDSFixture.hosted()
 
-		let created = try await authAgent.createRecord(
-			Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now)
-		)
-		#expect(throws: Never.self) { try Atproto.CID(string: created.cid) }
+		let output = try await agent.createRecord(MockPDSFixture.block())
 
-		let put = try await authAgent.putRecord(
-			Lexicon.App.Bsky.Graph.Block.self,
-			input: .init(
-				schema: .init(
-					repo: .did(did),
-					rkey: try .init(string: "3kabcdefghij2"),
-					record: .init(subject: .mock(), createdAt: .now)
-				)
-			)
-		)
-		#expect(throws: Never.self) { try Atproto.CID(string: put.cid) }
-	}
-
-	/// Put chose the key, so its uri is not the only channel back the way create's
-	/// is — but it still has to name the record that was written. It returned the
-	/// bare placeholder "example.com".
-	@Test("put's uri names the record too")
-	func putUriNamesTheRecord() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
-
-		let put = try await authAgent.putRecord(
-			Lexicon.App.Bsky.Graph.Block.self,
-			input: .init(
-				schema: .init(
-					repo: .did(did),
-					rkey: try .init(string: "3kabcdefghij2"),
-					record: .init(subject: .mock(), createdAt: .now)
-				)
-			)
-		)
-
-		#expect(put.uri == "at://\(did.rawValue)/app.bsky.graph.block/3kabcdefghij2")
+		#expect(throws: Never.self) { try Atproto.CID(string: output.cid) }
 	}
 
 	/// Create mints the key, so a caller that supplies one is refused rather than
@@ -168,13 +116,12 @@ struct MockPDSCreateRecordTests {
 	/// `putRecord` under another name.
 	@Test("creating at a caller-chosen key is refused")
 	func createWithAnExplicitKeyIsRefused() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
+		let (_, _, agent) = try await MockPDSFixture.hosted()
 
 		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
-			try await authAgent.createRecord(
-				Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now),
-				rkey: try .init(string: "3kabcdefghij2")
+			try await agent.createRecord(
+				MockPDSFixture.block(),
+				rkey: try .init(string: MockPDSFixture.chosenKey)
 			)
 		}
 
@@ -184,45 +131,7 @@ struct MockPDSCreateRecordTests {
 		}
 		#expect(status == .badRequest)
 		#expect(error.error == "InvalidRequest")
-
-		let (records, _) = try await authAgent.listRecords(
-			Lexicon.App.Bsky.Graph.Block.self,
-			limit: nil,
-			cursor: nil,
-			reverse: nil
-		)
-		#expect(records.isEmpty, "and nothing was written")
-	}
-
-	/// The mock's generic 400s said `"Invalid Request"` — with a space, which is not
-	/// an atproto error name, so `parse` matched nothing and every one of them
-	/// reached the caller as an opaque `.unrecognized(400 )`. They are `InvalidRequest`
-	/// now, which is in `defaultErrors`, so a consumer can actually match on them.
-	@Test("a rejected request arrives as a typed error, not .unrecognized")
-	func rejectedRequestsCarryARecognizableErrorName() async throws {
-		let did = Atproto.DID.mock()
-		let authAgent = try await mockPDS.host(did: did)
-
-		//repo that is not the authed one: the "Invalid Request" guard in putRecord
-		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
-			try await authAgent.putRecord(
-				Lexicon.App.Bsky.Graph.Block.self,
-				input: .init(
-					schema: .init(
-						repo: .handle(try .init(string: "example.com")),
-						rkey: try .init(string: "3kabcdefghij2"),
-						record: .init(subject: .mock(), createdAt: .now)
-					)
-				)
-			)
-		}
-
-		guard case .xrpcError(let status, let error) = thrown else {
-			Issue.record("expected a typed error, got \(String(describing: thrown))")
-			return
-		}
-		#expect(status == .badRequest)
-		#expect(error.error == "InvalidRequest")
+		#expect(try await MockPDSFixture.blocks(agent).isEmpty, "and nothing was written")
 	}
 
 	/// Unauthenticated callers get 401 rather than a write, same as put. Asserted
@@ -230,9 +139,8 @@ struct MockPDSCreateRecordTests {
 	/// which throws too — so a looser assertion passes with the handler deleted.
 	@Test("creating without a session is rejected")
 	func createWithoutAuthIsRejected() async throws {
-		let did = Atproto.DID.mock()
-		let _ = try await mockPDS.host(did: did)
-		let publicAgent = try await mockPDS.publicAgent(did: did)
+		let (pds, did, agent) = try await MockPDSFixture.hosted()
+		let publicAgent = try await pds.publicAgent(did: did)
 
 		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
 			try await publicAgent.call(
@@ -243,7 +151,7 @@ struct MockPDSCreateRecordTests {
 					schema: .init(
 						repo: .did(did),
 						rkey: nil,
-						record: .init(subject: .mock(), createdAt: .now)
+						record: MockPDSFixture.block()
 					)
 				)
 			)
@@ -254,14 +162,6 @@ struct MockPDSCreateRecordTests {
 			return
 		}
 		#expect(status == .unauthorized)
-
-		let (records, _) = try await mockPDS.authAgent(did: did)
-			.listRecords(
-				Lexicon.App.Bsky.Graph.Block.self,
-				limit: nil,
-				cursor: nil,
-				reverse: nil
-			)
-		#expect(records.isEmpty)
+		#expect(try await MockPDSFixture.blocks(agent).isEmpty)
 	}
 }

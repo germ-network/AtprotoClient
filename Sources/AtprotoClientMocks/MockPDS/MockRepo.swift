@@ -27,7 +27,7 @@ public actor MockRepo {
 	private var paginationCache: [UUID: [(EncodedRecordKey, Data)]] = [:]
 
 	//the repo this is, so record uris carry the right authority
-	public nonisolated let did: Atproto.DID
+	nonisolated let did: Atproto.DID
 
 	public init(
 		did: Atproto.DID,
@@ -113,7 +113,6 @@ extension MockRepo {
 			return nil
 		}
 
-		// TODO: Mock CID
 		return [
 			"uri": recordUri(collection: collection, rkey: encodedRkey),
 			"cid": Atproto.CID.mock().string,

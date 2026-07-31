@@ -53,7 +53,15 @@ extension HTTPDataResponse {
 		)
 	}
 
+	//`Data` is itself Encodable, so an already-encoded body handed to this would
+	//otherwise be re-encoded as a base64 string. Pass it through instead, the way
+	//GermConvenience's `Data.decode` special-cases the same type on the way in. An
+	//`@available(*, unavailable)` overload does NOT close this: the generic is
+	//still available, so it wins resolution and the call compiles silently.
 	static func mock(encoding value: some Encodable) throws -> Self {
-		.mock(json: try JSONEncoder().encode(value))
+		if let json = value as? Data {
+			return .mock(json: json)
+		}
+		return .mock(json: try JSONEncoder().encode(value))
 	}
 }
