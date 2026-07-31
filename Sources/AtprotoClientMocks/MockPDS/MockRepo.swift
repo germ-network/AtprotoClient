@@ -26,7 +26,15 @@ public actor MockRepo {
 	typealias Cursor = UUID
 	private var paginationCache: [UUID: [(EncodedRecordKey, Data)]] = [:]
 
-	public init(bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil) throws {
+	//the repo this is, so record uris carry the right authority
+	public nonisolated let did: Atproto.DID
+
+	public init(
+		did: Atproto.DID,
+		bskyProfile: Lexicon.App.Bsky.Actor.Profile? = nil
+	) throws {
+		self.did = did
+
 		guard let bskyProfile else {
 			untypedRepo = [:]
 			return
@@ -42,6 +50,17 @@ public actor MockRepo {
 
 	public func printPds() {
 		print(untypedRepo)
+	}
+
+	//Every record uri is built here, so what `createRecord` hands back and what
+	//`getRecord`/`listRecords` report for that same record cannot drift apart.
+	//They did: reads hardcoded a `did:web:example.com` authority and interpolated
+	//`collection` as a struct, which put `NSID(rawValue: "...")` in the path.
+	nonisolated func recordUri(
+		collection: Atproto.NSID,
+		rkey: EncodedRecordKey
+	) -> String {
+		"at://\(did.rawValue)/\(collection.rawValue)/\(rkey)"
 	}
 
 	enum Errors: Error {
@@ -96,7 +115,7 @@ extension MockRepo {
 
 		// TODO: Mock CID
 		return [
-			"uri": "at://did:web:example.com/\(collection)/\(encodedRkey)",
+			"uri": recordUri(collection: collection, rkey: encodedRkey),
 			"cid": Atproto.CID.mock().string,
 			"value": try JSONSerialization.jsonObject(with: record),
 		]
@@ -178,8 +197,7 @@ extension MockRepo {
 			try pending.prefix(pageSize)
 				.map { (key, encodedRecord) in
 					[
-						"uri":
-							"at://did:web:example.com/\(collection)/\(key)",
+						"uri": recordUri(collection: collection, rkey: key),
 						"cid": Atproto.CID.mock().string,
 						"value":
 							try JSONSerialization

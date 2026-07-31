@@ -30,7 +30,7 @@ public actor MockPDS {
 			throw Errors.didAlreadyHostedHere
 		}
 
-		repos[did] = try .init(bskyProfile: bskyProfile)
+		repos[did] = try .init(did: did, bskyProfile: bskyProfile)
 
 		return .init(did: did, pds: self)
 	}
@@ -236,7 +236,7 @@ public actor MockPDS {
 	//Same guards and body handling as `putRecord`; the difference is the record
 	//key. Create mints one — a TID, since that is what the record keys the app
 	//then reads back out of `uri` have to parse as — where put takes one from the
-	//input. The lexicon still allows an explicit rkey, so honor it when sent.
+	//input.
 	private func createRecord(
 		authedDid: Atproto.DID,
 		bodyData: Data
@@ -258,7 +258,23 @@ public actor MockPDS {
 		//hacky, but type-erases the record type
 		let input = try JSONSerialization.jsonObject(with: bodyData)
 		let inputDict = try (input as? [String: Any]).tryUnwrap
-		let rkey = (inputDict["rkey"] as? String) ?? Atproto.TID.mock().rawValue
+
+		//The lexicon's optional rkey is deliberately NOT modeled. Honoring it
+		//without also modeling the already-exists failure would just be putRecord
+		//wearing create's name, and minting a different key anyway would strand a
+		//caller that asked for a specific one. Refuse it, loudly: a test that wants
+		//to choose the key wants `putRecord(_:input:)`.
+		guard inputDict["rkey"] as? String == nil else {
+			return try .mock(
+				errorObject: .init(
+					error: "InvalidRequest",
+					message:
+						"MockPDS mints record keys; use putRecord to choose one"
+				),
+				status: .badRequest
+			)
+		}
+		let rkey = Atproto.TID.mock().rawValue
 
 		let encodedRecord =
 			try JSONSerialization
@@ -274,8 +290,10 @@ public actor MockPDS {
 		//way it learns which record it just wrote
 		let returnVal = Lexicon.Com.Atproto.Repo
 			.PutRecordOutput(
-				uri:
-					"at://\(authedDid.rawValue)/\(protoSchema.collection.rawValue)/\(rkey)",
+				uri: repo.recordUri(
+					collection: protoSchema.collection,
+					rkey: rkey
+				),
 				cid: "mock",
 				commit: try .mock(),
 				validationStatus: .valid

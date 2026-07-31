@@ -7,8 +7,12 @@
 //  tested against the mock at all: it 400'd on the way in.
 //
 //  What distinguishes create from put is that the PDS, not the caller, picks the
-//  record key, so both properties below are about the key: it comes back as a
-//  usable TID, and a second create does not land on top of the first.
+//  record key, so most of what follows is about the key: it comes back as a usable
+//  TID, a second create does not land on top of the first, and a caller who tries
+//  to choose one is refused rather than quietly handed a different key.
+//
+//  The uri test is here for the same reason — minting means `uri` is the only
+//  channel back, so it has to agree with what a later read reports.
 //
 
 import AtprotoClient
@@ -81,14 +85,76 @@ struct MockPDSCreateRecordTests {
 		#expect(Set(records.map(\.subject)) == [first, second])
 	}
 
-	/// Unauthenticated callers get 401 rather than a write, same as put.
+	/// The uri create hands back has to be the uri the same record reports when
+	/// read: they are built from different code paths, and they diverged — reads
+	/// carried a hardcoded authority and a `NSID(rawValue:)` reflection dump where
+	/// the collection belongs, so a caller comparing the two got nonsense.
+	@Test("create's uri is the uri the record reports when read")
+	func createUriMatchesTheReadUri() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+
+		let output = try await authAgent.createRecord(
+			Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now)
+		)
+
+		let listed = try await authAgent.call(
+			Lexicon.Com.Atproto.Repo.ListRecords<Lexicon.App.Bsky.Graph.Block>
+				.self,
+			parameters: .init(
+				repo: .did(did), limit: nil, cursor: nil, reverse: nil)
+		)
+
+		#expect(listed.records.map(\.uri.rawValue) == [output.uri])
+		#expect(
+			output.uri
+				== "at://\(did.rawValue)/app.bsky.graph.block/"
+				+ "\(try rkey(of: output).rawValue)"
+		)
+	}
+
+	/// Create mints the key, so a caller that supplies one is refused rather than
+	/// quietly given a different key. The alternative — honoring it — would need
+	/// the already-exists failure modeled too, and without that it is just
+	/// `putRecord` under another name.
+	@Test("creating at a caller-chosen key is refused")
+	func createWithAnExplicitKeyIsRefused() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+
+		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
+			try await authAgent.createRecord(
+				Lexicon.App.Bsky.Graph.Block(subject: .mock(), createdAt: .now),
+				rkey: try .init(string: "3kabcdefghij2")
+			)
+		}
+
+		guard case .xrpcError(let status, let error) = thrown else {
+			Issue.record("expected an xrpc error, got \(String(describing: thrown))")
+			return
+		}
+		#expect(status == .badRequest)
+		#expect(error.error == "InvalidRequest")
+
+		let (records, _) = try await authAgent.listRecords(
+			Lexicon.App.Bsky.Graph.Block.self,
+			limit: nil,
+			cursor: nil,
+			reverse: nil
+		)
+		#expect(records.isEmpty, "and nothing was written")
+	}
+
+	/// Unauthenticated callers get 401 rather than a write, same as put. Asserted
+	/// on the status, not merely that something threw: an unserved endpoint 400s,
+	/// which throws too — so a looser assertion passes with the handler deleted.
 	@Test("creating without a session is rejected")
 	func createWithoutAuthIsRejected() async throws {
 		let did = Atproto.DID.mock()
 		let _ = try await mockPDS.host(did: did)
 		let publicAgent = try await mockPDS.publicAgent(did: did)
 
-		await #expect(throws: (any Error).self) {
+		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
 			try await publicAgent.call(
 				Lexicon.Com.Atproto.Repo.CreateRecord<
 					Lexicon.App.Bsky.Graph.Block
@@ -102,6 +168,12 @@ struct MockPDSCreateRecordTests {
 				)
 			)
 		}
+
+		guard case .xrpcError(let status, _) = thrown else {
+			Issue.record("expected a 401, got \(String(describing: thrown))")
+			return
+		}
+		#expect(status == .unauthorized)
 
 		let (records, _) = try await mockPDS.authAgent(did: did)
 			.listRecords(
