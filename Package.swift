@@ -21,7 +21,7 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			from: "0.2.4"
+			from: "0.3.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",

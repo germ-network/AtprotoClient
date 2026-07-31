@@ -194,6 +194,37 @@ struct MockPDSCreateRecordTests {
 		#expect(records.isEmpty, "and nothing was written")
 	}
 
+	/// The mock's generic 400s said `"Invalid Request"` — with a space, which is not
+	/// an atproto error name, so `parse` matched nothing and every one of them
+	/// reached the caller as an opaque `.unrecognized(400 )`. They are `InvalidRequest`
+	/// now, which is in `defaultErrors`, so a consumer can actually match on them.
+	@Test("a rejected request arrives as a typed error, not .unrecognized")
+	func rejectedRequestsCarryARecognizableErrorName() async throws {
+		let did = Atproto.DID.mock()
+		let authAgent = try await mockPDS.host(did: did)
+
+		//repo that is not the authed one: the "Invalid Request" guard in putRecord
+		let thrown = await #expect(throws: Atproto.XRPC.ParseError.self) {
+			try await authAgent.putRecord(
+				Lexicon.App.Bsky.Graph.Block.self,
+				input: .init(
+					schema: .init(
+						repo: .handle(try .init(string: "example.com")),
+						rkey: try .init(string: "3kabcdefghij2"),
+						record: .init(subject: .mock(), createdAt: .now)
+					)
+				)
+			)
+		}
+
+		guard case .xrpcError(let status, let error) = thrown else {
+			Issue.record("expected a typed error, got \(String(describing: thrown))")
+			return
+		}
+		#expect(status == .badRequest)
+		#expect(error.error == "InvalidRequest")
+	}
+
 	/// Unauthenticated callers get 401 rather than a write, same as put. Asserted
 	/// on the status, not merely that something threw: an unserved endpoint 400s,
 	/// which throws too — so a looser assertion passes with the handler deleted.

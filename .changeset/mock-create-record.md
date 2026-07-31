@@ -8,4 +8,8 @@ Fixes the record `uri` the mock reports. Reads returned `at://did:web:example.co
 
 Fixes the `cid` that `createRecord` and `putRecord` return: it was the literal `"mock"`, which does not parse as a CID (no `b` prefix, not base32), so feeding it back to anything that takes one failed at the boundary. It is now `Atproto.CID.mock().string`, matching what reads already returned.
 
-Breaking: `MockRepo.init` takes the repo's `did`. Callers that construct a `MockRepo` directly need updating; `MockPDS.host(did:bskyProfile:)` is unchanged. Anything asserting on the old `uri` or `cid` values needs updating too.
+Raises the GermConvenience floor to 0.3.0 and aligns the mock's errors with its cleaned-up handling. The mock's generic 400s said `"Invalid Request"` — with a space, matching no atproto error name — so `parse` fell through and every one reached the caller as an opaque `.unrecognized(400 )`. They are `InvalidRequest` now, which is in `defaultErrors`, so consumers get a typed `.xrpcError` they can match on. `getRecord`'s `catch` moved off `HTTPResponseError.unsuccessfulString`, which 0.3.0 no longer throws, onto the type plus its `code` / `bodyString` accessors.
+
+Breaking: `MockRepo.init` takes the repo's `did`. Callers that construct a `MockRepo` directly need updating; `MockPDS.host(did:bskyProfile:)` is unchanged. Anything asserting on the old `uri` or `cid` values, or matching a mock 400 as `.unrecognized`, needs updating too.
+
+The GermConvenience floor is the one to watch downstream: SwiftPM's `from:` is `upToNextMajor` on 0.x, so this drags a consumer's whole graph onto 0.3.0, which is source-breaking for anything that mutates a `BundledHTTPRequest`. oauth4swift ≥ 0.6.0 carries its companion change; first-party mutation sites migrate to `settingHeader(_:for:)`.
