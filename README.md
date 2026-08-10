@@ -1,3 +1,7 @@
+[![Apple](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-apple.yml/badge.svg)](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-apple.yml)
+[![Linux](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-linux.yml/badge.svg)](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-linux.yml)
+[![Android](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-android.yml/badge.svg)](https://github.com/germ-network/AtprotoClient/actions/workflows/ci-android.yml)
+
 Defines methods for an [atproto](https://atproto.com) client that make [xrpc](https://atproto.com/specs/xrpc) calls
 
 You make use of this library by providing an implementation of a type conforming to `AtprotoAgent`:
