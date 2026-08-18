@@ -8,6 +8,10 @@ import Foundation
 import GermConvenience
 import HTTPTypes
 
+#if canImport(FoundationNetworking)
+	import FoundationNetworking
+#endif
+
 extension Atproto {
 	/// Resolves a did:web identifier by fetching
 	/// `https://{host}/.well-known/did.json`.
