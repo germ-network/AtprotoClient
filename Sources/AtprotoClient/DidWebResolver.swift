@@ -9,49 +9,30 @@ import GermConvenience
 import HTTPTypes
 
 extension Atproto {
-	/// Resolves a did:web identifier to its DID document by fetching
+	/// Resolves a did:web identifier by fetching
 	/// `https://{host}/.well-known/did.json`.
 	///
-	/// Matches `@atproto/identity`'s `web-resolver.ts` (bluesky-social/atproto)
-	/// deliberately, not by convention: same Accept header, same redirect
-	/// refusal, same single-segment restriction. Two departures, both
-	/// tightening rather than loosening:
-	///
-	/// - The reference downgrades to `http://` for a `localhost` host, for
-	///   local development. This resolver refuses `localhost` — along with
-	///   every other host that isn't a normal two-label-or-more public
-	///   hostname — outright. A did:web identity has no legitimate reason to
-	///   be a loopback address in production, and a dev carve-out is a small,
-	///   additive, non-breaking change to make later if one is ever actually
-	///   needed — not something to build speculatively now.
-	/// - did:web identifiers are attacker-influenced input turned directly
-	///   into a fetch URL (Linear GER-1912), so the resolved host is screened
-	///   against a strict hostname grammar before any request is made. The
-	///   reference does no such screening — it doesn't need to, since a
-	///   browser or Node process fetching on a user's behalf has different
-	///   risk properties than a server-side resolver fetching on an
-	///   attacker-chosen host.
+	/// Matches `@atproto/identity`'s `web-resolver.ts` — same Accept header,
+	/// redirect refusal, single-segment restriction — except it refuses
+	/// `localhost` and any host that isn't a public hostname (GER-1912:
+	/// did:web identifiers are attacker-influenced input turned into a fetch
+	/// URL, which the reference has no reason to screen for and this does).
 	public struct DidWebResolver: Sendable {
 		static let wellKnownPath = "/.well-known/did.json"
 		static let acceptHeader = "application/did+ld+json,application/json"
 
 		let fetcher: any HTTPFetcher
 
-		/// Defaults to a redirect-refusing session. **Do not override this with
-		/// a redirect-following fetcher in production.** The host screening
-		/// below runs exactly once, on the constructed URL, before the
-		/// request — a followed redirect bypasses it completely, and nothing
-		/// downstream can detect after the fact that a redirect happened
-		/// (`HTTPDataResponse` carries no final URL). Fetcher injection exists
-		/// for tests, via a canned `HTTPFetcher` from `AtprotoClientMocks`, not
-		/// for callers that want redirects honoured.
+		/// Defaults to a redirect-refusing session — do not override with a
+		/// redirect-following fetcher in production. Host screening runs once,
+		/// before the request; a followed redirect bypasses it, and nothing
+		/// downstream can detect that after the fact.
 		public init(fetcher: any HTTPFetcher = URLSession.manualRedirect()) {
 			self.fetcher = fetcher
 		}
 
-		/// `nil` for a well-formed request the endpoint declined (any non-2xx
-		/// other than a redirect); throws for everything that indicates this
-		/// resolver, or the document it got back, cannot be trusted.
+		/// `nil` for a well-formed request the endpoint declined; throws for
+		/// anything that means this resolver or the document can't be trusted.
 		public func resolve(did: Atproto.DID) async throws -> Atproto.DIDDocument? {
 			let url = try Self.documentURL(for: did)
 
@@ -62,11 +43,8 @@ extension Atproto {
 			let response = try await fetcher.data(for: request)
 
 			if response.response.status.kind == .redirection {
-				// A redirect-refusing fetcher surfaces the refused redirect as
-				// its own response instead of silently following it — this is
-				// that refusal, not an ordinary failed fetch. Distinguished
-				// from a plain 4xx/5xx because it is the one signal available
-				// that something tried to redirect this request at all.
+				// A refused redirect surfaces as its own response rather than
+				// being followed — distinct from an ordinary 4xx/5xx.
 				throw Errors.redirectRefused
 			}
 			guard response.response.status.kind == .successful else {
@@ -74,10 +52,8 @@ extension Atproto {
 			}
 
 			let document: Atproto.DIDDocument = try response.data.decode()
-			// The contract `Resolver.swift` already documents ("must always
-			// compare the did to the returned document's id and throw if
-			// mismatched") but that nothing in this ecosystem currently
-			// performs — see GER-2274.
+			// Resolver.swift's own contract, unenforced elsewhere in this
+			// ecosystem today — see GER-2274.
 			guard document.id == did.rawValue else {
 				throw Errors.documentIdMismatch(
 					requested: did.rawValue,
@@ -88,38 +64,28 @@ extension Atproto {
 		}
 
 		/// Pure and synchronous — every security-relevant decision here is
-		/// exhaustively testable without a network call or a mock.
+		/// testable without a network call or a mock.
 		static func documentURL(for did: Atproto.DID) throws -> URL {
 			guard did.method == .web else { throw Errors.notDidWeb }
 
-			// did:web's identifier is colon-separated; splitting on the RAW
-			// (not yet percent-decoded) string matches the reference exactly —
-			// an encoded %3A does not count as a path separator here, only a
-			// literal `:` does.
+			// Split on the raw (undecoded) identifier — an encoded %3A isn't
+			// a separator, matching the reference.
 			let rawParts = did.identifier.split(
 				separator: ":",
 				omittingEmptySubsequences: false
 			)
 			guard rawParts.count == 1, let rawHost = rawParts.first else {
-				// did:web's path form (did:web:example.com:user:alice) is real
-				// per the method spec but unsupported here, matching the
-				// reference's own UnsupportedDidWebPathError — atproto
-				// identities are never path-form in practice.
+				// The path form (did:web:host:user:alice) is unsupported,
+				// matching the reference's UnsupportedDidWebPathError.
 				throw Errors.unsupportedDidWebPath
 			}
 
 			guard let decoded = String(rawHost).removingPercentEncoding else {
-				// Matches JS decodeURIComponent, which throws on a malformed
-				// escape rather than passing the raw bytes through.
+				// Matches decodeURIComponent's throw on a malformed escape.
 				throw Errors.malformedPercentEncoding
 			}
 
-			// Lowercased once, here — used for both validation and the
-			// constructed URL, so what gets checked is exactly what gets
-			// fetched. `validate` used to lowercase its own local copy only
-			// for its internal checks, leaving the original mixed-case
-			// string assigned to the URL; fixed so there is one normalized
-			// value, not two that can drift.
+			// Normalized once — used for both validation and the URL.
 			let host = decoded.lowercased()
 			try validate(host: host)
 
@@ -133,29 +99,17 @@ extension Atproto {
 			return url
 		}
 
-		/// A strict DNS-hostname allowlist, not a blocklist of dangerous
-		/// characters — did:web is spec-defined to be hostname-only
-		/// (https://atproto.com/specs/did), so anything this rejects was never
-		/// a legitimate identity. This is what closes GER-1912 without
-		/// depending on AtprotoTypes' general-purpose `Service.validate`
-		/// (unreleased as of this writing), which screens arbitrary URLs and
-		/// therefore has to parse IP literals across multiple representations
-		/// — a narrower grammar makes that unnecessary here: every IPv4
-		/// spelling (dotted, octal, decimal, hex) and every IPv6 literal is
-		/// excluded by construction, not by enumeration, because none of them
-		/// ends in two alphabetic labels.
-		/// `host` must already be lowercased — `documentURL(for:)` is the
-		/// only caller, and it normalizes once, upfront, so the string
-		/// validated here is exactly the string that ends up in the URL.
+		/// A hostname allowlist, not a character blocklist — did:web is
+		/// spec-defined hostname-only, so every IPv4/IPv6 spelling is excluded
+		/// by construction (none ends in two alphabetic labels), without
+		/// needing AtprotoTypes' unreleased `Service.validate`.
+		///
+		/// `host` must already be lowercased by the caller.
 		static func validate(host: String) throws {
-			// Ports and IPv6 literals both need a literal colon; this
-			// resolver supports neither (see the type's doc comment on why
-			// localhost/dev is out of scope entirely rather than
-			// policy-gated).
+			// No ports, no IPv6 literals — see the type doc comment on why
+			// localhost/dev is out of scope entirely.
 			guard !host.contains(":") else { throw Errors.invalidHost }
-			// RFC 1035's overall bound, not just the per-label one below —
-			// a host built from valid labels can still be a nonsense
-			// identity too long for any real hostname.
+			// RFC 1035's overall bound, not just the per-label one below.
 			guard host.count <= 253 else { throw Errors.invalidHost }
 
 			let labels = host.split(
@@ -165,12 +119,8 @@ extension Atproto {
 			guard labels.count >= 2 else { throw Errors.invalidHost }
 			guard labels.allSatisfy(isValidLabel) else { throw Errors.invalidHost }
 
-			// No public TLD is all-digits — ICANN reserves that shape
-			// precisely so a TLD can never collide with an IPv4 address,
-			// which is exactly the ambiguity every dotted/octal/decimal IPv4
-			// spelling exploits (0177.0.0.1, 2130706433, and so on). Checking
-			// the pattern catches all of them without parsing any of them as
-			// a number.
+			// No public TLD is all-digits, which rules out every IPv4
+			// spelling without parsing any of them as a number.
 			let tld = labels[labels.count - 1]
 			guard tld.contains(where: { !$0.isNumber }) else {
 				throw Errors.invalidHost
@@ -179,11 +129,8 @@ extension Atproto {
 			guard !Self.reservedTLDs.contains(tld) else { throw Errors.invalidHost }
 		}
 
-		/// RFC 1123 label grammar: 1–63 ASCII alphanumerics, hyphens allowed
-		/// only in the interior (never leading or trailing). Written as
-		/// explicit character checks rather than a regex literal — this is
-		/// the security-critical predicate in this file, and a character-by-
-		/// character reading is easier to audit at a glance than a pattern.
+		/// RFC 1123 label grammar. Explicit checks rather than a regex — this
+		/// is the security-critical predicate in the file.
 		private static func isValidLabel(_ label: Substring) -> Bool {
 			guard !label.isEmpty, label.count <= 63 else { return false }
 			guard let first = label.first, isAlphanumericASCII(first) else {
@@ -199,10 +146,8 @@ extension Atproto {
 			char.isASCII && (char.isLetter || char.isNumber)
 		}
 
-		/// IANA special-use domain names (RFC 6761 and the IANA special-use
-		/// registry) — never a legitimate public identity, and exactly the
-		/// set `AtprotoTypesMocks`' handle-mock fixtures already avoid
-		/// colliding with (`.test`).
+		/// IANA special-use domain names (RFC 6761) — never a legitimate
+		/// public identity.
 		static let reservedTLDs: Set<Substring> = [
 			"localhost", "local", "internal", "invalid", "test", "example",
 			"onion",

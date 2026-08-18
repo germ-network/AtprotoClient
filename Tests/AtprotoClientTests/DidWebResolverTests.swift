@@ -44,9 +44,7 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 
 	@Test func theDidWebPathFormIsUnsupported() throws {
-		// The reference implementation refuses this with the same shape of
-		// error (UnsupportedDidWebPathError) — atproto identities are never
-		// path-form in practice.
+		// Matches the reference's UnsupportedDidWebPathError.
 		let did = try Atproto.DID(string: "did:web:example.com:user:alice")
 		#expect(throws: Atproto.DidWebResolver.Errors.unsupportedDidWebPath) {
 			try Atproto.DidWebResolver.documentURL(for: did)
@@ -70,10 +68,7 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 
 	@Test func malformedPercentEncodingThrows() throws {
-		// A lone `%` with no following hex pair — Foundation's
-		// removingPercentEncoding returns nil here, matching JS
-		// decodeURIComponent's throw rather than passing the literal bytes
-		// through.
+		// A lone `%` with no following hex pair.
 		let did = Atproto.DID(method: .web, identifier: "example.com%")
 		#expect(throws: Atproto.DidWebResolver.Errors.malformedPercentEncoding) {
 			try Atproto.DidWebResolver.documentURL(for: did)
@@ -84,9 +79,8 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	// resolver deliberately refuses it (localhost/dev is out of scope).
 
 	@Test func aPercentEncodedPortIsDecodedThenRejected() throws {
-		// did:web:example.com%3A3000 is ONE raw segment (the literal colon is
-		// escaped, so it doesn't split), decodes to "example.com:3000", and
-		// is then refused for containing a colon.
+		// One raw segment (the colon is escaped), decodes to
+		// "example.com:3000", then refused for containing a colon.
 		let did = Atproto.DID(method: .web, identifier: "example.com%3A3000")
 		#expect(throws: Atproto.DidWebResolver.Errors.invalidHost) {
 			try Atproto.DidWebResolver.documentURL(for: did)
@@ -133,13 +127,8 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 
 	@Test func uppercaseReservedTLDsAreStillRejected() throws {
-		// The single most security-relevant line in this file: validation
-		// and URL construction share one lowercased value (see the fix at
-		// documentURL(for:)'s `host` binding), so a case-mismatch here would
-		// mean "FOO.LOCALHOST" slips the reserved-TLD check and resolves —
-		// a loopback SSRF. Tested directly rather than relying on
-		// hostIsLowercased(), which only asserts the built URL, not that
-		// validation itself saw the lowercased form.
+		// Distinct from hostIsLowercased(), which only checks the built URL —
+		// this checks that validation itself saw the lowercased form.
 		let did = try Atproto.DID(string: "did:web:FOO.LOCALHOST")
 		#expect(throws: Atproto.DidWebResolver.Errors.invalidHost) {
 			try Atproto.DidWebResolver.documentURL(for: did)
@@ -157,10 +146,8 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 
 	@Test func punycodeEncodedInternationalDomainsAreAccepted() throws {
-		// The legitimate ASCII form of an internationalized domain — accepted
-		// by construction, since xn--... is a normal RFC 1123 label. This is
-		// the intended answer to the Unicode-confusable case above: a real
-		// IDN must already be punycode before it reaches this resolver.
+		// xn--... is a normal RFC 1123 label — a real IDN must already be
+		// punycode before it reaches this resolver.
 		let did = try Atproto.DID(string: "did:web:xn--nxasmq6b.example.com")
 		let url = try Atproto.DidWebResolver.documentURL(for: did)
 		#expect(url.host == "xn--nxasmq6b.example.com")
@@ -237,16 +224,10 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 		#expect(document?.id == did.rawValue)
 	}
 
-	/// Pins current behavior rather than fixing it — see GER-2274's
-	/// "explicitly out of scope" note. A real, self-hosted did:web document
-	/// is legally allowed to omit `verificationMethod`/`service` and carry
-	/// `@context` as a bare string rather than an array (the canonical
-	/// schema makes all three optional); `Atproto.DIDDocument` requires all
-	/// three non-optional. This is the actually-minimal shape a real did:web
-	/// server might serve, not the generous fixture the other tests use —
-	/// asserting the throw here means a future decode-relaxation fix has a
-	/// test to flip, rather than this resolver silently starting to accept
-	/// documents it used to reject.
+	/// Pins current decode strictness rather than fixing it — see GER-2274.
+	/// A real did:web document may omit `verificationMethod`/`service` and
+	/// carry `@context` as a bare string; `Atproto.DIDDocument` requires all
+	/// three.
 	@Test func aMinimalRealWorldDidWebDocumentFailsToDecodeUnderTodaysStrictness() throws {
 		let json = Data(
 			"""
@@ -259,10 +240,7 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 }
 
-/// The smallest body `Atproto.DIDDocument`'s current (non-optional-heavy)
-/// decoder accepts — pins today's decode strictness rather than fixing it;
-/// see GER-2274's "explicitly out of scope" note on why real, self-hosted
-/// did:web documents may not decode at all against this shape.
+/// The smallest body `Atproto.DIDDocument`'s current decoder accepts.
 private struct MinimalDocument: Encodable {
 	let context: [String] = []
 	let id: String

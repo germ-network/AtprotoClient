@@ -6,10 +6,7 @@
 import Foundation
 import GermConvenience
 
-/// A canned-response `HTTPFetcher` — not did:web-specific, usable for
-/// anything built on the `HTTPFetcher` seam. Deliberately the *only* place a
-/// caller can inject a fetcher into `Atproto.DidWebResolver`: production
-/// callers get the safe, redirect-refusing default.
+/// A canned-response `HTTPFetcher`, for anything built on the seam.
 public struct StubHTTPFetcher: HTTPFetcher, Sendable {
 	private let handler: @Sendable (BundledHTTPRequest) throws -> HTTPDataResponse
 
