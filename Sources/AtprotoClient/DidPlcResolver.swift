@@ -15,11 +15,8 @@ import HTTPTypes
 extension Atproto {
 	/// Resolves a did:plc identifier by fetching `https://plc.directory/<did>`.
 	///
-	/// Sibling to `DidWebResolver`, same shape and same reasoning — a did:plc
-	/// identifier is likewise attacker-influenced input turned into a fetch
-	/// URL, so it's validated (`validate(identifier:)`) before it ever reaches
-	/// one, the default transport refuses redirects, and the response is
-	/// checked (`document.id == did.rawValue`) rather than trusted.
+	/// Sibling to `DidWebResolver`: identifier validated before use, redirects
+	/// refused, and the response's `document.id` checked against the request.
 	public struct DidPlcResolver: Sendable {
 		public static let defaultDirectory = URL(string: "https://plc.directory")!
 		static let acceptHeader = "application/did+ld+json,application/json"
@@ -27,18 +24,13 @@ extension Atproto {
 		let directory: URL
 		let fetcher: any HTTPFetcher
 
-		/// `directory` defaults to the canonical PLC directory but is
-		/// overridable for a mirror; it must be a bare `https` origin — no
-		/// path, query, fragment, or userinfo. `documentURL(for:directory:)`
-		/// appends the DID directly onto `directory`'s path, so anything
-		/// already there (most easily a trailing slash) silently doubles a
-		/// separator and 404s every request — a `directory` shaped that way
-		/// fails closed here rather than failing open as "every DID is
-		/// unregistered" later. `fetcher` defaults to a redirect-refusing
-		/// session — do not override with a redirect-following fetcher in
-		/// production, for the same reason `DidWebResolver` refuses one:
-		/// identifier validation runs once, before the request, and a
-		/// followed redirect bypasses it.
+		/// `directory` must be a bare `https` origin — no path, query,
+		/// fragment, or userinfo. Anything else (a trailing slash, most
+		/// easily) silently breaks URL construction and turns every
+		/// resolution into a `nil`, so it's rejected here instead. `fetcher`
+		/// defaults to a redirect-refusing session, for the same reason
+		/// `DidWebResolver` refuses one — a followed redirect would bypass
+		/// identifier validation, which only runs once, before the request.
 		public init(
 			directory: URL = Self.defaultDirectory,
 			fetcher: any HTTPFetcher = URLSession.manualRedirect()
@@ -89,13 +81,13 @@ extension Atproto {
 		}
 
 		/// Pure and synchronous — every security-relevant decision here is
-		/// testable without a network call or a mock. `directory` is trusted
-		/// to already be a validated bare origin — `init` is the only caller
-		/// with an unvalidated one, and it never reaches this far.
+		/// testable without a network call or a mock.
 		static func documentURL(for did: Atproto.DID, directory: URL) throws -> URL {
 			guard did.method == .plc else { throw Errors.notDidPlc }
 			try validate(identifier: did.identifier)
 
+			// `directory` is already validated — `init` is the only caller
+			// with an unvalidated one.
 			guard
 				var components = URLComponents(
 					url: directory, resolvingAgainstBaseURL: false)
@@ -109,11 +101,10 @@ extension Atproto {
 			return url
 		}
 
-		/// did:plc's own grammar (https://web.plc.directory/spec/v0.1/did-plc):
-		/// exactly 24 characters, lowercase `a`–`z` and `2`–`7` only — base32
-		/// minus the digits that read as letters. An allowlist, not a
-		/// blocklist: `/`, `.`, `%`, `?`, `#`, `:`, uppercase, and every path-
-		/// traversal spelling are excluded by construction.
+		/// did:plc's own grammar: exactly 24 lowercase base32 characters
+		/// (https://web.plc.directory/spec/v0.1/did-plc). An allowlist, not a
+		/// blocklist — every path-traversal or injection spelling is excluded
+		/// by construction.
 		static func validate(identifier: String) throws {
 			guard identifier.count == 24 else { throw Errors.invalidIdentifier }
 			guard identifier.allSatisfy(isValidIdentifierCharacter) else {

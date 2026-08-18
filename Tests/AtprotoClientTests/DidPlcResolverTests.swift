@@ -80,12 +80,9 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 		}
 	}
 
-	/// The load-bearing assertion for the injection cases above: confirm the
-	/// built URL's host and path are exactly what was asked for, not just
-	/// that *some* URL came back. The directory host is fixed and the path is
-	/// attacker-influenced, which is the opposite shape from `DidWebResolver`
-	/// (where the host is the attacker-influenced part) — this is where the
-	/// test pressure belongs here.
+	/// The load-bearing assertion for the injection cases above: the built
+	/// URL's host and path are exactly what was asked for, not just *some*
+	/// URL.
 	@Test func theBuiltURLNeverCarriesMoreThanTheValidatedIdentifier() throws {
 		let did = try Atproto.DID(string: "did:plc:\(Self.validIdentifier)")
 		let url = try Atproto.DidPlcResolver.documentURL(
@@ -111,10 +108,9 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 	}
 
 	/// A trailing slash looks harmless but isn't: `documentURL` appends the
-	/// DID directly onto the directory's path, so `https://plc.directory/`
-	/// would build `https://plc.directory//did:plc:...` — a URL the real
-	/// server 404s, making every resolution look like "DID not found" instead
-	/// of "misconfigured directory." Caught at `init` instead.
+	/// DID onto the directory's path, so this would build a double-slash URL
+	/// the real server 404s — every resolution reading as "not found" instead
+	/// of "misconfigured directory."
 	@Test(arguments: [
 		"https://plc.directory/",
 		"https://plc.directory/v1",
@@ -220,8 +216,7 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 }
 
 /// The smallest body `Atproto.DIDDocument`'s current decoder accepts —
-/// duplicated from `DidWebResolverTests.swift` rather than shared, since
-/// both are file-private and this repo has no shared test-support target.
+/// duplicated from `DidWebResolverTests.swift`, both being file-private.
 private struct MinimalDocument: Encodable {
 	let context: [String] = []
 	let id: String
