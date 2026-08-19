@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.9.0
+
+### Minor Changes
+
+- [#49](https://github.com/germ-network/AtprotoClient/pull/49) [`c9d149e`](https://github.com/germ-network/AtprotoClient/commit/c9d149e0655fa959205deefee53366115ba101d3) Thanks [@germ-mark](https://github.com/germ-mark)! - Add `Atproto.DidWebResolver`: resolves a did:web identifier to its DID document by fetching `https://{host}/.well-known/did.json`, matching `@atproto/identity`'s reference resolver (Accept header, redirect refusal, single-segment restriction). Screens the resolved host against a strict hostname allowlist before ever fetching, since a did:web identifier is attacker-influenced input turned directly into a URL (Linear GER-1912) — no port, loopback, or IP-literal host is accepted. Defaults to a redirect-refusing session; fetcher injection is reserved for tests.
+
 ## 0.8.0
 
 ### Minor Changes
