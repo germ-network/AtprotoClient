@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 public struct PublicPDSAgent: Atproto.PDSAgent {
 	public let did: Atproto.DID

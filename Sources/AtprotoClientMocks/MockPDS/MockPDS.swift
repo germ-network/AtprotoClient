@@ -10,6 +10,7 @@ import AtprotoTypes
 import AtprotoTypesMocks
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 public actor MockPDS {
 	public nonisolated let serviceUrl: URL

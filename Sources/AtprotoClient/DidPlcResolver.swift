@@ -6,6 +6,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 import HTTPTypes
 
 #if canImport(FoundationNetworking)

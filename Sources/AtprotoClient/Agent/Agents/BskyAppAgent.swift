@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 extension Atproto.XRPC {
 	//an agent (aka an app-view) that services the app.bsky.* application

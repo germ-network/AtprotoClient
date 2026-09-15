@@ -5,6 +5,7 @@
 
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 /// A canned-response `HTTPFetcher`, for anything built on the seam.
 public struct StubHTTPFetcher: HTTPFetcher, Sendable {
