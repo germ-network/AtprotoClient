@@ -7,6 +7,7 @@
 
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 import struct HTTPTypes.HTTPFields
 import struct HTTPTypes.HTTPRequest
