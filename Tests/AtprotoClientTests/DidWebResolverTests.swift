@@ -224,23 +224,26 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 		#expect(document?.id == did.rawValue)
 	}
 
-	/// Pins current decode strictness rather than fixing it — see GER-2274.
 	/// A real did:web document may omit `verificationMethod`/`service` and
-	/// carry `@context` as a bare string; `Atproto.DIDDocument` requires all
-	/// three.
-	@Test func aMinimalRealWorldDidWebDocumentFailsToDecodeUnderTodaysStrictness() throws {
+	/// carry `@context` as a bare string — AtprotoTypes' decoder relaxed to
+	/// the canonical schema to accept exactly this shape (GER-2274).
+	@Test func aMinimalRealWorldDidWebDocumentDecodes() throws {
 		let json = Data(
 			"""
 			{"@context": "https://www.w3.org/ns/did/v1", "id": "did:web:example.com"}
 			""".utf8
 		)
-		#expect(throws: (any Error).self) {
-			try json.decode() as Atproto.DIDDocument
-		}
+		let document = try json.decode() as Atproto.DIDDocument
+		#expect(document.id == "did:web:example.com")
+		#expect(document.context == ["https://www.w3.org/ns/did/v1"])
+		#expect(document.verificationMethod == nil)
+		#expect(document.service == nil)
 	}
 }
 
-/// The smallest body `Atproto.DIDDocument`'s current decoder accepts.
+/// A full-shaped (but empty) `Atproto.DIDDocument` body — see
+/// `aMinimalRealWorldDidWebDocumentDecodes` above for the actually-minimal
+/// shape the decoder accepts.
 private struct MinimalDocument: Encodable {
 	let context: [String] = []
 	let id: String
