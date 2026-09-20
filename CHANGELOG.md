@@ -1,5 +1,14 @@
 # @germ-network/atprotoclient
 
+## 0.10.0
+
+### Minor Changes
+
+- [#55](https://github.com/germ-network/AtprotoClient/pull/55) [`a26d4f2`](https://github.com/germ-network/AtprotoClient/commit/a26d4f27dc2b1601313e0b7a8f5f265b1c84acf5) Thanks [@germ-mark](https://github.com/germ-mark)! - Widen the `swift-crypto` dependency to `from: "5.0.0"`.
+
+  Part of the org-wide move to swift-crypto 5. Builds and the full test suite
+  (51 tests) pass against 5.0.0 unchanged.
+
 ## 0.9.0
 
 ### Minor Changes
