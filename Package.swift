@@ -17,17 +17,19 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			from: "0.5.1"
+			// Temporary revision pin to the swift-crypto-5 commit
+			// (germ-network/AtprotoTypes#69); replace with the released version
+			// once it cuts.
+			from: "0.7.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.8.0 split HTTP helpers into GermConvenienceHTTP — the floor this
-			// package now needs for HTTPDataResponse/HTTPFetcher.
-			from: "0.8.0"
+			// 0.10.0 is its swift-crypto-5 release — the revision pin drops.
+			from: "0.10.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
-			.upToNextMajor(from: "4.2.0")),
+			from: "5.0.0"),
 		.package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
 		.package(url: "https://github.com/apple/swift-http-types.git", from: "1.5.1"),
 	],
