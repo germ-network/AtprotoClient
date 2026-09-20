@@ -24,10 +24,8 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// Temporary revision pin to the swift-crypto-5 commit
-			// (germ-network/GermConvenience#55); replace with the released version
-			// once it cuts.
-			revision: "f907c9018dd4c2f0110ab5f1f37c7c53fa0ae6ca"
+			// 0.10.0 is its swift-crypto-5 release — the revision pin drops.
+			from: "0.10.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
