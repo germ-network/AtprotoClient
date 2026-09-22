@@ -64,9 +64,33 @@ extension Atproto.XRPC.BskyAppCallable {
 			parameters: .init(actor: actor)
 		)
 	}
+
+	/// `getProfile` declares no dedicated not-found error - a missing actor
+	/// arrives as a 400 `InvalidRequest` whose message happens to be "Profile
+	/// not found". Maps exactly that shape to `nil`; every other error
+	/// (including other `InvalidRequest` messages, and a deactivated or
+	/// suspended account's `AccountDeactivated`/`AccountTakedown`) rethrows.
+	public func bskyProfileIfExists(
+		actor: LexiconString.AtIdentifier
+	) async throws -> Lexicon.App.Bsky.Actor.Defs.ProfileViewDetailed? {
+		do {
+			return try await bskyProfile(actor: actor)
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .badRequest,
+			error: let error
+		)
+			where error.error == "InvalidRequest"
+			&& error.message == "Profile not found"
+		{
+			return nil
+		}
+	}
 }
 
 extension Atproto.XRPC.BskyAppCallable {
+	/// Drops every not-found subject and loses which ones they were - use
+	/// ``relationshipLookup(actor:others:)`` to keep that information. Still
+	/// throws `GetRelationships.Errors.tooManyOthersInput` above 30 subjects.
 	public func getRelationships(
 		actor: Atproto.DID,
 		subjects: [Atproto.DID]
@@ -78,6 +102,71 @@ extension Atproto.XRPC.BskyAppCallable {
 		assert(results.actor == actor)
 		return results.relationships
 			.compactMap { $0.asRelationships }
+	}
+
+	/// `others` deduped (preserving order) and chunked into requests of at
+	/// most 30, the lexicon's `others.maxLength`, merging every chunk's
+	/// result. Only `.relationship`
+	/// entries for a requested DID count as found - an unrequested DID the
+	/// server threw in is dropped, and `.notFoundActor` is never used to
+	/// populate `found` (its `actor` can arrive in handle form, which can't
+	/// be mapped back to the DID that was actually requested). Whatever
+	/// wasn't found - whether the server said so explicitly (by DID or by
+	/// handle) or simply omitted it - lands in `notFound`. See
+	/// `GetRelationships.Lookup`'s doc for why this isn't an
+	/// account-existence check.
+	public func relationshipLookup(
+		actor: Atproto.DID,
+		others: [Atproto.DID]
+	) async throws -> Lexicon.App.Bsky.Graph.GetRelationships.Lookup {
+		let deduped = Self.dedupedPreservingOrder(others)
+		guard !deduped.isEmpty else {
+			return .init()
+		}
+		let requested = Set(deduped)
+
+		var found: [Atproto.DID: Lexicon.App.Bsky.Graph.Relationships] = [:]
+		for chunk in Self.chunked(
+			deduped,
+			intoSizeAtMost: Lexicon.App.Bsky.Graph.GetRelationships.Parameters.maxOthers
+		) {
+			let parameters = try Lexicon.App.Bsky.Graph.GetRelationships.Parameters(
+				actor: .did(actor),
+				others: chunk.map { .did($0) }
+			)
+			let output = try await call(
+				Lexicon.App.Bsky.Graph.GetRelationships.self,
+				parameters: parameters
+			)
+			guard output.actor == actor else {
+				throw Lexicon.App.Bsky.Graph.GetRelationships.Errors.actorMismatch(
+					requested: actor,
+					returned: output.actor
+				)
+			}
+			for entry in output.relationships {
+				guard case .relationship(let relationship) = entry,
+					requested.contains(relationship.did)
+				else { continue }
+				found[relationship.did] = relationship
+			}
+		}
+		let notFound = deduped.filter { found[$0] == nil }
+		return .init(found: found, notFound: notFound)
+	}
+
+	private static func dedupedPreservingOrder(_ dids: [Atproto.DID]) -> [Atproto.DID] {
+		var seen = Set<Atproto.DID>()
+		return dids.filter { seen.insert($0).inserted }
+	}
+
+	private static func chunked(
+		_ dids: [Atproto.DID],
+		intoSizeAtMost size: Int
+	) -> [[Atproto.DID]] {
+		stride(from: 0, to: dids.count, by: size).map {
+			Array(dids[$0..<Swift.min($0 + size, dids.count)])
+		}
 	}
 }
 

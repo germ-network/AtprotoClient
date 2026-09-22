@@ -41,5 +41,8 @@ extension Lexicon.App.Bsky.Actor {
 }
 
 extension Lexicon.App.Bsky.Actor.GetProfile: Atproto.XRPC.ResponseParsing {
-	public static var badRequestErrors: Set<String> { defaultErrors }
+	/// Explicit about `InvalidRequest` rather than relying on it already
+	/// being in `defaultErrors` - `bskyProfileIfExists(actor:)` depends on
+	/// this error being parsed rather than falling through to `.unrecognized`.
+	public static var badRequestErrors: Set<String> { defaultErrors.union(["InvalidRequest"]) }
 }

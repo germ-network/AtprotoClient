@@ -33,7 +33,9 @@ extension Lexicon.App.Bsky.Graph {
 				others: [LexiconString.AtIdentifier]?
 			) throws {
 				if let others {
-					guard others.count < Self.maxOthers else {
+					// The lexicon declares others.maxLength: 30, so exactly 30
+					// is valid - only 31+ is too many.
+					guard others.count <= Self.maxOthers else {
 						throw Errors.tooManyOthersInput
 					}
 				}
@@ -104,15 +106,47 @@ extension Lexicon.App.Bsky.Graph {
 			}
 		}
 
-		enum Errors: LocalizedError {
-			case tooManyOthersInput
+		/// Found/not-found subjects from ``Atproto.XRPC.BskyAppCallable/relationshipLookup(actor:others:)``,
+		/// which - unlike ``Atproto.XRPC.BskyAppCallable/getRelationships(actor:subjects:)`` -
+		/// keeps track of which requested subjects weren't found.
+		///
+		/// `found`/`notFound` isn't an account-existence check: the AppView
+		/// returns a `#relationship` entry for any well-formed DID, whether or
+		/// not the account exists, so a nonexistent `did:plc` still lands in
+		/// `found`. `notFound` only covers what the server explicitly reported
+		/// via `notFoundActor` (in practice, for a handle that doesn't
+		/// resolve) or omitted outright. Callers that need to know whether an
+		/// account actually exists should use
+		/// ``Atproto.XRPC.BskyAppCallable/bskyProfileIfExists(actor:)``.
+		public struct Lookup: Sendable {
+			public var found: [Atproto.DID: Relationships]
+			public var notFound: [Atproto.DID]
 
-			var errorDescription: String? {
-				switch self {
-				case .tooManyOthersInput:
-					"Too many others input"
-				}
+			public init(
+				found: [Atproto.DID: Relationships] = [:],
+				notFound: [Atproto.DID] = []
+			) {
+				self.found = found
+				self.notFound = notFound
 			}
+		}
+
+		public enum Errors: Error, Equatable, Sendable {
+			case tooManyOthersInput
+			/// A chunked request's response named a different `actor` than the
+			/// one requested.
+			case actorMismatch(requested: Atproto.DID, returned: Atproto.DID)
+		}
+	}
+}
+
+extension Lexicon.App.Bsky.Graph.GetRelationships.Errors: LocalizedError {
+	public var errorDescription: String? {
+		switch self {
+		case .tooManyOthersInput:
+			"Too many others input"
+		case .actorMismatch(let requested, let returned):
+			"getRelationships returned actor \(returned.rawValue), requested \(requested.rawValue)"
 		}
 	}
 }
