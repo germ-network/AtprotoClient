@@ -19,6 +19,7 @@ extension Atproto {
 	/// https://atproto.com/specs/handle#https-well-known-method.
 	///
 	/// Sibling to `DidWebResolver`/`DidPlcResolver`: redirects are refused,
+	/// reserved TLDs are rejected the same way `DidWebResolver` rejects them,
 	/// and the parsed value is only ever handed back through
 	/// `Atproto.DID.init(string:)`, which validates it.
 	public struct WellKnownHandleResolver: Sendable {
@@ -26,8 +27,10 @@ extension Atproto {
 		static let acceptHeader = "text/plain;charset=UTF-8"
 		/// A generous bound on a body that should be one short line - a DID is
 		/// at most 2KB (https://atproto.com/specs/did) - so nothing this size
-		/// is ever a legitimate answer. Checked before the body is parsed, so
-		/// an oversized response is rejected rather than processed.
+		/// is ever a legitimate answer. `fetcher.data(for:)` already buffers
+		/// the full body before this is checked, so the bound rejects an
+		/// oversized body before it's parsed - it does not limit how much is
+		/// buffered beforehand.
 		static let maxBodySize = 8192
 
 		let fetcher: any HTTPFetcher
@@ -83,6 +86,16 @@ extension Atproto {
 		/// Pure and synchronous - every security-relevant decision here is
 		/// testable without a network call or a mock.
 		static func wellKnownURL(for handle: Atproto.Handle) throws -> URL {
+			// IP-literals are already excluded by `Atproto.Handle`'s own
+			// grammar - only the reserved-TLD screen needs repeating here,
+			// reusing `DidWebResolver`'s set as the one source of truth.
+			guard
+				let tld = handle.rawValue.split(separator: ".").last,
+				!Atproto.DidWebResolver.reservedTLDs.contains(tld)
+			else {
+				throw Errors.reservedTLD
+			}
+
 			var components = URLComponents()
 			components.scheme = "https"
 			components.host = handle.rawValue
@@ -102,6 +115,7 @@ extension Atproto {
 extension Atproto.WellKnownHandleResolver {
 	public enum Errors: Error, Equatable, Sendable {
 		case invalidHandle
+		case reservedTLD
 		case redirectRefused
 		case responseTooLarge
 	}
@@ -111,6 +125,8 @@ extension Atproto.WellKnownHandleResolver.Errors: LocalizedError {
 	public var errorDescription: String? {
 		switch self {
 		case .invalidHandle: "handle could not be resolved to a well-known URL"
+		case .reservedTLD:
+			"handle's TLD is an IANA special-use domain, never a legitimate public identity"
 		case .redirectRefused:
 			"the well-known endpoint attempted a redirect, which is refused"
 		case .responseTooLarge: "the well-known response body exceeded the size bound"

@@ -155,6 +155,37 @@ struct DNSWireFormatTests {
 		}
 	}
 
+	@Test func answerHeaderShorterThanTenBytesThrowsTruncated() {
+		// the owner name resolves fine, but only TYPE+CLASS (4 bytes) follow
+		// it - TTL and RDLENGTH are missing, so the per-answer header bound
+		// (guards the TYPE/RDLENGTH `beUInt16` reads) must catch this.
+		var bytes: [UInt8] = [0, 0, 0x81, 0x80, 0, 1, 0, 1, 0, 0, 0, 0]
+		bytes += name("example.com")
+		bytes += [0, 16, 0, 1]
+		bytes += [0xC0, 0x0C]  // answer owner: pointer to offset 12
+		bytes += [0, 16, 0, 1]  // TYPE + CLASS only - TTL/RDLENGTH missing
+
+		#expect(throws: DNSWireFormat.DecodeError.truncated) {
+			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		}
+	}
+
+	@Test func rdlengthExceedingRemainingBytesThrowsTruncated() {
+		// a complete answer header, but its RDLENGTH claims far more bytes
+		// than actually remain - the RDLENGTH bound (guards the
+		// `bytes[offset..<offset+rdlength]` slice) must catch this.
+		var bytes: [UInt8] = [0, 0, 0x81, 0x80, 0, 1, 0, 1, 0, 0, 0, 0]
+		bytes += name("example.com")
+		bytes += [0, 16, 0, 1]
+		bytes += [0xC0, 0x0C]  // answer owner: pointer to offset 12
+		bytes += [0, 16, 0, 1, 0, 0, 0, 60]  // TYPE, CLASS, TTL
+		bytes += beU16(200)  // RDLENGTH claims 200 bytes; none follow
+
+		#expect(throws: DNSWireFormat.DecodeError.truncated) {
+			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		}
+	}
+
 	@Test func serverFailureRcodeIsDistinctFromNameError() {
 		// RCODE=2, SERVFAIL
 		let bytes: [UInt8] = [0, 0, 0x81, 0x82, 0, 0, 0, 0, 0, 0, 0, 0]

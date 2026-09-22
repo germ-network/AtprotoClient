@@ -26,6 +26,20 @@ import struct AtprotoClientMocks.StubHTTPFetcher
 		let url = try Atproto.WellKnownHandleResolver.wellKnownURL(for: handle)
 		#expect(url.scheme == "https")
 	}
+
+	@Test(arguments: ["alice.internal", "alice.local"])
+	func rejectsAReservedTLD(_ rawHandle: String) throws {
+		let handle = try Atproto.Handle(string: rawHandle)
+		#expect(throws: Atproto.WellKnownHandleResolver.Errors.reservedTLD) {
+			try Atproto.WellKnownHandleResolver.wellKnownURL(for: handle)
+		}
+	}
+
+	@Test func aNonReservedTLDStillBuildsTheURL() throws {
+		let handle = try Atproto.Handle(string: "alice.bsky.social")
+		let url = try Atproto.WellKnownHandleResolver.wellKnownURL(for: handle)
+		#expect(url.absoluteString == "https://alice.bsky.social/.well-known/atproto-did")
+	}
 }
 
 @Suite struct WellKnownHandleResolverFetchTests {

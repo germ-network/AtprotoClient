@@ -159,7 +159,7 @@ public enum DNSWireFormat {
 	/// TXT RDATA is one or more length-prefixed character-strings; join them,
 	/// matching what a resolver client library's own `TXTRecord` accessor does
 	/// for the common single-string case.
-	static func joinedCharacterStrings(_ rdata: ArraySlice<UInt8>) -> String {
+	private static func joinedCharacterStrings(_ rdata: ArraySlice<UInt8>) -> String {
 		var strings: [String] = []
 		var i = rdata.startIndex
 		while i < rdata.endIndex {
