@@ -3,6 +3,7 @@
 //  AtprotoClientTests
 //
 
+import AtprotoTypes
 import Foundation
 import Testing
 
@@ -13,7 +14,7 @@ struct DNSWireFormatTests {
 	// MARK: - encode
 
 	@Test func encodesTheExpectedQuestionSection() throws {
-		let query = try DNSWireFormat.encodeTXTQuery(name: "_atproto.pfrazee.com")
+		let query = try Atproto.DNSWireFormat.encodeTXTQuery(name: "_atproto.pfrazee.com")
 
 		// captured with `dig`: the byte-for-byte query Cloudflare's DoH endpoint
 		// answered to produce `realTXTResponse` below.
@@ -23,15 +24,15 @@ struct DNSWireFormatTests {
 	}
 
 	@Test func rejectsAnEmptyLabel() {
-		#expect(throws: DNSWireFormat.EncodeError.emptyLabel) {
-			try DNSWireFormat.encodeTXTQuery(name: "_atproto..example.com")
+		#expect(throws: Atproto.DNSWireFormat.EncodeError.emptyLabel) {
+			try Atproto.DNSWireFormat.encodeTXTQuery(name: "_atproto..example.com")
 		}
 	}
 
 	@Test func rejectsALabelOver63Bytes() {
 		let label = String(repeating: "a", count: 64)
-		#expect(throws: DNSWireFormat.EncodeError.labelTooLong(label)) {
-			try DNSWireFormat.encodeTXTQuery(name: "\(label).example.com")
+		#expect(throws: Atproto.DNSWireFormat.EncodeError.labelTooLong(label)) {
+			try Atproto.DNSWireFormat.encodeTXTQuery(name: "\(label).example.com")
 		}
 	}
 
@@ -47,7 +48,7 @@ struct DNSWireFormatTests {
 	)!
 
 	@Test func decodesARealSingleAnswerRecordWithACompressionPointer() throws {
-		let records = try DNSWireFormat.decodeTXTRecords(Self.realTXTResponse)
+		let records = try Atproto.DNSWireFormat.decodeTXTRecords(Self.realTXTResponse)
 		#expect(records == ["did=did:plc:ragtjsm2j2vknwkz3zp4oxrd"])
 	}
 
@@ -64,8 +65,8 @@ struct DNSWireFormatTests {
 	)!
 
 	@Test func nxdomainThrowsNameError() {
-		#expect(throws: DNSWireFormat.DecodeError.nameError) {
-			try DNSWireFormat.decodeTXTRecords(Self.realNXDOMAINResponse)
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.nameError) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Self.realNXDOMAINResponse)
 		}
 	}
 
@@ -82,7 +83,8 @@ struct DNSWireFormatTests {
 	)!
 
 	@Test func decodesFourAnswersEachAsItsOwnEntry() throws {
-		let records = try DNSWireFormat.decodeTXTRecords(Self.realMultiAnswerResponse)
+		let records = try Atproto.DNSWireFormat.decodeTXTRecords(
+			Self.realMultiAnswerResponse)
 		#expect(records.count == 4)
 		#expect(records[1] == "v=spf1 redirect=_spf.google.com")
 	}
@@ -103,7 +105,7 @@ struct DNSWireFormatTests {
 		bytes += beU16(UInt16(rdata.count))
 		bytes += rdata
 
-		let records = try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		let records = try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		#expect(records == ["fooba"])
 	}
 
@@ -125,7 +127,7 @@ struct DNSWireFormatTests {
 		bytes += beU16(UInt16(rdata.count))
 		bytes += rdata
 
-		let records = try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		let records = try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		#expect(records == ["real"])
 	}
 
@@ -138,8 +140,8 @@ struct DNSWireFormatTests {
 		bytes += [0xC0, UInt8(pointerAt + 4)]  // points past itself
 		bytes += [0, 16, 0, 1]
 
-		#expect(throws: DNSWireFormat.DecodeError.compressionPointerLoop) {
-			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.compressionPointerLoop) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		}
 	}
 
@@ -150,8 +152,8 @@ struct DNSWireFormatTests {
 		bytes += [0, 16, 0, 1]
 		// no answer section at all, despite ANCOUNT=1
 
-		#expect(throws: DNSWireFormat.DecodeError.truncated) {
-			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.truncated) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		}
 	}
 
@@ -165,8 +167,8 @@ struct DNSWireFormatTests {
 		bytes += [0xC0, 0x0C]  // answer owner: pointer to offset 12
 		bytes += [0, 16, 0, 1]  // TYPE + CLASS only - TTL/RDLENGTH missing
 
-		#expect(throws: DNSWireFormat.DecodeError.truncated) {
-			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.truncated) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		}
 	}
 
@@ -181,16 +183,16 @@ struct DNSWireFormatTests {
 		bytes += [0, 16, 0, 1, 0, 0, 0, 60]  // TYPE, CLASS, TTL
 		bytes += beU16(200)  // RDLENGTH claims 200 bytes; none follow
 
-		#expect(throws: DNSWireFormat.DecodeError.truncated) {
-			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.truncated) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		}
 	}
 
 	@Test func serverFailureRcodeIsDistinctFromNameError() {
 		// RCODE=2, SERVFAIL
 		let bytes: [UInt8] = [0, 0, 0x81, 0x82, 0, 0, 0, 0, 0, 0, 0, 0]
-		#expect(throws: DNSWireFormat.DecodeError.serverFailure(rcode: 2)) {
-			try DNSWireFormat.decodeTXTRecords(Data(bytes))
+		#expect(throws: Atproto.DNSWireFormat.DecodeError.serverFailure(rcode: 2)) {
+			try Atproto.DNSWireFormat.decodeTXTRecords(Data(bytes))
 		}
 	}
 

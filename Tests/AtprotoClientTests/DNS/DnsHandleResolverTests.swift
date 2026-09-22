@@ -13,7 +13,7 @@ import Testing
 
 @testable import AtprotoClient
 
-private final class MockTXTFetcher: DNSTXTFetcher, @unchecked Sendable {
+private final class MockTXTFetcher: Atproto.DNSTXTFetcher, @unchecked Sendable {
 	let records: [String]
 	private(set) var requestedName: String?
 
@@ -96,7 +96,7 @@ struct DnsHandleResolverTests {
 
 	@Test func propagatesAThrowFromTheFetcher() async throws {
 		struct Boom: Error {}
-		struct ThrowingFetcher: DNSTXTFetcher {
+		struct ThrowingFetcher: Atproto.DNSTXTFetcher {
 			func txtRecords(name: String) async throws -> [String] { throw Boom() }
 		}
 		let resolver = Atproto.DnsHandleResolver(txtFetcher: ThrowingFetcher())

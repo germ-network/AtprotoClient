@@ -3,6 +3,7 @@
 //  AtprotoClientTests
 //
 
+import AtprotoTypes
 import Foundation
 import GermConvenience
 import GermConvenienceHTTP
@@ -48,8 +49,8 @@ private final class ScriptedFetcher: HTTPFetcher, @unchecked Sendable {
 	}
 }
 
-private let cloudflare = DoHTXTFetcher.cloudflare
-private let google = DoHTXTFetcher.google
+private let cloudflare = Atproto.DoHTXTFetcher.cloudflare
+private let google = Atproto.DoHTXTFetcher.google
 
 struct DoHTXTFetcherTests {
 
@@ -59,7 +60,7 @@ struct DoHTXTFetcherTests {
 		let fetcher = ScriptedFetcher([
 			.response(.init(data: responseData, response: .init(status: .ok)))
 		])
-		let txtFetcher = DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare])
+		let txtFetcher = Atproto.DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare])
 
 		_ = try await txtFetcher.txtRecords(name: "_atproto.example.com")
 
@@ -69,7 +70,8 @@ struct DoHTXTFetcherTests {
 		#expect(sent.request.headerFields[.accept] == "application/dns-message")
 		#expect(
 			sent.body
-				== (try DNSWireFormat.encodeTXTQuery(name: "_atproto.example.com")))
+				== (try Atproto.DNSWireFormat.encodeTXTQuery(
+					name: "_atproto.example.com")))
 
 		#expect(fetcher.requestedURLs == [cloudflare])
 	}
@@ -80,7 +82,7 @@ struct DoHTXTFetcherTests {
 		let fetcher = ScriptedFetcher([
 			.response(.init(data: responseData, response: .init(status: .ok)))
 		])
-		let txtFetcher = DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare])
+		let txtFetcher = Atproto.DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare])
 
 		let records = try await txtFetcher.txtRecords(name: "_atproto.example.com")
 
@@ -97,7 +99,8 @@ struct DoHTXTFetcherTests {
 				.init(data: Data(), response: .init(status: .internalServerError))),
 			.response(.init(data: responseData, response: .init(status: .ok))),
 		])
-		let txtFetcher = DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare, google])
+		let txtFetcher = Atproto.DoHTXTFetcher(
+			fetcher: fetcher, serverURLs: [cloudflare, google])
 
 		let records = try await txtFetcher.txtRecords(name: "_atproto.example.com")
 
@@ -110,7 +113,8 @@ struct DoHTXTFetcherTests {
 		let fetcher = ScriptedFetcher([
 			.response(.init(data: nxdomain, response: .init(status: .ok)))
 		])
-		let txtFetcher = DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare, google])
+		let txtFetcher = Atproto.DoHTXTFetcher(
+			fetcher: fetcher, serverURLs: [cloudflare, google])
 
 		let records = try await txtFetcher.txtRecords(name: "_atproto.example.com")
 
@@ -125,7 +129,8 @@ struct DoHTXTFetcherTests {
 			.response(
 				.init(data: Data(), response: .init(status: .internalServerError))),
 		])
-		let txtFetcher = DoHTXTFetcher(fetcher: fetcher, serverURLs: [cloudflare, google])
+		let txtFetcher = Atproto.DoHTXTFetcher(
+			fetcher: fetcher, serverURLs: [cloudflare, google])
 
 		await #expect(throws: (any Error).self) {
 			try await txtFetcher.txtRecords(name: "_atproto.example.com")
@@ -142,7 +147,7 @@ struct DoHTXTFetcherTests {
 			.hang,
 			.response(.init(data: responseData, response: .init(status: .ok))),
 		])
-		let txtFetcher = DoHTXTFetcher(
+		let txtFetcher = Atproto.DoHTXTFetcher(
 			fetcher: fetcher, serverURLs: [cloudflare, google],
 			timeout: .milliseconds(100))
 
@@ -159,7 +164,7 @@ struct DoHTXTFetcherTests {
 	// provider failed, try the next one."
 	@Test func taskCancellationInterruptsPromptly() async throws {
 		let fetcher = ScriptedFetcher([.hang])
-		let txtFetcher = DoHTXTFetcher(
+		let txtFetcher = Atproto.DoHTXTFetcher(
 			fetcher: fetcher, serverURLs: [cloudflare, google], timeout: .seconds(30))
 
 		let task = Task {
