@@ -24,8 +24,9 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.10.0 is its swift-crypto-5 release — the revision pin drops.
-			from: "0.10.0"
+			// 0.11.0: manualRedirect() also refuses redirects on Linux/Android, which the
+			// DID/handle resolvers' one-time host screening depends on.
+			from: "0.11.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
