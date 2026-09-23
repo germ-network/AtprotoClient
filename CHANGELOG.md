@@ -1,5 +1,19 @@
 # @germ-network/atprotoclient
 
+## 0.11.0
+
+### Minor Changes
+
+- [#58](https://github.com/germ-network/AtprotoClient/pull/58) [`18c070d`](https://github.com/germ-network/AtprotoClient/commit/18c070d62897a63f70e74a082365abfbc95dd906) Thanks [@germ-mark](https://github.com/germ-mark)! - Add three Bluesky read helpers on `Atproto.XRPC.BskyAppCallable`: `relationshipLookup(actor:others:)`, which reports which `app.bsky.graph.getRelationships` subjects the AppView returned a relationship for and which it didn't (unlike `getRelationships(actor:subjects:)`, which drops every not-found subject and loses which ones they were) - note that this isn't an account-existence check, since the AppView returns a relationship entry for any well-formed DID whether or not the account exists; and `bskyProfileIfExists(actor:)`, which maps `app.bsky.actor.getProfile`'s undeclared not-found shape (a 400 `InvalidRequest` whose message is "Profile not found") to `nil` rather than throwing. Also add `Atproto.BskyCDN.imageURL(_:did:blob:host:)` to build Bluesky CDN image URLs from a blob reference.
+
+  Also fix `Lexicon.App.Bsky.Graph.GetRelationships.Parameters.init` to accept exactly 30 `others`, matching the lexicon's `others.maxLength: 30` - it previously rejected exactly 30, and make `Lexicon.App.Bsky.Graph.GetRelationships.Errors` (`tooManyOthersInput`, `actorMismatch`) public - it's already thrown by public API.
+
+- [#57](https://github.com/germ-network/AtprotoClient/pull/57) [`f19d608`](https://github.com/germ-network/AtprotoClient/commit/f19d6082269141f7b36d0fe5da0f463db0a8f5d2) Thanks [@germ-mark](https://github.com/germ-mark)! - Add DNS-over-HTTPS TXT and well-known atproto-did handle-resolution components: `Atproto.WellKnownHandleResolver` and `Atproto.DnsHandleResolver`, plus the underlying `Atproto.DNSWireFormat` codec, `Atproto.DNSTXTFetcher` protocol, and `Atproto.DoHTXTFetcher` conformer they're built on. Together these implement the two handle-resolution methods from the atproto handle spec (https://atproto.com/specs/handle) - the DNS TXT method and the HTTPS well-known method - as standalone, portable, `Sendable` components matching `DidWebResolver`/`DidPlcResolver`'s conventions: redirect refusal, response-size bounds, and the resolved value parsed as an `Atproto.DID` (method form checked via `Atproto.DID.init(string:)`).
+
+### Patch Changes
+
+- [#59](https://github.com/germ-network/AtprotoClient/pull/59) [`0706814`](https://github.com/germ-network/AtprotoClient/commit/0706814cd8bc3c2f5100e02f1aafc1ab88ddc7e4) Thanks [@germ-mark](https://github.com/germ-mark)! - Require GermConvenience 0.11.0, whose `URLSession.manualRedirect()` also refuses redirects on Linux and Android. The DID resolvers screen the host once, before the request, so they depend on redirects not being followed.
+
 ## 0.10.0
 
 ### Minor Changes
