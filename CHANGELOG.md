@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.11.1
+
+### Patch Changes
+
+- [#61](https://github.com/germ-network/AtprotoClient/pull/61) [`1408bb1`](https://github.com/germ-network/AtprotoClient/commit/1408bb10cbe68ec83369a29e727d18e486a71b1b) Thanks [@germ-mark](https://github.com/germ-mark)! - `Relationships` now decodes and encodes `blockingByList` under the lexicon's key. It used `blockingbyList`, so the viewer's own list blocks never decoded.
+
 ## 0.11.0
 
 ### Minor Changes
