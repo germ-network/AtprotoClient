@@ -337,3 +337,46 @@ private func xrpcURL(
 		#expect(collector.all.flatMap { $0 } == subjects.map(\.rawValue))
 	}
 }
+
+@Suite struct RelationshipsCodingTests {
+	@Test("Decodes the lexicon's camel-cased list-block keys")
+	func decodesListBlockKeys() throws {
+		let json = """
+			{
+			  "$type": "app.bsky.graph.defs#relationship",
+			  "did": "did:plc:subject",
+			  "blockedByList": "at://did:plc:subject/app.bsky.graph.listblock/a",
+			  "blockingByList": "at://did:plc:actor/app.bsky.graph.listblock/b"
+			}
+			"""
+		let relationship = try JSONDecoder().decode(
+			Lexicon.App.Bsky.Graph.Relationships.self,
+			from: Data(json.utf8)
+		)
+		#expect(
+			relationship.blockedByList?.rawValue
+				== "at://did:plc:subject/app.bsky.graph.listblock/a")
+		#expect(
+			relationship.blockingbyList?.rawValue
+				== "at://did:plc:actor/app.bsky.graph.listblock/b")
+	}
+
+	@Test("Encodes blockingByList under the lexicon's key")
+	func encodesBlockingByListKey() throws {
+		let relationship = Lexicon.App.Bsky.Graph.Relationships(
+			did: .init(method: .plc, identifier: "subject"),
+			blocking: nil,
+			blockedBy: nil,
+			following: nil,
+			followedBy: nil,
+			blockedByList: nil,
+			blockingbyList: try .init(
+				string: "at://did:plc:actor/app.bsky.graph.listblock/b")
+		)
+		let object = try #require(
+			JSONSerialization.jsonObject(with: JSONEncoder().encode(relationship))
+				as? [String: Any])
+		#expect(object["blockingByList"] != nil)
+		#expect(object["blockingbyList"] == nil)
+	}
+}

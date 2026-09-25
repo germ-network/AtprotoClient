@@ -31,7 +31,8 @@ extension Lexicon.App.Bsky.Graph {
 			case following
 			case followedBy
 			case blockedByList
-			case blockingbyList
+			// The property name's casing is a typo kept for source compatibility.
+			case blockingbyList = "blockingByList"
 		}
 
 		public init(
