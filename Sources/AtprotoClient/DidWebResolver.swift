@@ -9,10 +9,6 @@ import GermConvenience
 import GermConvenienceHTTP
 import HTTPTypes
 
-#if canImport(FoundationNetworking)
-	import FoundationNetworking
-#endif
-
 extension Atproto {
 	/// Resolves a did:web identifier by fetching
 	/// `https://{host}/.well-known/did.json`.
@@ -26,13 +22,12 @@ extension Atproto {
 		static let wellKnownPath = "/.well-known/did.json"
 		static let acceptHeader = "application/did+ld+json,application/json"
 
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
-		/// Defaults to a redirect-refusing session — do not override with a
-		/// redirect-following fetcher in production. Host screening runs once,
-		/// before the request; a followed redirect bypasses it, and nothing
-		/// downstream can detect that after the fact.
-		public init(fetcher: any HTTPFetcher = URLSession.manualRedirect()) {
+		/// `fetcher` must refuse redirects, which the type requires. Host
+		/// screening runs once, before the request; a followed redirect bypasses
+		/// it, and nothing downstream can detect that after the fact.
+		public init(fetcher: any RedirectRefusingHTTPFetcher) {
 			self.fetcher = fetcher
 		}
 

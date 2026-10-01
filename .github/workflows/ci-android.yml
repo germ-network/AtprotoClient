@@ -25,6 +25,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: "Test Swift Package on Android"
+        id: android
         uses: skiptools/swift-android-action@v2
         with:
           swift-version: '6.3'
+      # The portable products must not link FoundationNetworking. Built into a
+      # scratch directory of their own so the objects scanned are exactly their
+      # closure. `--target`, not `--product`: SwiftPM 6.3 rejects `--product`
+      # for a library product and silently builds every target instead.
+      - name: "Portable products do not link FoundationNetworking"
+        run: |
+          for target in AtprotoClient AtprotoClientMocks; do
+            ${{ steps.android.outputs.swift-build }} --scratch-path .build-portable --target "$target"
+          done
+          Scripts/scan-foundation-networking.sh .build-portable
+      # Control: the scanner must flag a target that does use URLSession (the
+      # test target), or a pass above could just mean it is not seeing the
+      # autolink entry.
+      - name: "Scanner detects FoundationNetworking in the test target"
+        run: |
+          ${{ steps.android.outputs.swift-build }} --scratch-path .build-control --target AtprotoClientTests
+          Scripts/scan-foundation-networking.sh --expect .build-control

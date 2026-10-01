@@ -8,10 +8,6 @@ import Foundation
 import GermConvenience
 import GermConvenienceHTTP
 
-#if canImport(FoundationNetworking)
-	import FoundationNetworking
-#endif
-
 extension Atproto {
 	/// Resolves an atproto handle via its `_atproto` DNS TXT record, as
 	/// specified at https://atproto.com/specs/handle#dns-txt-method.
@@ -24,13 +20,11 @@ extension Atproto {
 
 		let txtFetcher: any DNSTXTFetcher
 
-		/// Defaults to `DoHTXTFetcher`, the only conformer this package ships -
-		/// portable everywhere, unlike a platform system resolver. Inject a
-		/// platform-specific `DNSTXTFetcher` to use one instead.
-		public init(
-			txtFetcher: any DNSTXTFetcher = DoHTXTFetcher(
-				fetcher: URLSession.manualRedirect())
-		) {
+		/// `DoHTXTFetcher`, over a redirect-refusing `HTTPFetcher`, is the
+		/// conformer this package ships - portable everywhere, unlike a
+		/// platform system resolver. Pass a platform-specific `DNSTXTFetcher`
+		/// to use one instead.
+		public init(txtFetcher: any DNSTXTFetcher) {
 			self.txtFetcher = txtFetcher
 		}
 

@@ -8,6 +8,7 @@
 import AtprotoClient
 import AtprotoTypes
 import Foundation
+import GermConvenienceURLSession
 import Testing
 
 #if canImport(FoundationNetworking)

@@ -9,10 +9,6 @@ import GermConvenience
 import GermConvenienceHTTP
 import HTTPTypes
 
-#if canImport(FoundationNetworking)
-	import FoundationNetworking
-#endif
-
 extension Atproto {
 	/// Resolves a did:plc identifier by fetching `https://plc.directory/<did>`.
 	///
@@ -23,18 +19,18 @@ extension Atproto {
 		static let acceptHeader = "application/did+ld+json,application/json"
 
 		let directory: URL
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
 		/// `directory` must be a bare `https` origin — no path, query,
 		/// fragment, or userinfo. Anything else (a trailing slash, most
 		/// easily) silently breaks URL construction and turns every
 		/// resolution into a `nil`, so it's rejected here instead. `fetcher`
-		/// defaults to a redirect-refusing session, for the same reason
-		/// `DidWebResolver` refuses one — a followed redirect would bypass
-		/// identifier validation, which only runs once, before the request.
+		/// must refuse redirects, which the type requires, for the same reason
+		/// `DidWebResolver` does — a followed redirect would bypass identifier
+		/// validation, which only runs once, before the request.
 		public init(
 			directory: URL = Self.defaultDirectory,
-			fetcher: any HTTPFetcher = URLSession.manualRedirect()
+			fetcher: any RedirectRefusingHTTPFetcher
 		) throws {
 			guard
 				let components = URLComponents(

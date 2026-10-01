@@ -9,10 +9,6 @@ import GermConvenience
 import GermConvenienceHTTP
 import HTTPTypes
 
-#if canImport(FoundationNetworking)
-	import FoundationNetworking
-#endif
-
 extension Atproto {
 	/// Resolves an atproto handle by fetching
 	/// `https://<handle>/.well-known/atproto-did`, as specified at
@@ -33,12 +29,12 @@ extension Atproto {
 		/// buffered beforehand.
 		static let maxBodySize = 8192
 
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
-		/// Defaults to a redirect-refusing session, for the same reason
-		/// `DidWebResolver` refuses one - the handle is already validated, but
-		/// a followed redirect would fetch a second, unvalidated host.
-		public init(fetcher: any HTTPFetcher = URLSession.manualRedirect()) {
+		/// `fetcher` must refuse redirects, which the type requires, for the same
+		/// reason `DidWebResolver` does - the handle is already validated, but a
+		/// followed redirect would fetch a second, unvalidated host.
+		public init(fetcher: any RedirectRefusingHTTPFetcher) {
 			self.fetcher = fetcher
 		}
 
