@@ -24,9 +24,10 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.11.0: manualRedirect() also refuses redirects on Linux/Android, which the
-			// DID/handle resolvers' one-time host screening depends on.
-			from: "0.11.0"
+			// 0.13.0: the URLSession conformers moved out of GermConvenienceHTTP into
+			// GermConvenienceURLSession, so the portable targets here no longer
+			// reach URLSession.
+			from: "0.13.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
@@ -64,6 +65,7 @@ let package = Package(
 			dependencies: [
 				"AtprotoClient", "AtprotoClientMocks",
 				.product(name: "GermConvenienceHTTP", package: "GermConvenience"),
+				.product(name: "GermConvenienceURLSession", package: "GermConvenience"),
 			]
 		),
 	]
