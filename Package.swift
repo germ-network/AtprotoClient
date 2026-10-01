@@ -24,10 +24,11 @@ let package = Package(
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.13.0: the URLSession conformers moved out of GermConvenienceHTTP into
-			// GermConvenienceURLSession, so the portable targets here no longer
-			// reach URLSession.
-			from: "0.13.0"
+			// 0.14.0: RedirectRefusingHTTPFetcher, required by the resolvers that
+			// screen a host once before fetching. 0.13.0 moved the URLSession
+			// conformers into GermConvenienceURLSession, so the portable targets
+			// here no longer reach URLSession.
+			from: "0.14.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",

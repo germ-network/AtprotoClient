@@ -19,18 +19,18 @@ extension Atproto {
 		static let acceptHeader = "application/did+ld+json,application/json"
 
 		let directory: URL
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
 		/// `directory` must be a bare `https` origin — no path, query,
 		/// fragment, or userinfo. Anything else (a trailing slash, most
 		/// easily) silently breaks URL construction and turns every
 		/// resolution into a `nil`, so it's rejected here instead. `fetcher`
-		/// must refuse redirects, for the same reason `DidWebResolver` does — a
-		/// followed redirect would bypass identifier validation, which only runs
-		/// once, before the request.
+		/// must refuse redirects, which the type requires, for the same reason
+		/// `DidWebResolver` does — a followed redirect would bypass identifier
+		/// validation, which only runs once, before the request.
 		public init(
 			directory: URL = Self.defaultDirectory,
-			fetcher: any HTTPFetcher
+			fetcher: any RedirectRefusingHTTPFetcher
 		) throws {
 			guard
 				let components = URLComponents(

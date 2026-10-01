@@ -7,8 +7,9 @@ import Foundation
 import GermConvenience
 import GermConvenienceHTTP
 
-/// A canned-response `HTTPFetcher`, for anything built on the seam.
-public struct StubHTTPFetcher: HTTPFetcher, Sendable {
+/// A canned-response `HTTPFetcher`, for anything built on the seam. It only
+/// returns what it's given, so it never follows a redirect.
+public struct StubHTTPFetcher: RedirectRefusingHTTPFetcher, Sendable {
 	private let handler: @Sendable (BundledHTTPRequest) throws -> HTTPDataResponse
 
 	public init(

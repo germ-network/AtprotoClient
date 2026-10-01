@@ -29,12 +29,12 @@ extension Atproto {
 		/// buffered beforehand.
 		static let maxBodySize = 8192
 
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
-		/// `fetcher` must refuse redirects, for the same reason `DidWebResolver`
-		/// does - the handle is already validated, but a followed redirect would
-		/// fetch a second, unvalidated host.
-		public init(fetcher: any HTTPFetcher) {
+		/// `fetcher` must refuse redirects, which the type requires, for the same
+		/// reason `DidWebResolver` does - the handle is already validated, but a
+		/// followed redirect would fetch a second, unvalidated host.
+		public init(fetcher: any RedirectRefusingHTTPFetcher) {
 			self.fetcher = fetcher
 		}
 

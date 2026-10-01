@@ -22,13 +22,12 @@ extension Atproto {
 		static let wellKnownPath = "/.well-known/did.json"
 		static let acceptHeader = "application/did+ld+json,application/json"
 
-		let fetcher: any HTTPFetcher
+		let fetcher: any RedirectRefusingHTTPFetcher
 
-		/// `fetcher` must refuse redirects — do not pass a redirect-following
-		/// fetcher in production. Host screening runs once, before the request;
-		/// a followed redirect bypasses it, and nothing downstream can detect
-		/// that after the fact.
-		public init(fetcher: any HTTPFetcher) {
+		/// `fetcher` must refuse redirects, which the type requires. Host
+		/// screening runs once, before the request; a followed redirect bypasses
+		/// it, and nothing downstream can detect that after the fact.
+		public init(fetcher: any RedirectRefusingHTTPFetcher) {
 			self.fetcher = fetcher
 		}
 
