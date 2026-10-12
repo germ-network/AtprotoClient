@@ -67,6 +67,30 @@ extension Atproto.XRPC.AuthCallable {
 		)
 	}
 
+	/// `swap: .absent` asks the PDS to write only if no record exists at the key (the
+	/// reference PDS's reading of `swapRecord: null`; see `Atproto.RecordSwap`).
+	public func putRecord<R: Atproto.Record>(
+		_ record: R,
+		validate: Bool? = nil,
+		swapCommit: Atproto.CID? = nil,
+		swap: Atproto.RecordSwap?,
+	) async throws -> Lexicon.Com.Atproto.Repo.PutRecord<R>.Output
+	where R.Key: Atproto.DefaultableRecordKey {
+		try await call(
+			Lexicon.Com.Atproto.Repo.PutRecord<R>.self,
+			input: .init(
+				schema: .init(
+					repo: .did(did),
+					rkey: .defaultValue(),
+					record: record,
+					validate: validate,
+					swapCommit: swapCommit,
+					swap: swap
+				)
+			),
+		)
+	}
+
 	public func deleteRecord<R: Atproto.Record>(
 		//allows for type inference when clear and explicit defn when not
 		_: R.Type = R.self,
