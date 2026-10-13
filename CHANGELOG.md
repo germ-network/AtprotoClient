@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.13.0
+
+### Minor Changes
+
+- [#65](https://github.com/germ-network/AtprotoClient/pull/65) [`0bc4f56`](https://github.com/germ-network/AtprotoClient/commit/0bc4f563e2c22e92113a9545c921cd232588d610) Thanks [@germ-mark](https://github.com/germ-mark)! - Add `AuthCallable.putRecord(_:validate:swapCommit:swap:)` taking an `Atproto.RecordSwap?`, so a record can be written only if none exists (`.absent` sends `swapRecord: null`) or only over a specific CID. Requires the AtprotoTypes release that adds `RecordSwap`.
+
 ## 0.12.0
 
 ### Minor Changes
