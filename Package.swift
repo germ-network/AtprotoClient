@@ -17,10 +17,8 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			// Temporary revision pin to the swift-crypto-5 commit
-			// (germ-network/AtprotoTypes#69); replace with the released version
-			// once it cuts.
-			from: "0.7.0"
+			// 0.8.0: Atproto.RecordSwap, for putRecord's explicit-null swapRecord.
+			from: "0.8.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
