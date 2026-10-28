@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.14.0
+
+### Minor Changes
+
+- [#67](https://github.com/germ-network/AtprotoClient/pull/67) [`b183184`](https://github.com/germ-network/AtprotoClient/commit/b1831844e4c0e0773e09e3c2dc801b9a99d6fc71) Thanks [@germ-mark](https://github.com/germ-mark)! - Adopt Swift naming conventions in XRPC query parameters, CID string access, and optional unwrapping. Pin AtprotoTypes to the merged API update and GermConvenience to 0.15.0. See the upstream dependency changesets for the new names and compatibility period.
+
 ## 0.13.0
 
 ### Minor Changes
