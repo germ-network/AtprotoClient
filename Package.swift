@@ -17,7 +17,8 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			revision: "16d75d5888225701a8e568d110ae640c3b6e1eef"
+			// 0.11.0 includes the Swift API naming updates.
+			from: "0.11.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
@@ -59,7 +60,9 @@ let package = Package(
 			dependencies: [
 				"AtprotoClient", "AtprotoClientMocks",
 				.product(name: "GermConvenienceHTTP", package: "GermConvenience"),
-				.product(name: "GermConvenienceURLSession", package: "GermConvenience"),
+				.product(
+					name: "GermConvenienceURLSession",
+					package: "GermConvenience"),
 			]
 		),
 	]
