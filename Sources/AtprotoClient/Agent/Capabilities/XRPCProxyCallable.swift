@@ -21,7 +21,7 @@ extension Atproto.XRPC.ProxyCallable {
 	) async throws -> X.Output {
 		var request = try constructRequest(request, parameters: parameters)
 
-		request.headers[try .atprotoProxy.tryUnwrap] = proxy.headerValue
+		request.headers[try .atprotoProxy.unwrapped] = proxy.headerValue
 
 		return try await response(request)
 			.parse(X.self)
@@ -39,7 +39,7 @@ extension Atproto.XRPC.ProxyCallable {
 			input: input
 		)
 
-		request.headers[try .atprotoProxy.tryUnwrap] = proxy.headerValue
+		request.headers[try .atprotoProxy.unwrapped] = proxy.headerValue
 
 		return try await response(request)
 			.parse(X.self)

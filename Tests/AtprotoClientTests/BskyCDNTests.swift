@@ -23,7 +23,7 @@ import Testing
 
 		#expect(
 			url.absoluteString
-				== "https://cdn.bsky.app/img/avatar/plain/\(did.rawValue)/\(cid.string)@jpeg"
+				== "https://cdn.bsky.app/img/avatar/plain/\(did.rawValue)/\(cid.rawValue)@jpeg"
 		)
 	}
 
@@ -38,7 +38,7 @@ import Testing
 
 		#expect(
 			url.absoluteString
-				== "https://cdn.example.net/img/banner/plain/\(did.rawValue)/\(cid.string)@jpeg"
+				== "https://cdn.example.net/img/banner/plain/\(did.rawValue)/\(cid.rawValue)@jpeg"
 		)
 	}
 
@@ -72,7 +72,7 @@ import Testing
 
 		#expect(
 			url.absoluteString
-				== "https://cdn.bsky.app/img/avatar/plain/\(did.rawValue)/\(cid.string)@jpeg"
+				== "https://cdn.bsky.app/img/avatar/plain/\(did.rawValue)/\(cid.rawValue)@jpeg"
 		)
 	}
 
@@ -85,7 +85,7 @@ import Testing
 
 		#expect(did.rawValue.contains("@"))
 		let pathAfterDID = url.absoluteString.components(separatedBy: "/").last ?? ""
-		#expect(pathAfterDID == "\(cid.string)@jpeg")
+		#expect(pathAfterDID == "\(cid.rawValue)@jpeg")
 		#expect(url.absoluteString.contains("%40"))
 	}
 

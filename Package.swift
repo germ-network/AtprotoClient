@@ -17,16 +17,12 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			// 0.8.0: Atproto.RecordSwap, for putRecord's explicit-null swapRecord.
-			from: "0.8.0"
+			// 0.11.0 includes the Swift API naming updates.
+			from: "0.11.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.14.0: RedirectRefusingHTTPFetcher, required by the resolvers that
-			// screen a host once before fetching. 0.13.0 moved the URLSession
-			// conformers into GermConvenienceURLSession, so the portable targets
-			// here no longer reach URLSession.
-			from: "0.14.0"
+			from: "0.15.0"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
@@ -64,7 +60,9 @@ let package = Package(
 			dependencies: [
 				"AtprotoClient", "AtprotoClientMocks",
 				.product(name: "GermConvenienceHTTP", package: "GermConvenience"),
-				.product(name: "GermConvenienceURLSession", package: "GermConvenience"),
+				.product(
+					name: "GermConvenienceURLSession",
+					package: "GermConvenience"),
 			]
 		),
 	]

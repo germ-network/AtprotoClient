@@ -53,7 +53,7 @@ extension Atproto.XRPC.Callable {
 
 		return .init(
 			relativePath: "/xrpc/" + X.Id.nsid.rawValue,
-			queryItems: queryParams.asQueryItems(),
+			queryItems: queryParams.queryItems,
 			headers: headerFields,
 			method: .post,
 			body: try X.Input.encode(input.schema)

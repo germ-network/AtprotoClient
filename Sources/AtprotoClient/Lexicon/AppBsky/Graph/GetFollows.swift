@@ -54,7 +54,7 @@ extension Lexicon.App.Bsky.Graph {
 				}
 			}
 
-			public func asQueryItems() -> [URLQueryItem] {
+			public var queryItems: [URLQueryItem] {
 				var base: [URLQueryItem] = [
 					.init(name: "actor", value: actor.rawValue)
 				]

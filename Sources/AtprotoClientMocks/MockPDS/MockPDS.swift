@@ -20,7 +20,7 @@ public actor MockPDS {
 	public init() throws {
 		self.serviceUrl = try URL(
 			string: "https://\(UUID().uuidString).example.com"
-		).tryUnwrap
+		).unwrapped
 	}
 
 	public func host(
@@ -68,12 +68,12 @@ public actor MockPDS {
 		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
-		let requestUrl = try request.request.url.tryUnwrap
+		let requestUrl = try request.request.url.unwrapped
 
 		let components = try URLComponents(
 			url: requestUrl,
 			resolvingAgainstBaseURL: false
-		).tryUnwrap
+		).unwrapped
 
 		let pathComponents = requestUrl.pathComponents
 
@@ -113,7 +113,7 @@ public actor MockPDS {
 			}
 
 			return try await createRecord(
-				authedDid: authedDid, bodyData: body.tryUnwrap
+				authedDid: authedDid, bodyData: body.unwrapped
 			)
 
 		case Lexicon.Com.Atproto.Repo.PutRecordNSID.nsid:
@@ -122,7 +122,7 @@ public actor MockPDS {
 			}
 
 			return try await putRecord(
-				authedDid: authedDid, bodyData: body.tryUnwrap
+				authedDid: authedDid, bodyData: body.unwrapped
 			)
 
 		case Lexicon.Com.Atproto.Repo.DeleteRecordNSID.nsid:
@@ -131,7 +131,7 @@ public actor MockPDS {
 			}
 
 			return try await deleteRecord(
-				authedDid: authedDid, bodyData: body.tryUnwrap
+				authedDid: authedDid, bodyData: body.unwrapped
 			)
 		default:
 			return try .mock(error: "InvalidRequest", status: 400)
@@ -178,9 +178,9 @@ public actor MockPDS {
 	public func getRecord(
 		queryItems: [URLQueryItem]?,
 	) async throws -> HTTPDataResponse {
-		let repoParam = try (queryItems?["repo"]).tryUnwrap
-		let collection = try (queryItems?["collection"]).tryUnwrap
-		let encodedRkey = try (queryItems?["rkey"]).tryUnwrap
+		let repoParam = try (queryItems?["repo"]).unwrapped
+		let collection = try (queryItems?["collection"]).unwrapped
+		let encodedRkey = try (queryItems?["rkey"]).unwrapped
 		let cid = queryItems?["cid"]
 		let typedCid: Atproto.CID? = try {
 			guard let cid else {
@@ -210,7 +210,7 @@ public actor MockPDS {
 					error: "InvalidRequest",
 					message: failure.bodyString ?? "Mock Error"
 				),
-				status: .init(code: failure.code)
+				status: .init(code: failure.statusCode)
 			)
 		}
 	}
@@ -218,8 +218,8 @@ public actor MockPDS {
 	private func listRecords(
 		queryItems: [URLQueryItem]?
 	) async throws -> HTTPDataResponse {
-		let repoParam = try (queryItems?["repo"]).tryUnwrap
-		let collection = try (queryItems?["collection"]).tryUnwrap
+		let repoParam = try (queryItems?["repo"]).unwrapped
+		let collection = try (queryItems?["collection"]).unwrapped
 		let limit = queryItems?["limit"]
 		let cursor = queryItems?["cursor"]
 		let reverse = queryItems?["reverse"]
@@ -265,7 +265,7 @@ public actor MockPDS {
 
 		//hacky, but type-erases the record type
 		let input = try JSONSerialization.jsonObject(with: bodyData)
-		let inputDict = try (input as? [String: Any]).tryUnwrap
+		let inputDict = try (input as? [String: Any]).unwrapped
 
 		//The lexicon's optional rkey is deliberately NOT modeled. Honoring it
 		//without also modeling the already-exists failure would just be putRecord
@@ -286,7 +286,7 @@ public actor MockPDS {
 
 		let encodedRecord =
 			try JSONSerialization
-			.data(withJSONObject: inputDict["record"].tryUnwrap)
+			.data(withJSONObject: inputDict["record"].unwrapped)
 
 		try await repo.createRecord(
 			collection: protoSchema.collection,
@@ -302,7 +302,7 @@ public actor MockPDS {
 					collection: protoSchema.collection,
 					rkey: rkey
 				),
-				cid: Atproto.CID.mock().string,
+				cid: Atproto.CID.mock().rawValue,
 				commit: try .mock(),
 				validationStatus: .valid
 			)
@@ -329,12 +329,12 @@ public actor MockPDS {
 
 		//hacky, but type-erases the record type
 		let input = try JSONSerialization.jsonObject(with: bodyData)
-		let inputDict = try (input as? [String: Any]).tryUnwrap
-		let inputRkey = try (inputDict["rkey"] as? String).tryUnwrap
+		let inputDict = try (input as? [String: Any]).unwrapped
+		let inputRkey = try (inputDict["rkey"] as? String).unwrapped
 
 		let encodedRecord =
 			try JSONSerialization
-			.data(withJSONObject: inputDict["record"].tryUnwrap)
+			.data(withJSONObject: inputDict["record"].unwrapped)
 
 		try await repo.putRecord(
 			collection: protoSchema.collection,
@@ -348,7 +348,7 @@ public actor MockPDS {
 					collection: protoSchema.collection,
 					rkey: inputRkey
 				),
-				cid: Atproto.CID.mock().string,
+				cid: Atproto.CID.mock().rawValue,
 				commit: try .mock(),
 				validationStatus: .valid
 			)
@@ -436,13 +436,13 @@ extension MockPDS {
 	public func getGraph(did: Atproto.DID) async throws -> (
 		[Lexicon.App.Bsky.Graph.Follow], [Lexicon.App.Bsky.Graph.Block]
 	) {
-		try await repos[did].tryUnwrap
+		try await repos[did].unwrapped
 			.getGraph()
 	}
 
 	public func getBskyProfile(did: Atproto.DID) async throws -> Lexicon.App.Bsky.Actor.Profile?
 	{
-		try await repos[did].tryUnwrap
+		try await repos[did].unwrapped
 			.getTypedRecord(
 				collection: Lexicon.App.Bsky.Actor.Profile.Collection.nsid,
 				encodedRkey: "self",
@@ -453,19 +453,19 @@ extension MockPDS {
 
 	public func follow(did: Atproto.DID, from viewer: Atproto.DID) async throws {
 		try await repos[viewer]
-			.tryUnwrap
+			.unwrapped
 			.follow(did: did)
 	}
 
 	public func block(did: Atproto.DID, from viewer: Atproto.DID) async throws {
 		try await repos[viewer]
-			.tryUnwrap
+			.unwrapped
 			.block(did: did)
 	}
 
 	public func unfollow(did: Atproto.DID, from viewer: Atproto.DID) async throws {
 		try await repos[viewer]
-			.tryUnwrap
+			.unwrapped
 			.unfollow(did: did)
 	}
 }

@@ -33,7 +33,7 @@ extension Lexicon.App.Bsky.Actor {
 				self.actor = actor
 			}
 
-			public func asQueryItems() -> [URLQueryItem] {
+			public var queryItems: [URLQueryItem] {
 				[.init(name: "actor", value: actor.rawValue)]
 			}
 		}
