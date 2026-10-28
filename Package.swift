@@ -17,16 +17,11 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			// 0.8.0: Atproto.RecordSwap, for putRecord's explicit-null swapRecord.
-			from: "0.8.0"
+			branch: "mark/api-guidelines-atprototypes"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			// 0.14.0: RedirectRefusingHTTPFetcher, required by the resolvers that
-			// screen a host once before fetching. 0.13.0 moved the URLSession
-			// conformers into GermConvenienceURLSession, so the portable targets
-			// here no longer reach URLSession.
-			from: "0.14.0"
+			branch: "mark/ger-3167-germconvenience"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",

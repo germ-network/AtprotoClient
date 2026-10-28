@@ -51,7 +51,7 @@ extension Lexicon.App.Bsky.Graph {
 				}
 			}
 
-			public func asQueryItems() -> [URLQueryItem] {
+			public var queryItems: [URLQueryItem] {
 				var base: [URLQueryItem] = []
 				if let limit {
 					base.append(.init(name: "limit", value: limit.description))

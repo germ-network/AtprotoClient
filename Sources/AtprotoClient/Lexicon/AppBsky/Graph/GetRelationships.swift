@@ -43,7 +43,7 @@ extension Lexicon.App.Bsky.Graph {
 				self.others = others
 			}
 
-			public func asQueryItems() -> [URLQueryItem] {
+			public var queryItems: [URLQueryItem] {
 				[URLQueryItem(name: "actor", value: actor.rawValue)]
 					+ (others ?? [])
 					.map {

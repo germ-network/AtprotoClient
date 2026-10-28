@@ -61,8 +61,8 @@ struct PutRecordSwapTests {
 	func recordSwapSendsCidSwapRecord() async throws {
 		let cid = try Atproto.CID(string: Self.cidString)
 		let body = try await sentBody(swap: .record(cid), swapCommit: cid)
-		#expect(body["swapRecord"] as? String == cid.string)
-		#expect(body["swapCommit"] as? String == cid.string)
+		#expect(body["swapRecord"] as? String == cid.rawValue)
+		#expect(body["swapCommit"] as? String == cid.rawValue)
 	}
 
 	@Test

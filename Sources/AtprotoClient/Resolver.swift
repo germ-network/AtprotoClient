@@ -38,7 +38,7 @@ extension Atproto.Resolver {
 		}
 
 		//if a did doc doesn't resolve it's an error
-		return try await resolve(did: did).tryUnwrap
+		return try await resolve(did: did).unwrapped
 			.verified(expecting: handle, did: did)
 	}
 
@@ -52,7 +52,7 @@ extension Atproto.Resolver {
 			try await resolve(did: did)?
 				.verified { unverifiedHandle in
 					try await resolve(handle: unverifiedHandle)
-						.tryUnwrap
+						.unwrapped
 				}
 		}
 	}

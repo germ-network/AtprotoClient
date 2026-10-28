@@ -53,7 +53,7 @@ extension Atproto {
 			// set through `percentEncodedPath` instead, on an already-escaped
 			// string.
 			built.percentEncodedPath =
-				"/img/\(kind.rawValue)/plain/\(try Self.pathSegment(did.rawValue))/\(try Self.pathSegment(blob.ref.link.string))@jpeg"
+				"/img/\(kind.rawValue)/plain/\(try Self.pathSegment(did.rawValue))/\(try Self.pathSegment(blob.ref.link.rawValue))@jpeg"
 			guard let url = built.url else {
 				throw Errors.invalidHost
 			}

@@ -37,7 +37,7 @@ public struct XRPCRequestComponents: Sendable {
 		var components = try URLComponents(
 			url: serviceUrl,
 			resolvingAgainstBaseURL: false
-		).tryUnwrap
+		).unwrapped
 
 		//xrpc path must be top-level, not below a prefix
 		//https://atproto.com/specs/xrpc
@@ -47,7 +47,7 @@ public struct XRPCRequestComponents: Sendable {
 
 		return try .init(
 			method: method,
-			url: components.url.tryUnwrap,
+			url: components.url.unwrapped,
 			headerFields: headers,
 			body: body
 		)

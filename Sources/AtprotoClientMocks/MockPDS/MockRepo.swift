@@ -96,7 +96,7 @@ extension MockRepo {
 			return nil
 		}
 
-		let anyType = try dict["value"].tryUnwrap
+		let anyType = try dict["value"].unwrapped
 		let encoded = try JSONSerialization.data(withJSONObject: anyType, options: [])
 
 		return try JSONDecoder().decode(R.self, from: encoded)
@@ -116,7 +116,7 @@ extension MockRepo {
 
 		return [
 			"uri": recordUri(collection: collection, rkey: encodedRkey),
-			"cid": Atproto.CID.mock().string,
+			"cid": Atproto.CID.mock().rawValue,
 			"value": try JSONSerialization.jsonObject(with: record),
 		]
 	}
@@ -188,7 +188,7 @@ extension MockRepo {
 				.map { (key, encodedRecord) in
 					[
 						"uri": recordUri(collection: collection, rkey: key),
-						"cid": Atproto.CID.mock().string,
+						"cid": Atproto.CID.mock().rawValue,
 						"value":
 							try JSONSerialization
 							.jsonObject(with: encodedRecord),

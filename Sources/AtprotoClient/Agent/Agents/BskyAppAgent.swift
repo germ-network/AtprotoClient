@@ -32,14 +32,14 @@ public struct BskyAppViewAgent {
 
 	public static func blackskyAppView(resourceFetcher: HTTPFetcher) throws -> Self {
 		try .init(
-			serviceUrl: try URL(string: "https://api.blacksky.community").tryUnwrap,
+			serviceUrl: try URL(string: "https://api.blacksky.community").unwrapped,
 			resourceFetcher: resourceFetcher
 		)
 	}
 
 	public static func blueskyAppView(resourceFetcher: HTTPFetcher) throws -> Self {
 		try .init(
-			serviceUrl: try URL(string: "https://public.api.bsky.app").tryUnwrap,
+			serviceUrl: try URL(string: "https://public.api.bsky.app").unwrapped,
 			resourceFetcher: resourceFetcher
 		)
 	}
