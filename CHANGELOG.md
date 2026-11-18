@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.14.1
+
+### Patch Changes
+
+- [#69](https://github.com/germ-network/AtprotoClient/pull/69) [`eada7cc`](https://github.com/germ-network/AtprotoClient/commit/eada7cc948de59a46aa78d27157cea710b090c86) Thanks [@anna-germ](https://github.com/anna-germ)! - `callExpectingOptional` reads a 404 whose body names one of the endpoint's not-found codes as nil, as it already did for a 400. tranquil PDSes answer a missing record with `404 RecordNotFound`, which surfaced as `.unrecognized(404)`.
+
 ## 0.14.0
 
 ### Minor Changes
