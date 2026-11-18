@@ -18,7 +18,7 @@ let package = Package(
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
 			// 0.11.0 includes the Swift API naming updates.
-			from: "0.11.0"
+			from: "0.12.0"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
