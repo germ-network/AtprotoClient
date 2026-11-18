@@ -8,7 +8,6 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
-import GermConvenienceHTTP
 
 extension Atproto.XRPC.Callable {
 	public func call<X: Atproto.XRPC.Request>(

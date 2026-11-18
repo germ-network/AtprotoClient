@@ -17,7 +17,8 @@ let package = Package(
 	dependencies: [
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
-			from: "0.4.6"
+			// 0.5.3 types a 404 not-found on optional-result requests.
+			from: "0.5.3"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
