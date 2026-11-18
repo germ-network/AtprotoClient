@@ -34,7 +34,7 @@ struct NotFoundStatusTests {
 		try await agent.callExpectingOptional(
 			Lexicon.Com.Atproto.Repo.GetRecord<Lexicon.App.Bsky.Graph.Block>.self,
 			parameters: .init(
-				repo: .did(try .init(string: "did:plc:4yrypf6iqj2bdgrp7s47o5ns")),
+				repo: .did(try .init(string: "did:plc:4yvwfwxfz5sney4twepuzdu7")),
 				rkey: try .init(string: "3jzfcijpj2z2a"),
 				cid: nil
 			)
