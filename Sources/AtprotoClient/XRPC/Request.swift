@@ -59,7 +59,11 @@ extension Atproto.XRPC.Callable {
 			where X.notFoundCodes.contains(errorObject.error)
 		{
 			return nil
+		} catch Atproto.XRPC.ParseError.xrpcError(
+			status: .notFound,
+			error: let errorObject
+		) where X.notFoundCodes.contains(errorObject.error) {
+			return nil
 		}
-
 	}
 }

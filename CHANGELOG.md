@@ -1,5 +1,11 @@
 # @germ-network/atprotoclient
 
+## 0.8.1
+
+### Patch Changes
+
+- Backport of [#69](https://github.com/germ-network/AtprotoClient/pull/69) (`eada7cc`, released in 0.14.1) for consumers still on 0.8.x. `callExpectingOptional` reads a 404 whose body names one of the endpoint's not-found codes as nil, as it already did for a 400. tranquil PDSes answer a missing record with `404 RecordNotFound`, which surfaced as `.unrecognized(404)`. Needs AtprotoTypes 0.5.3, which types that 404.
+
 ## 0.8.0
 
 ### Minor Changes
