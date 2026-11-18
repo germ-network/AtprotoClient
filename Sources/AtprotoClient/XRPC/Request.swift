@@ -8,6 +8,7 @@
 import AtprotoTypes
 import Foundation
 import GermConvenience
+import GermConvenienceHTTP
 
 extension Atproto.XRPC.Callable {
 	public func call<X: Atproto.XRPC.Request>(
@@ -49,6 +50,7 @@ extension Atproto.XRPC.Callable {
 		)
 
 		let responseBody = try await response(request)
+		if isNotFound(responseBody, X.self) { return nil }
 
 		do {
 			return try responseBody.parse(X.self)
@@ -61,5 +63,19 @@ extension Atproto.XRPC.Callable {
 			return nil
 		}
 
+	}
+
+	/// A 404 naming one of the endpoint's not-found codes. The reference PDS
+	/// answers a miss with a 400, which `parse` types; other PDSes, such as
+	/// tranquil, answer `404 {"error":"RecordNotFound"}`, which `parse` reports as
+	/// `.unrecognized` with the body dropped.
+	private func isNotFound<X: Atproto.XRPC.OptionalResultRequest>(
+		_ responseBody: HTTPDataResponse, _: X.Type
+	) -> Bool {
+		guard responseBody.response.status == .notFound,
+			let errorObject = try? JSONDecoder().decode(
+				Atproto.XRPC.ErrorResponse.self, from: responseBody.data)
+		else { return false }
+		return X.notFoundCodes.contains(errorObject.error)
 	}
 }
