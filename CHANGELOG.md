@@ -1,5 +1,13 @@
 # @germ-network/atprotoclient
 
+## 0.14.2
+
+### Patch Changes
+
+- [#72](https://github.com/germ-network/AtprotoClient/pull/72) [`1099735`](https://github.com/germ-network/AtprotoClient/commit/1099735fda538b1bdb4fa3f3c09164aa8805c702) Thanks [@ThisIsMissEm](https://github.com/ThisIsMissEm)! - Bump minimum iOS version to 18
+
+  This matches the minimum iOS version used by oauth4swift, which this package depends on.
+
 ## 0.14.1
 
 ### Patch Changes
