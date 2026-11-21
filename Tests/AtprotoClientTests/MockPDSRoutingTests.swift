@@ -41,7 +41,8 @@ struct MockPDSRoutingTests {
 
 		var components = try #require(
 			URLComponents(
-				url: pds.serviceUrl.appending(path: "xrpc/com.atproto.repo.getRecord"),
+				url: pds.serviceUrl.appending(
+					path: "xrpc/com.atproto.repo.getRecord"),
 				resolvingAgainstBaseURL: false
 			)
 		)

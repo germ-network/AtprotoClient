@@ -144,11 +144,14 @@ struct MockASTests {
 			)
 		)
 		#expect(
-			try !authorizationServer.handles(.init(url: issuer.appending(path: "xrpc/x")))
+			try !authorizationServer.handles(
+				.init(url: issuer.appending(path: "xrpc/x")))
 		)
 		#expect(
 			try !authorizationServer.handles(
-				.init(url: try #require(URL(string: "https://other.example.com/oauth/par")))
+				.init(
+					url: try #require(
+						URL(string: "https://other.example.com/oauth/par")))
 			)
 		)
 	}
