@@ -54,7 +54,7 @@ public struct MockAS: Sendable {
 	/// Pass a PDS's `serviceUrl` to model a PDS that is its own authorization
 	/// server. By default the service is a new random host.
 	public init(serviceUrl: URL? = nil) throws {
-		let serviceUrl = try serviceUrl ?? Self.makeServiceUrl()
+		let serviceUrl = try serviceUrl ?? MockServiceUrl.random(subdomain: "auth")
 		let issuerUrl = try URL(string: serviceUrl.origin).unwrapped
 		self.serviceUrl = serviceUrl
 		self.issuerUrl = issuerUrl
@@ -79,10 +79,10 @@ public struct MockAS: Sendable {
 		return Endpoint.allCases.contains { url(for: $0).path() == path }
 	}
 
-	//lowercase, as `origin` normalizes hosts, so the issuer matches `serviceUrl`
-	private static func makeServiceUrl() throws -> URL {
-		try URL(string: "https://\(UUID().uuidString.lowercased()).auth.example.com")
-			.unwrapped
+	/// Answers a request this server `handles`, for a router that has the raw
+	/// request. Script responses and read back requests on `fetcher`.
+	public func response(for request: BundledHTTPRequest) async throws -> HTTPDataResponse {
+		try await fetcher.data(for: request)
 	}
 
 	//static, so init can build the metadata before every stored property is set

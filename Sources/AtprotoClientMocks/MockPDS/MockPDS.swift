@@ -31,7 +31,7 @@ public actor MockPDS {
 	/// issuer is `serviceUrl`, so the PDS also serves the authorization server
 	/// metadata and endpoints.
 	public init(recordNotFoundStatus: HTTPResponse.Status = .badRequest) throws {
-		let serviceUrl = try Self.makeServiceUrl()
+		let serviceUrl = try MockServiceUrl.random()
 		self.init(
 			serviceUrl: serviceUrl,
 			authorizationServer: try MockAS(serviceUrl: serviceUrl),
@@ -47,7 +47,7 @@ public actor MockPDS {
 		recordNotFoundStatus: HTTPResponse.Status = .badRequest
 	) throws -> MockPDS {
 		MockPDS(
-			serviceUrl: try makeServiceUrl(),
+			serviceUrl: try MockServiceUrl.random(),
 			authorizationServer: try entryway ?? MockAS(),
 			recordNotFoundStatus: recordNotFoundStatus
 		)
@@ -61,12 +61,6 @@ public actor MockPDS {
 		self.serviceUrl = serviceUrl
 		self.authorizationServer = authorizationServer
 		self.recordNotFoundStatus = recordNotFoundStatus
-	}
-
-	//lowercase, so a PDS that is its own authorization server has an issuer
-	//(an origin, which lowercases hosts) equal to its serviceUrl
-	private static func makeServiceUrl() throws -> URL {
-		try URL(string: "https://\(UUID().uuidString.lowercased()).example.com").unwrapped
 	}
 
 	public func host(
@@ -127,7 +121,7 @@ public actor MockPDS {
 		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
 		if try authorizationServer.handles(request) {
-			return try await authorizationServer.fetcher.data(for: request)
+			return try await authorizationServer.response(for: request)
 		}
 
 		let requestUrl = try request.request.url.unwrapped
