@@ -23,7 +23,9 @@ jobs:
     runs-on: macOS-26
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app
+      # Xcode 26.6 ships Swift 6.3, which AtprotoTypes' and oauth4swift's
+      # manifests require
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app
     strategy:
       matrix:
         destination:
@@ -43,7 +45,9 @@ jobs:
     runs-on: macOS-26
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app
+      # Xcode 26.6 ships Swift 6.3, which AtprotoTypes' and oauth4swift's
+      # manifests require
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app
     strategy:
       matrix:
         destination:
