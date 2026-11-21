@@ -1,13 +1,13 @@
 {
-  "originHash" : "113409bb63a1328e85a81998970978f23df30c919e32530b44a7dd47eff58c23",
+  "originHash" : "2922ebc817e8dbcec67abf9e0dc51732417158a9f44702e4bce3e49c80700a18",
   "pins" : [
     {
       "identity" : "atprototypes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/AtprotoTypes.git",
       "state" : {
-        "revision" : "c78c4887be7f7645f5a50974a09e71b536103c8e",
-        "version" : "0.12.0"
+        "branch" : "ci/repo-standard",
+        "revision" : "c81a084f2e46d00e32fbe53e96fdab4bb797a825"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/germ-network/GermConvenience.git",
       "state" : {
-        "revision" : "6f9f44970d38889a02e8c3b2e51d0261c67237e2",
-        "version" : "0.15.0"
+        "branch" : "add-always-responder-to-mockhttpfetcher",
+        "revision" : "5f76ef80903dd0d5c804ffe9f48dd5427fced3cf"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-asn1.git",
       "state" : {
-        "revision" : "d9a5b37470adc940d22c3bcd5ca6953a516b727f",
-        "version" : "1.7.2"
+        "revision" : "917b472dbe53ba699cbb0495f9a95a084bc6364d",
+        "version" : "1.7.4"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "a9d1d5ab8951ada40cafff8c8e2b551dfde4f390",
-        "version" : "5.0.0"
+        "revision" : "3280a5f72874d2f73bf25551bbb64f524c76d834",
+        "version" : "5.1.2"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log",
       "state" : {
-        "revision" : "9c6fb14227f55d8f711ce3847dc2f419fb0ecacb",
-        "version" : "1.15.1"
+        "revision" : "c7413d967b97aae67c46452bf7645bdb7b200e8e",
+        "version" : "1.17.2"
       }
     }
   ],
