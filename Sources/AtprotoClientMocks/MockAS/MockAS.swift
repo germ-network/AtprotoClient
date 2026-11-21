@@ -58,8 +58,8 @@ public struct MockAS: Sendable {
 		let issuerUrl = try URL(string: serviceUrl.origin).unwrapped
 		self.serviceUrl = serviceUrl
 		self.issuerUrl = issuerUrl
-		//registered at creation, so a test's own `always` for the metadata
-		//replaces it instead of being replaced by it
+		// registered at creation, so a test's own `always` for the metadata
+		// replaces it instead of being replaced by it
 		self.fetcher = MockHTTPFetcher([
 			.on(Endpoint.metadata.url(issuer: issuerUrl), method: .get)
 				.always(.success(.mock(json: try Self.metadata(issuer: issuerUrl))))
@@ -85,7 +85,7 @@ public struct MockAS: Sendable {
 		try await fetcher.data(for: request)
 	}
 
-	//static, so init can build the metadata before every stored property is set
+	// static, so init can build the metadata before every stored property is set
 	private static func metadata(issuer issuerUrl: URL) throws -> Data {
 		func absoluteUrlString(for endpoint: Endpoint) -> String {
 			endpoint.url(issuer: issuerUrl).absoluteString
