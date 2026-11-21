@@ -11,6 +11,8 @@ import Foundation
 import GermConvenience
 import GermConvenienceHTTP
 
+import struct HTTPTypes.HTTPResponse
+
 public actor MockRepo {
 	typealias EncodedRecordKey = String
 
@@ -124,7 +126,8 @@ extension MockRepo {
 	func getRecordResponse(
 		collection: Atproto.NSID,
 		encodedRkey: EncodedRecordKey,
-		cid: Atproto.CID?
+		cid: Atproto.CID?,
+		notFoundStatus: HTTPResponse.Status
 	) throws -> HTTPDataResponse {
 		let resultObject = try getAnyRecord(
 			collection: collection,
@@ -133,7 +136,7 @@ extension MockRepo {
 		)
 
 		guard let resultObject else {
-			return try .mock(error: "RecordNotFound", status: 400)
+			return try .mock(error: "RecordNotFound", status: notFoundStatus)
 		}
 		return .mock(
 			json: try JSONSerialization.data(withJSONObject: resultObject)
