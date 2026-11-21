@@ -7,6 +7,7 @@
 //
 
 import AtprotoClient
+import AtprotoClientMocks
 import AtprotoTypes
 import Foundation
 import GermConvenienceHTTP
@@ -73,5 +74,38 @@ struct NotFoundStatusTests {
 		await #expect(throws: Atproto.XRPC.ParseError.self) {
 			try await getRecord(from: agent)
 		}
+	}
+
+	@Test(
+		"a missing record on MockPDS reads back as nil under either status",
+		arguments: [HTTPResponse.Status.badRequest, .notFound]
+	)
+	func missingRecordOnMockPDSIsNil(status: HTTPResponse.Status) async throws {
+		let pds = try MockPDS(recordNotFoundStatus: status)
+		let did = Atproto.DID.mock()
+		let agent = try await pds.host(did: did)
+
+		let record = try await agent.getRecord(
+			Lexicon.App.Bsky.Graph.Block.self,
+			rkey: try .init(string: MockPDSFixture.chosenKey),
+			cid: nil
+		)
+		#expect(record == nil)
+
+		//and the PDS really sent the configured status, not just some miss
+		let raw = try await pds.response(
+			.init(
+				relativePath: "/xrpc/com.atproto.repo.getRecord",
+				queryItems: [
+					.init(name: "repo", value: did.rawValue),
+					.init(name: "collection", value: "app.bsky.graph.block"),
+					.init(name: "rkey", value: MockPDSFixture.chosenKey),
+				],
+				headers: [:],
+				method: .get
+			),
+			authedDid: nil
+		)
+		#expect(raw.response.status == status)
 	}
 }

@@ -12,15 +12,55 @@ import Foundation
 import GermConvenience
 import GermConvenienceHTTP
 
+import struct HTTPTypes.HTTPResponse
+
 public actor MockPDS {
 	public nonisolated let serviceUrl: URL
+	public nonisolated let authorizationServer: MockAS
+	/// What `getRecord` answers a missing record with. Implementations
+	/// disagree: the reference PDS sends 400, tranquil sends 404.
+	public nonisolated let recordNotFoundStatus: HTTPResponse.Status
+
+	public nonisolated var authorizationServerUrl: URL {
+		authorizationServer.issuerUrl
+	}
 
 	private var repos: [Atproto.DID: MockRepo] = [:]
 
-	public init() throws {
-		self.serviceUrl = try URL(
-			string: "https://\(UUID().uuidString).example.com"
-		).unwrapped
+	/// A PDS that is its own authorization server, as a self-hosted PDS is: the
+	/// issuer is `serviceUrl`, so the PDS also serves the authorization server
+	/// metadata and endpoints.
+	public init(recordNotFoundStatus: HTTPResponse.Status = .badRequest) throws {
+		let serviceUrl = try MockServiceUrl.random()
+		self.init(
+			serviceUrl: serviceUrl,
+			authorizationServer: try MockAS(serviceUrl: serviceUrl),
+			recordNotFoundStatus: recordNotFoundStatus
+		)
+	}
+
+	/// A PDS behind a separate authorization server on its own host. Pass a
+	/// shared `entryway` to put several PDSes behind one, as bsky.social does;
+	/// by default the PDS gets its own.
+	public static func withEntryway(
+		_ entryway: MockAS? = nil,
+		recordNotFoundStatus: HTTPResponse.Status = .badRequest
+	) throws -> MockPDS {
+		MockPDS(
+			serviceUrl: try MockServiceUrl.random(),
+			authorizationServer: try entryway ?? MockAS(),
+			recordNotFoundStatus: recordNotFoundStatus
+		)
+	}
+
+	private init(
+		serviceUrl: URL,
+		authorizationServer: MockAS,
+		recordNotFoundStatus: HTTPResponse.Status
+	) {
+		self.serviceUrl = serviceUrl
+		self.authorizationServer = authorizationServer
+		self.recordNotFoundStatus = recordNotFoundStatus
 	}
 
 	public func host(
@@ -67,7 +107,23 @@ public actor MockPDS {
 		_ requestComponents: XRPCRequestComponents,
 		authedDid: Atproto.DID?
 	) async throws -> HTTPDataResponse {
-		let request = try requestComponents.constructUrl(serviceUrl: serviceUrl)
+		try await response(
+			for: requestComponents.constructUrl(serviceUrl: serviceUrl),
+			authedDid: authedDid
+		)
+	}
+
+	/// Answers a request addressed to this PDS's host, for a router that already
+	/// has the raw request. A PDS that is its own authorization server also
+	/// answers the authorization server's endpoints.
+	public func response(
+		for request: BundledHTTPRequest,
+		authedDid: Atproto.DID?
+	) async throws -> HTTPDataResponse {
+		if try authorizationServer.handles(request) {
+			return try await authorizationServer.response(for: request)
+		}
+
 		let requestUrl = try request.request.url.unwrapped
 
 		let components = try URLComponents(
@@ -75,21 +131,22 @@ public actor MockPDS {
 			resolvingAgainstBaseURL: false
 		).unwrapped
 
-		let pathComponents = requestUrl.pathComponents
+		let path = requestUrl.path()
+		let xrpcPrefix = "/xrpc/"
 
-		switch pathComponents[1] {
-		case "xrpc":
+		if path.hasPrefix(xrpcPrefix) {
 			return try await handleXrpc(
-				xrpcNsid: .init(string: pathComponents[2]),
+				xrpcNsid: .init(string: String(path.dropFirst(xrpcPrefix.count))),
 				queryItems: components.queryItems,
-				body: requestComponents.body,
+				body: request.body,
 				authedDid: authedDid
 			)
-		case ".well-known":
-			return try await handleWellKnown(path: .init(pathComponents[2...]))
-		default:
-			return try .mock(error: "InvalidRequest", status: 400)
 		}
+		if path == "/.well-known/oauth-protected-resource" {
+			return .mock(json: try mockProtectedResourceMetadata)
+		}
+		//outside /xrpc/ there is no XRPC error envelope, just a plain 404
+		return .init(data: Data(), response: .init(status: .notFound))
 
 		//here is where a directory of types would be handy
 	}
@@ -138,42 +195,17 @@ public actor MockPDS {
 		}
 	}
 
-	private func handleWellKnown(path: [String]) async throws -> HTTPDataResponse {
-		guard let component = path.first, path.count == 1 else {
-			return try .mock(error: "InvalidRequest", status: 400)
-		}
-		switch component {
-		case "oauth-protected-resource":
-			return .init(
-				data: try mockProtectedResourceMetadata,
-				response: .init(status: .ok)
-			)
-		case "oauth-authorization-server":
-			return .init(
-				data: Self.mockAuthMetadata.utf8Data,
-				response: .init(status: .ok)
-			)
-		default:
-			return try .mock(error: "InvalidRequest", status: 400)
-		}
-	}
-
 	private var mockProtectedResourceMetadata: Data {
 		get throws {
 			try JSONSerialization.data(withJSONObject: [
 				"resource": serviceUrl.absoluteString,
-				"authorization_servers": [serviceUrl.absoluteString],
+				"authorization_servers": [authorizationServerUrl.absoluteString],
 				"scopes_supported": [],
 				"bearer_methods_supported": ["header"],
 				"resource_documentation": "https://atproto.com",
 			])
 		}
 	}
-
-	private static let mockAuthMetadata =
-		"""
-		{"issuer":"https://example.com","request_parameter_supported":true,"request_uri_parameter_supported":true,"require_request_uri_registration":true,"scopes_supported":["atproto","transition:email","transition:generic","transition:chat.bsky"],"subject_types_supported":["public"],"response_types_supported":["code"],"response_modes_supported":["query","fragment","form_post"],"grant_types_supported":["authorization_code","refresh_token"],"code_challenge_methods_supported":["S256"],"ui_locales_supported":["en-US"],"display_values_supported":["page","popup","touch"],"request_object_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512","none"],"authorization_response_iss_parameter_supported":true,"request_object_encryption_alg_values_supported":[],"request_object_encryption_enc_values_supported":[],"jwks_uri":"https://example.com/oauth/jwks","authorization_endpoint":"https://example.com/oauth/authorize","token_endpoint":"https://example.com/oauth/token","token_endpoint_auth_methods_supported":["none","private_key_jwt"],"token_endpoint_auth_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"revocation_endpoint":"https://example.com/oauth/revoke","pushed_authorization_request_endpoint":"https://example.com/oauth/par","require_pushed_authorization_requests":true,"dpop_signing_alg_values_supported":["RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"],"client_id_metadata_document_supported":true,"prompt_values_supported":["none","login","consent","select_account","create"]}
-		"""
 
 	public func getRecord(
 		queryItems: [URLQueryItem]?,
@@ -197,7 +229,8 @@ public actor MockPDS {
 			return try await repo.getRecordResponse(
 				collection: .init(string: collection),
 				encodedRkey: encodedRkey,
-				cid: typedCid
+				cid: typedCid,
+				notFoundStatus: recordNotFoundStatus
 			)
 			//GermConvenience 0.3.0 reports every failure as `.unsuccessful` and reads
 			//the body through `bodyString`; `.unsuccessfulString` is no longer thrown

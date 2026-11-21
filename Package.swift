@@ -18,11 +18,13 @@ let package = Package(
 		.package(
 			url: "https://github.com/germ-network/AtprotoTypes.git",
 			// 0.11.0 includes the Swift API naming updates.
-			from: "0.12.0"
+			// from: "0.12.0"
+			branch: "ci/repo-standard"
 		),
 		.package(
 			url: "https://github.com/germ-network/GermConvenience.git",
-			from: "0.15.0"
+			// from: "0.15.0"
+			branch: "add-always-responder-to-mockhttpfetcher"
 		),
 		.package(
 			url: "https://github.com/apple/swift-crypto.git",
@@ -51,6 +53,7 @@ let package = Package(
 				.product(name: "AtprotoTypesMocks", package: "AtprotoTypes"),
 				"GermConvenience",
 				.product(name: "GermConvenienceHTTP", package: "GermConvenience"),
+				.product(name: "GermConvenienceMocks", package: "GermConvenience"),
 				.product(name: "HTTPTypes", package: "swift-http-types"),
 				.product(name: "Mockable", package: "AtprotoTypes"),
 			]
@@ -60,6 +63,7 @@ let package = Package(
 			dependencies: [
 				"AtprotoClient", "AtprotoClientMocks",
 				.product(name: "GermConvenienceHTTP", package: "GermConvenience"),
+				.product(name: "GermConvenienceMocks", package: "GermConvenience"),
 				.product(
 					name: "GermConvenienceURLSession",
 					package: "GermConvenience"),
