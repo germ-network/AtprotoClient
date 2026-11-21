@@ -43,7 +43,8 @@ public struct XRPCRequestComponents: Sendable {
 		//https://atproto.com/specs/xrpc
 		//so we swap out the path wholesale
 		components.path = relativePath
-		components.queryItems = queryItems
+		//an empty array still appends a bare "?"
+		components.queryItems = queryItems.isEmpty ? nil : queryItems
 
 		return try .init(
 			method: method,
